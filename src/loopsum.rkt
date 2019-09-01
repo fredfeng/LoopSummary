@@ -1,6 +1,6 @@
 #lang racket
 
-(require "dsl-parser.rkt" racket/sandbox)
+(require "dsl-parser.rkt" "dsl-translate.rkt" racket/sandbox)
 
 (define dsl-file-loc (vector-ref (current-command-line-arguments) 0))
 ;;; (pretty-display dsl-file-loc)
