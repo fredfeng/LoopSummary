@@ -101,8 +101,8 @@
   (define arg5 (vector-ref args 5))
 
   (define template "
-    for (uint i = srcStart; i < srcEnd; ++i) {
-          tgt[i + tgtStart] = src[i + srcStart];
+    for (uint i = tgtStart; i < tgtEnd; ++i) {
+          tgtObj[i + tgtStart] = srcObj[i + srcStart];
     }
   ")
   (pretty-display (string-replace 
@@ -110,11 +110,11 @@
     (string-replace 
     (string-replace 
     (string-replace 
-      (string-replace template "src" arg0) 
-                               "srcStart" arg1) 
+      (string-replace template "srcObj" arg0) 
+                               "srcStart" (if (number? arg1) (number->string arg1) arg1)) 
                                "srcEnd" arg2) 
-                               "tgt" arg3) 
-                               "tgtStart" arg4) 
+                               "tgtObj" arg3) 
+                               "tgtStart" (if (number? arg4) (number->string arg4) arg4)) 
                                "tgtEnd" arg5)))
 
 (define (translate code) 

@@ -21,7 +21,7 @@
   (digit10 (char-range "0" "9"))
   (number10 (number digit10))
   (identifier-characters (re-or (char-range "A" "z") (char-range "0" "9")
-                                "?" "!" ":" "$" "%" "^" "&" "."))
+                                "?" "!" ":" "$" "%" "^" "&" "." "-"))
   (identifier (re-+ identifier-characters)))
 
 (define dsl-lexer
@@ -50,6 +50,7 @@
             (tokens a b)
             (precs (left - +))
             (grammar
+            ;;;  idx is a bad name
              (idx ((NUM) $1)
                   ((VAR) $1)
                   ((idx + idx) (string-append $1 "+" (~v $3)))
@@ -59,13 +60,14 @@
                   ;;; updateRange(target, container, val)
                   ((UPDATERANGE LB VAR COMMA VAR COMMA VAR RB) (inst "UPDATERANGE" (vector $3 $5 $7)))
                   ;;; shiftLeft(org, startIdx, endIdx)
-                  ((SHIFTLEFT LB VAR COMMA VAR COMMA VAR RB) (inst "SHIFTLEFT" (vector $3 $5 $7)))
+                  ((SHIFTLEFT LB VAR COMMA VAR COMMA idx RB) (inst "SHIFTLEFT" (vector $3 $5 $7)))
 
                   ;;; sum(target, startIdx, endIdx)
                   ((SUM LB VAR COMMA VAR COMMA VAR RB) (inst "SUM" (vector $3 $5 $7)))
 
                   ;;; CopyRange(Src, srcStart, srcEnd, trgt, tgtStart, tgtEnd)
-                  ((COPYRANGE LB VAR COMMA VAR COMMA VAR COMMA VAR COMMA VAR COMMA VAR RB) (inst "COPYRANGE" (vector $3 $5 $7 $9 $11 $13)))
+                  ((COPYRANGE LB VAR COMMA idx COMMA idx COMMA VAR COMMA idx COMMA idx RB) (inst "COPYRANGE" (vector $3 $5 $7 $9 $11 $13)))
+                  ;;; COPYRANGE(index2groupName, 1, _groupsCount+1, _groups, 0, _groupsCount)
 
                   ;;; map(tgt, startIdx, endIdx, val)
                   ((MAP LB VAR COMMA idx COMMA idx COMMA VAR RB) (inst "MAP" (vector $3 $5 $7 $9)))
