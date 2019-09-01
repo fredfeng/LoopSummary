@@ -87,7 +87,8 @@
         (string-replace template "addresses" arg0) 
                                 "startIdx" (if (number? arg1) (number->string arg1) arg1)) 
                                 "endIdx" arg2) 
-                                "val" arg3)))
+                                "val" (if (number? arg3) (number->string arg3) arg3)) 
+                                ))
 
 (define (generate-copyrange args)
   ;;; CopyRange(Src, srcStart, srcEnd, tgt, tgtStart, tgtEnd)

@@ -70,7 +70,7 @@
                   ;;; COPYRANGE(index2groupName, 1, _groupsCount+1, _groups, 0, _groupsCount)
 
                   ;;; map(tgt, startIdx, endIdx, val)
-                  ((MAP LB VAR COMMA idx COMMA idx COMMA VAR RB) (inst "MAP" (vector $3 $5 $7 $9)))
+                  ((MAP LB VAR COMMA idx COMMA idx COMMA idx RB) (inst "MAP" (vector $3 $5 $7 $9)))
 
 
                   ;;; incRange(a,range1,b, range2): b[j] += a[i] for i in range1 and j in range2 
