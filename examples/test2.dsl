@@ -1,0 +1,1 @@
+UPDATERANGE(addresses, whitelist, false)

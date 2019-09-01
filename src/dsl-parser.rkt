@@ -21,7 +21,7 @@
   (digit10 (char-range "0" "9"))
   (number10 (number digit10))
   (identifier-characters (re-or (char-range "A" "z") (char-range "0" "9")
-                                "?" "!" ":" "$" "%" "^" "&"))
+                                "?" "!" ":" "$" "%" "^" "&" "."))
   (identifier (re-+ identifier-characters)))
 
 (define dsl-lexer
@@ -50,6 +50,11 @@
             (tokens a b)
             (precs (left - +))
             (grammar
+             (idx ((NUM) $1)
+                  ((VAR) $1)
+                  ((idx + idx) (string-append $1 "+" (~v $3)))
+                  ((idx - idx) (string-append $1 "-" (~v $3)))
+                  )
              (exp ((NUM) $1)
                   ;;; updateRange(target, container, val)
                   ((UPDATERANGE LB VAR COMMA VAR COMMA VAR RB) (inst "UPDATERANGE" (vector $3 $5 $7)))
@@ -63,7 +68,7 @@
                   ((COPYRANGE LB VAR COMMA VAR COMMA VAR COMMA VAR COMMA VAR COMMA VAR RB) (inst "COPYRANGE" (vector $3 $5 $7 $9 $11 $13)))
 
                   ;;; map(tgt, startIdx, endIdx, val)
-                  ((MAP LB VAR COMMA VAR COMMA VAR COMMA VAR RB) (inst "MAP" (vector $3 $5 $7 $9)))
+                  ((MAP LB VAR COMMA idx COMMA idx COMMA VAR RB) (inst "MAP" (vector $3 $5 $7 $9)))
 
 
                   ;;; incRange(a,range1,b, range2): b[j] += a[i] for i in range1 and j in range2 

@@ -81,7 +81,7 @@
     (string-replace 
       (string-replace 
         (string-replace template "addresses" arg0) 
-                                "startIdx" arg1) 
+                                "startIdx" (if (number? arg1) (number->string arg1) arg1)) 
                                 "endIdx" arg2) 
                                 "val" arg3)))
 
