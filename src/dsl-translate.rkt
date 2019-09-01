@@ -43,24 +43,28 @@
                                "endIdx" arg2)))
 
 (define (generate-sum args)
-  ;;; org
+  ;;; cum
   (define arg0 (vector-ref args 0))
-  ;;; startIdx
+  ;;; org
   (define arg1 (vector-ref args 1))
-  ;;; endIdx
+  ;;; startIdx
   (define arg2 (vector-ref args 2))
+  ;;; endIdx
+  (define arg3 (vector-ref args 3))
 
   (define template "
-    uint total = 0;
+    uint cumulate = 0;
     for(uint i=startIdx; i < endIdx;i++){
-      total = total.add(addresses[i]);
+      cumulate = cumulate.add(addresses[i]);
     }
   ")
   (pretty-display (string-replace 
     (string-replace 
-      (string-replace template "addresses" arg0) 
-                               "startIdx" arg1) 
-                               "endIdx" arg2)))
+    (string-replace 
+      (string-replace template "cumulate" arg0)
+                               "addresses" arg1) 
+                               "startIdx" (if (number? arg2) (number->string arg2) arg2)) 
+                               "endIdx" arg3)))
 
 (define (generate-map args)
   ;;; org

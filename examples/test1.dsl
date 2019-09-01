@@ -1,5 +1,5 @@
 UPDATERANGE(target, container, val)
 SHIFTLEFT(target2, container, val)
-SUM(target, startIdx, endIdx)
+SUM(total, target, startIdx, endIdx)
 MAP(tgt, startIdx, endIdx, val)
 COPYRANGE(Src, srcStart, srcEnd, trgt, tgtStart, tgtEnd)

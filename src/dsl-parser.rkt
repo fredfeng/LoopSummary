@@ -62,8 +62,8 @@
                   ;;; shiftLeft(org, startIdx, endIdx)
                   ((SHIFTLEFT LB VAR COMMA VAR COMMA idx RB) (inst "SHIFTLEFT" (vector $3 $5 $7)))
 
-                  ;;; sum(target, startIdx, endIdx)
-                  ((SUM LB VAR COMMA VAR COMMA VAR RB) (inst "SUM" (vector $3 $5 $7)))
+                  ;;; sum(cumulate, target, startIdx, endIdx)
+                  ((SUM LB VAR COMMA VAR COMMA idx COMMA idx RB) (inst "SUM" (vector $3 $5 $7 $9)))
 
                   ;;; CopyRange(Src, srcStart, srcEnd, trgt, tgtStart, tgtEnd)
                   ((COPYRANGE LB VAR COMMA idx COMMA idx COMMA VAR COMMA idx COMMA idx RB) (inst "COPYRANGE" (vector $3 $5 $7 $9 $11 $13)))
