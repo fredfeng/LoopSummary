@@ -220,9 +220,8 @@
         ["SUM" (generate-sum (inst-args expr))]
         ["MAP" (generate-map (inst-args expr))]
         ["COPYRANGE" (generate-copyrange (inst-args expr))]
-        [_           (println "I dont know this")])
+        [_           (println "I dont know about this!!!")])
 
       ))
 
-(translate (dsl-parser (lex-this dsl-lexer code)))
-
+;;; (translate (dsl-parser (lex-this dsl-lexer code)))
