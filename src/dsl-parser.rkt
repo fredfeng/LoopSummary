@@ -83,11 +83,11 @@
 
 (define (lex-this lexer input) (lambda () (lexer input)))
 
-(let ((input (open-input-string "3 - 3.3 + 6")))
-           (dsl-parser (lex-this dsl-lexer input)))
+;;; (let ((input (open-input-string "3 - 3.3 + 6")))
+;;;            (dsl-parser (lex-this dsl-lexer input)))
 
-(let ((input (open-input-string "UPDATERANGE(target, container, val)")))
-           (dsl-parser (lex-this dsl-lexer input)))
+;;; (let ((input (open-input-string "UPDATERANGE(target, container, val)")))
+;;;            (dsl-parser (lex-this dsl-lexer input)))
 
 
 (define code (open-input-string "
