@@ -1,0 +1,11 @@
+Program 1:
+unit i = i0;
+while (i < lockNum[_address]) {
+   tempLockTime[i] = lockTime[_address][i] + later - earlier;            
+   i++;
+}
+
+Program 2:
+for (uint i = i0; i < lockNum[_address]; ++i) {
+      tempLockTime[i] = lockTime[_address][i]+later-earlier;
+}

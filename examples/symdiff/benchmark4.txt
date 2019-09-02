@@ -1,0 +1,15 @@
+Program 1:
+for (uint i=0; i<16; i++) {
+   owners[i] = (data[i].owner);
+   prices[i] = (data[i].price);
+}
+
+
+Program 2:
+for (uint i = 0; i < 16; ++i) {
+  owners[i] = data[i].owner;
+}
+
+for (uint i = 0; i < 16; ++i) {
+  prices[i] = data[i].price;
+}

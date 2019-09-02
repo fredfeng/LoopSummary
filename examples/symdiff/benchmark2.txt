@@ -1,0 +1,12 @@
+Program 1:
+ uint256 totalAmount = 0;
+ for (uint256 i; i < _amountOfLands.length; i++) {
+     uint256 amount = _amountOfLands[i].mul(Factor);
+     totalAmount = totalAmount.add(amount);
+ }
+
+Program 2:
+uint totalAmount = 0;
+for(uint i=0; i < _amountOfLands.length;i++){
+  	totalAmount = totalAmount.add(_amountOfLands[i]*Factor);
+}

@@ -1,0 +1,14 @@
+Program 1:
+uint _balance = 0;
+uint i = i0;
+while (i < lockNum[_address]) {
+   	_balance = _balance.add(lockValue[_address][i]);
+   	i++;
+}
+
+Program 2:
+uint _balance = 0;
+for(uint i=i0; i < lockNum[_address];i++){
+  	_balance = _balance.add(lockValue[_address][i]);
+}
+

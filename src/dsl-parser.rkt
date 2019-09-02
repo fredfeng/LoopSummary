@@ -7,7 +7,7 @@
 (provide (all-defined-out))
 
 (define-tokens a (NUM VAR))
-(define-empty-tokens b (+ - EOF UPDATERANGE SHIFTLEFT SUM MAP COPYRANGE RB LB COLON LAMBDA COMMA))
+(define-empty-tokens b (+ - * EOF UPDATERANGE SHIFTLEFT SUM MAP COPYRANGE RB LB COLON LAMBDA COMMA))
 (define-lex-trans number
   (syntax-rules ()
     ((_ digit)
@@ -29,6 +29,7 @@
             ((re-+ number10) (token-NUM (string->number lexeme)))
             ("-" (token--))
             ("+" (token-+))
+            ("*" (token-*))
             ("(" (token-LB))
             (")" (token-RB))
             ("," (token-COMMA))
@@ -58,6 +59,7 @@
                   ((VAR) $1)
                   ((idx + idx) (string-append $1 "+" (~v $3)))
                   ((idx - idx) (string-append $1 "-" (~v $3)))
+                  ((idx * idx) (string-append $1 "*" (~v $3)))
                   )
              (exp ((NUM) $1)
                   ;;; updateRange(target, container, val)
@@ -67,6 +69,8 @@
 
                   ;;; sum(cumulate, target, startIdx, endIdx)
                   ((SUM LB VAR COMMA VAR COMMA idx COMMA idx RB) (inst "SUM" (vector $3 $5 $7 $9)))
+
+                  ((SUM LB VAR COMMA VAR COMMA idx COMMA idx COMMA LAMBDA VAR COLON idx RB) (inst "SUM-λ" (vector $3 $5 $7 $9 $12 $14)))
 
                   ;;; CopyRange(Src, srcStart, srcEnd, trgt, tgtStart, tgtEnd)
                   ((COPYRANGE LB VAR COMMA idx COMMA idx COMMA VAR COMMA idx COMMA idx RB) (inst "COPYRANGE" (vector $3 $5 $7 $9 $11 $13)))

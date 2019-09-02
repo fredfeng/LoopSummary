@@ -1,0 +1,10 @@
+Program 1:
+ for (uint256 i = 0; i < addresses.length; i++) {
+     address contributorAddress = addresses[i];
+     whitelist[contributorAddress] = status;
+ }
+
+Program 2:
+for (uint i = 0; i < addresses.length; i++) {
+     whitelist[addresses[i]] = status;
+}

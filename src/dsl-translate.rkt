@@ -66,6 +66,41 @@
                                "startIdx" (if (number? arg2) (number->string arg2) arg2)) 
                                "endIdx" arg3)))
 
+
+(define (generate-sum-λ args)
+  ;;; cum
+  (define arg0 (vector-ref args 0))
+  ;;; org
+  (define arg1 (vector-ref args 1))
+  ;;; startIdx
+  (define arg2 (vector-ref args 2))
+  ;;; endIdx
+  (define arg3 (vector-ref args 3))
+  ;;; argument
+  (define arg4 (vector-ref args 4))
+    ;;; body
+  (define arg5 (vector-ref args 5))
+
+  (set! arg5 (string-replace arg5 "\"" ""))
+
+  (define rhs-expr (string-replace arg5 arg4 "addresses[i]"))
+
+  (define template "
+    uint cumulate = 0;
+    for(uint i=startIdx; i < endIdx;i++){
+      cumulate = cumulate.add(addresses[i]);
+    }
+  ")
+  (pretty-display (string-replace 
+    (string-replace 
+    (string-replace 
+    (string-replace 
+      (string-replace template "cumulate" arg0)
+                               "addresses[i]" rhs-expr)
+                               "addresses" arg1) 
+                               "startIdx" (if (number? arg2) (number->string arg2) arg2)) 
+                               "endIdx" arg3)))
+
 (define (generate-map args)
   ;;; org
   (define arg0 (vector-ref args 0))
@@ -143,11 +178,11 @@
   ;;; FIXME
   (set! arg7 (string-replace arg7 "\"" ""))
 
-  (define rhs-expr (string-replace arg7 arg6 "srcObj[i + srcStart]"))
+  (define rhs-expr (string-replace arg7 arg6 "srcObj[i]"))
 
   (define template "
     for (uint i = tgtStart; i < tgtEnd; ++i) {
-          tgtObj[i + tgtStart] = srcObj[i + srcStart];
+          tgtObj[i] = srcObj[i];
     }
   ")
   (pretty-display (string-replace 
@@ -157,13 +192,14 @@
     (string-replace 
     (string-replace 
       (string-replace template 
-                               "srcObj[i + srcStart]" rhs-expr)
+                               "srcObj[i]" rhs-expr)
                                "srcObj" arg0) 
                                "srcStart" (if (number? arg1) (number->string arg1) arg1)) 
-                               "srcEnd" arg2) 
+                               "srcEnd" (if (number? arg2) (number->string arg2) arg2)) 
                                "tgtObj" arg3) 
                                "tgtStart" (if (number? arg4) (number->string arg4) arg4)) 
-                               "tgtEnd" arg5)))
+                               "tgtEnd" (if (number? arg5) (number->string arg5) arg5))
+                               ))
 
 (define (translate code) 
     (for ([expr code])
@@ -171,6 +207,7 @@
         ["UPDATERANGE" (generate-updaterange (inst-args expr))]
         ["SHIFTLEFT" (generate-shiftleft (inst-args expr))]
         ["SUM" (generate-sum (inst-args expr))]
+        ["SUM-λ" (generate-sum-λ (inst-args expr))]
         ["MAP" (generate-map (inst-args expr))]
         ["COPYRANGE" (generate-copyrange (inst-args expr))]
         ["COPYRANGE-λ" (generate-copyrange-λ (inst-args expr))]

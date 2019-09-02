@@ -1,0 +1,13 @@
+Program 1:
+uint i = i0;
+while (i<values.length-1) {
+  values[i] = values[i+1];
+  i++;
+}
+
+
+Program 2:
+for(uint i=i0; i < values.length-1;i++){
+  values[i] = values[i+1];
+}
+
