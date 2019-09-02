@@ -7,7 +7,7 @@
 (provide (all-defined-out))
 
 (define-tokens a (NUM VAR))
-(define-empty-tokens b (+ - EOF UPDATERANGE SHIFTLEFT SUM MAP COPYRANGE RB LB COMMA))
+(define-empty-tokens b (+ - EOF UPDATERANGE SHIFTLEFT SUM MAP COPYRANGE RB LB COLON LAMBDA COMMA))
 (define-lex-trans number
   (syntax-rules ()
     ((_ digit)
@@ -21,7 +21,7 @@
   (digit10 (char-range "0" "9"))
   (number10 (number digit10))
   (identifier-characters (re-or (char-range "A" "z") (char-range "0" "9")
-                                "?" "!" ":" "$" "%" "^" "&" "." "-"))
+                                "?" "!" "$" "%" "^" "&" "." "-"))
   (identifier (re-+ identifier-characters)))
 
 (define dsl-lexer
@@ -32,6 +32,9 @@
             ("(" (token-LB))
             (")" (token-RB))
             ("," (token-COMMA))
+            (":" (token-COLON))
+            ("λ" (token-LAMBDA))
+            ("lambda" (token-LAMBDA))
             ("UPDATERANGE" (token-UPDATERANGE))
             ("SHIFTLEFT" (token-SHIFTLEFT))
             ("SUM" (token-SUM))
@@ -68,6 +71,11 @@
                   ;;; CopyRange(Src, srcStart, srcEnd, trgt, tgtStart, tgtEnd)
                   ((COPYRANGE LB VAR COMMA idx COMMA idx COMMA VAR COMMA idx COMMA idx RB) (inst "COPYRANGE" (vector $3 $5 $7 $9 $11 $13)))
                   ;;; COPYRANGE(index2groupName, 1, _groupsCount+1, _groups, 0, _groupsCount)
+
+                  ;;; FIXME: only support one argument for now
+                  ;;; COPYRANGE(lockTime[_address], i0, lockNum[_address], tempLockTime, i0, lockNum[address], λ arg: arg+later-earlier)
+                  ((COPYRANGE LB VAR COMMA idx COMMA idx COMMA VAR COMMA idx COMMA idx COMMA LAMBDA VAR COLON idx RB) 
+                                                  (inst "COPYRANGE-λ" (vector $3 $5 $7 $9 $11 $13 $16 $18)))
 
                   ;;; map(tgt, startIdx, endIdx, val)
                   ((MAP LB VAR COMMA idx COMMA idx COMMA idx RB) (inst "MAP" (vector $3 $5 $7 $9)))

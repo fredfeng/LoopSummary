@@ -122,6 +122,49 @@
                                "tgtStart" (if (number? arg4) (number->string arg4) arg4)) 
                                "tgtEnd" arg5)))
 
+(define (generate-copyrange-λ args)
+  ;;; CopyRange(Src, srcStart, srcEnd, tgt, tgtStart, tgtEnd)
+  ;;; src
+  (define arg0 (vector-ref args 0))
+  ;;; srcStart
+  (define arg1 (vector-ref args 1))
+  ;;; srcEnd
+  (define arg2 (vector-ref args 2))
+  ;;; tgt
+  (define arg3 (vector-ref args 3))
+  ;;; tgtStart
+  (define arg4 (vector-ref args 4))
+  ;;; tgtEnd
+  (define arg5 (vector-ref args 5))
+  ;;; λ-arg
+  (define arg6 (vector-ref args 6))
+  ;;; λ-body
+  (define arg7 (vector-ref args 7))
+  ;;; FIXME
+  (set! arg7 (string-replace arg7 "\"" ""))
+
+  (define rhs-expr (string-replace arg7 arg6 "srcObj[i + srcStart]"))
+
+  (define template "
+    for (uint i = tgtStart; i < tgtEnd; ++i) {
+          tgtObj[i + tgtStart] = srcObj[i + srcStart];
+    }
+  ")
+  (pretty-display (string-replace 
+    (string-replace 
+    (string-replace 
+    (string-replace 
+    (string-replace 
+    (string-replace 
+      (string-replace template 
+                               "srcObj[i + srcStart]" rhs-expr)
+                               "srcObj" arg0) 
+                               "srcStart" (if (number? arg1) (number->string arg1) arg1)) 
+                               "srcEnd" arg2) 
+                               "tgtObj" arg3) 
+                               "tgtStart" (if (number? arg4) (number->string arg4) arg4)) 
+                               "tgtEnd" arg5)))
+
 (define (translate code) 
     (for ([expr code])
       (match (inst-op expr)
@@ -130,6 +173,7 @@
         ["SUM" (generate-sum (inst-args expr))]
         ["MAP" (generate-map (inst-args expr))]
         ["COPYRANGE" (generate-copyrange (inst-args expr))]
+        ["COPYRANGE-λ" (generate-copyrange-λ (inst-args expr))]
         [_           (println "I dont know about this!!!")])
 
       ))
