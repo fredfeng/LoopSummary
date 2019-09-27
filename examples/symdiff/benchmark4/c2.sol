@@ -2,18 +2,25 @@ pragma solidity ^0.5.10;
 
 contract C2 {
     
-    mapping (address => uint256[]) private lockTime;
-    mapping (address => uint256[]) private tempLockTime;
-    mapping (address => uint256) private lockNum;
-    uint later = 1;
-    uint earlier = 2;
+    struct Pepe {
+        address owner;
+        uint256 price;
+    }
 
-    function foo(address _address) public {
+    Pepe[16] data;
 
-        //uint256[] memory tempLockTime = new uint256[](lockNum[_address]);
-	for (uint i = 0; i < lockNum[_address]; ++i) {
-	      tempLockTime[_address][i] = lockTime[_address][i] + later-earlier;
-	}
+    function foo() public {
+
+        address[] memory owners = new address[](16);
+        uint256[] memory prices =  new uint256[](16);
+
+        for (uint i = 0; i < 16; ++i) {
+            owners[i] = data[i].owner;
+        }
+
+        for (uint i = 0; i < 16; ++i) {
+            prices[i] = data[i].price;
+        }
 
     }
 }

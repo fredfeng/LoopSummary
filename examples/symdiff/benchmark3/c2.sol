@@ -2,18 +2,14 @@ pragma solidity ^0.5.10;
 
 contract C2 {
     
-    mapping (address => uint256[]) private lockTime;
-    mapping (address => uint256[]) private tempLockTime;
     mapping (address => uint256) private lockNum;
-    uint later = 1;
-    uint earlier = 2;
+    mapping (address => uint256[]) private lockValue;
 
-    function foo(address _address) public {
+    function foo(address _address, uint _balance) public {
 
-        //uint256[] memory tempLockTime = new uint256[](lockNum[_address]);
-	for (uint i = 0; i < lockNum[_address]; ++i) {
-	      tempLockTime[_address][i] = lockTime[_address][i] + later-earlier;
-	}
+        for(uint i=0; i < lockNum[_address];i++){
+            _balance = _balance + (lockValue[_address][i]);
+        }
 
     }
 }
