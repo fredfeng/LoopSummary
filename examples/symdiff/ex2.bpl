@@ -16,7 +16,7 @@ var tempLockTime_C1: [Ref]Ref;
 var lockNum_C1: [Ref]Ref;
 var later_C1: [Ref]int;
 var earlier_C1: [Ref]int;
-procedure {:public}  foo_C1(this: Ref, msgsender_MSG: Ref, msgvalue_MSG: int, _address_s57: Ref);
+procedure {:public} foo_C1(this: Ref, msgsender_MSG: Ref, msgvalue_MSG: int, _address_s57: Ref);
 implementation foo_C1(this: Ref, msgsender_MSG: Ref, msgvalue_MSG: int, _address_s57: Ref)
 {
 var i_s55: int;
