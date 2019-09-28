@@ -21,7 +21,7 @@ implementation foo_C1(this: Ref, msgsender_MSG: Ref, msgvalue_MSG: int, _address
 {
 var i_s55: int;
 i_s55 := 0;
-while ((i_s55) < (M_Ref_int[lockNum_C1[this]][_address_s57]))
+while ((i_s55) <= (M_Ref_int[lockNum_C1[this]][_address_s57]))
 {
 M_int_int[M_Ref_Ref[tempLockTime_C1[this]][_address_s57]][i_s55] := ((M_int_int[M_Ref_Ref[lockTime_C1[this]][_address_s57]][i_s55]) + (later_C1[this])) - (earlier_C1[this]);
 i_s55 := (i_s55) + (1);
