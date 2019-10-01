@@ -16,9 +16,13 @@ To run SymDiff
 To run SymDiff (on Mac)
 
 `symdiff.exe -extractLoops ex1.bpl _v1.bpl`
+
 `symdiff.exe -extractLoops ex2.bpl _v2.bpl`
+
 `symdiff.exe -inferConfig _v1.bpl _v2.bpl > _v1_v2.config`
+
 `symdiff.exe -allInOne _v1.bpl _v2.bpl _v1_v2.config  -usemutual -checkEquivWithDependencies -freeContracts >> ex1ex2.log`
+
 `References/boogie.exe /noinfer /contractInfer /printAssignment mergedProgSingle.bpl >> ex1ex2.log`
 
 
