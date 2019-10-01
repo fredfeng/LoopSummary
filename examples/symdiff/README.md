@@ -13,7 +13,7 @@ To run SymDiff
 
   run_symdiff_bpl ex1 ex2 /rvt /opts:" -usemutual -checkEquivWithDependencies -freeContracts"
 
-To run SymDiff (on Mac)
+##To run SymDiff (on Mac)
 
 `symdiff.exe -extractLoops ex1.bpl _v1.bpl`
 
@@ -22,9 +22,6 @@ To run SymDiff (on Mac)
 `symdiff.exe -inferConfig _v1.bpl _v2.bpl > _v1_v2.config`
 
 `symdiff.exe -allInOne _v1.bpl _v2.bpl _v1_v2.config  -usemutual -checkEquivWithDependencies -freeContracts >> ex1ex2.log`
-
-`References/boogie.exe /noinfer /contractInfer /printAssignment mergedProgSingle.bpl >> ex1ex2.log`
-
 
 
 * Inspect the file mergedProgSingle_inferred.bpl and inspect the postconditions of **MS_Check__ex1.foo_C1___ex2.foo_C1**, where **foo** is the method in contract **C**
