@@ -1,19 +1,23 @@
-To run SymDiff
+## Install symdiff
+* Follow instructions to download symdiff [instructions for Windows, Yu will write MacOS instructions here, or directly on symdiff page]
 
-* Follow instructions to download symdiff [may need Windows]
  https://github.com/boogie-org/symdiff/blob/master/docs/Documentation.md
  
 
-* For the example pair (ex1.bpl, ex2.bpl)
-  - Remove {:inline 1} in both files
-  - Rename i_s56 to i_s55
+## To run SymDiff on a pair of BPL files
 
-* Follow instructions here (Windows)
-  https://github.com/boogie-org/symdiff/blob/master/docs/SymDiff.md
+### For the example pair (ex1.bpl, ex2.bpl)
+  - Had to remove {:inline 1} in both files // VeriSol has an option to remove this /noInlineAttr
+  - Had to rename i_s56 to i_s55                   // VeriSol needs an option
 
-  run_symdiff_bpl ex1 ex2 /rvt /opts:" -usemutual -checkEquivWithDependencies -freeContracts"
 
-##To run SymDiff (on Mac)
+  
+ 
+ #### Windows
+ * Follow instructions here (Windows) https://github.com/boogie-org/symdiff/blob/master/docs/SymDiff.md
+  `run_symdiff_bpl ex1 ex2 /rvt /opts:" -usemutual -checkEquivWithDependencies -freeContracts"`
+
+ #### On Mac
 
 `symdiff.exe -extractLoops ex1.bpl _v1.bpl`
 
