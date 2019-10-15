@@ -5,9 +5,9 @@
 ## End to end flow
 ### Run VeriSol to generate pair of BPL files
 Go to *benchmark1*
-* dotnet %VerisolPath%/bin/debug/VeriSol.dll C1.sol C /noChk /noInlineAttrs /removeScopeInVarName 
+* dotnet %VerisolPath%/bin/debug/VeriSol.dll C1.sol C /noChk /noInlineAttrs /removeScopeInVarName /omitSourceLineInfo /omitDataValuesInTrace /omitUnsignedSemantics /omitAxioms /omitHarness 
 * cp `__SolToBoogieTest_out.bpl` to C1.bpl
-* dotnet %VerisolPath%/bin/debug/VeriSol.dll C2.sol C /noChk /noInlineAttrs /removeScopeInVarName 
+* dotnet %VerisolPath%/bin/debug/VeriSol.dll C2.sol C /noChk /noInlineAttrs /removeScopeInVarName /omitSourceLineInfo /omitDataValuesInTrace /omitUnsignedSemantics /omitAxioms /omitHarness 
 * cp `__SolToBoogieTest_out.bpl` to C2.bpl
 
 > Note, all the sol files should have same contract, function and global variable names. Otherwise, SymDiff will not be able to match the procedures. 
