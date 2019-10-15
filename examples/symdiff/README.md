@@ -16,7 +16,6 @@ Go to *benchmark1*
 * `mono symdiff.exe -extractLoops C1.bpl _v1.bpl`
 * `mono symdiff.exe -extractLoops C2.bpl _v2.bpl`
 * `mono symdiff.exe -inferConfig _v1.bpl _v2.bpl > _v1_v2.config`
-* `mono symdiff.exe -inferConfig _v1.bpl _v3.bpl > _v1_v3.config`
 * `mono symdiff.exe -allInOne _v1.bpl _v2.bpl _v1_v2.config  -usemutual -checkEquivWithDependencies -freeContracts -checkEquivForRoots -main:foo_C >> C1C2.log`
 
 When verification succeeds, the following string "Houdini finished with.*, 0 errors, 0 inconclusives, 0 timeouts" is present
