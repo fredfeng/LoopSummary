@@ -1,6 +1,6 @@
 pragma solidity ^0.5.10;
 
-contract C2 {
+contract C {
 
     mapping (address => uint256[]) private tempLockTime;
     mapping (address => uint256[]) private lockTime;

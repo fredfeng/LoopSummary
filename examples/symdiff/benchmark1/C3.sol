@@ -1,5 +1,6 @@
 pragma solidity ^0.5.10;
 
+// not equivalent version, just for testing
 contract C {
     
     mapping (address => uint256[]) private lockTime;
@@ -12,7 +13,7 @@ contract C {
 
         //uint256[] memory tempLockTime = new uint256[](lockNum[_address]);
 	for (uint i = 0; i < lockNum[_address]; ++i) {
-	      tempLockTime[_address][i] = lockTime[_address][i] + later-earlier;
+	      tempLockTime[_address][i] = lockTime[_address][i] - later-earlier; // Bug: + --> -
 	}
 
     }

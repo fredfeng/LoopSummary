@@ -5,12 +5,16 @@
 ## End to end flow
 ### Run VeriSol to generate pair of BPL files
 Go to *benchmark1*
-* dotnet %VerisolPath%/bin/debug/VeriSol.dll C1.sol C1 /noChk /noInlineAttrs /removeScopeInVarName 
+* dotnet %VerisolPath%/bin/debug/VeriSol.dll C1.sol C /noChk /noInlineAttrs /removeScopeInVarName 
 * cp `__SolToBoogieTest_out.bpl` to C1.bpl
-* dotnet %VerisolPath%/bin/debug/VeriSol.dll C2.sol C2 /noChk /noInlineAttrs /removeScopeInVarName 
+* dotnet %VerisolPath%/bin/debug/VeriSol.dll C2.sol C /noChk /noInlineAttrs /removeScopeInVarName 
 * cp `__SolToBoogieTest_out.bpl` to C2.bpl
+* dotnet %VerisolPath%/bin/debug/VeriSol.dll C3.sol C /noChk /noInlineAttrs /removeScopeInVarName 
+* cp `__SolToBoogieTest_out.bpl` to C3.bpl
 
-### Run SymDiff on the pair of BPL files to check equivalence
+> Note, all the sol files should have same contract, function and global variable names. Otherwise, SymDiff will not be able to match the procedures. 
+
+### Run SymDiff on the pair of BPL files to check equivalence (to check inequivalence, replace C2 by C3 below)
 * `mono symdiff.exe -extractLoops C1.bpl _v1.bpl`
 * `mono symdiff.exe -extractLoops C2.bpl _v2.bpl`
 * `mono symdiff.exe -inferConfig _v1.bpl _v2.bpl > _v1_v2.config`
