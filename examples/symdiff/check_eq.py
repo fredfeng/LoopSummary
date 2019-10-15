@@ -7,7 +7,7 @@ dotnet = '~/Downloads/dotnet-sdk-2.2.402-osx-x64/dotnet'
 verisol = '~/research/other/verisol/bin/Debug/VeriSol.dll'
 
 def compile(filename, bpl):
-    compile_cmd = '{dotnet_cmd} {verisol_loc} {file} C /noChk /noInlineAttrs /removeScopeInVarName'.format(dotnet_cmd = dotnet, verisol_loc = verisol, file=filename)
+    compile_cmd = '{dotnet_cmd} {verisol_loc} {file} C /noChk /noInlineAttrs /removeScopeInVarName /omitSourceLineInfo /omitDataValuesInTrace /omitUnsignedSemantics /omitAxioms /omitHarness'.format(dotnet_cmd = dotnet, verisol_loc = verisol, file=filename)
     print(compile_cmd)
     os.system(compile_cmd)
     os.system('cp __SolToBoogieTest_out.bpl {b_name}'.format(b_name=bpl))
@@ -26,7 +26,7 @@ def main(argv):
     os.system(extract_loop_cmd2)
     infer_cmd = '{symdiff_cmd} -inferConfig _v1.bpl _v2.bpl > _v1_v2.config'.format(symdiff_cmd = symdiff)
     os.system(infer_cmd)
-    allInOne_cmd = '{symdiff_cmd} -allInOne  _v1.bpl _v2.bpl _v1_v2.config -usemutual -checkEquivWithDependencies -freeContracts -checkEquivForRoots >> C1C2.log'.format(symdiff_cmd = symdiff)
+    allInOne_cmd = '{symdiff_cmd} -allInOne  _v1.bpl _v2.bpl _v1_v2.config -usemutual -checkEquivWithDependencies -freeContracts -checkEquivForRoots -main:foo_C >> C1C2.log'.format(symdiff_cmd = symdiff)
     os.system(allInOne_cmd)
 
     lastline = ''
