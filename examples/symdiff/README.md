@@ -18,6 +18,8 @@ Go to *benchmark1*
 * `mono symdiff.exe -inferConfig _v1.bpl _v2.bpl > _v1_v2.config`
 * `mono symdiff.exe -allInOne _v1.bpl _v2.bpl _v1_v2.config  -usemutual -checkEquivWithDependencies -freeContracts -checkEquivForRoots -main:foo_C >> C1C2.log`
 
+>  We are assuming that the contract name is always **C** and the method name is **Foo**
+
 When verification succeeds, the following string "Houdini finished with.*, 0 errors, 0 inconclusives, 0 timeouts" is present
    *  When two procedures are not equivalent (e.g. C1C3.log), you should see `Houdini finished with xxxx verified, 1 errors, 0 inconclusives, 0 timeouts`
    *  When two procedures are equivalent (e.g. C1C2.log), you should see `Houdini finished with xxx verified, 0 errors, 0 inconclusives, 0 timeouts`
