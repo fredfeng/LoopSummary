@@ -12,6 +12,11 @@ def compile(filename, bpl):
     os.system(compile_cmd)
     os.system('cp __SolToBoogieTest_out.bpl {b_name}'.format(b_name=bpl))
 
+def clean():
+    os.system('rm *.bpl')
+    os.system('rm _v1_v2.config')
+    os.system('rm C1C2.log')
+
 def main(argv):
     print('File1: ', argv[0])
     print('File2: ', argv[1])
@@ -41,6 +46,9 @@ def main(argv):
         print('PASS: Two programs are equivalent!')
     else:
         print('FAIL: Two programs are NOT equivalent!')
+
+    # Clean up 
+    clean()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
