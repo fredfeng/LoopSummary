@@ -4,9 +4,18 @@
 
 * MacOS instructions for installing symdiff
   * Prerequisites
-    * Install [Z3 binary](https://github.com/Z3Prover/z3/releases) and copy Z3.exe (>= version 4.1) into the            
-    * and {dependency, rootcause}\bin\debug\  //TODO: keep in a centralized area
-	   * Z3 4.1 is currently needed for Rootcause. //TODO: fix prover errors related to 'relax_0' variables
+    * Make sure you have already install the donet SDK 2.2 (It won't work for the latest SDK!)
+    * Install [Z3 binary](https://github.com/Z3Prover/z3/releases) and create its symbolic link under %SymdiffPath%/Sources/references/:
+    ```
+    ln -s /usr/local/bin/z3 %SymdiffPath%/Sources/references/z3.exe
+    ```
+    * Install Boogie by following the instructions in [here](https://github.com/boogie-org/boogie), and then copy the binaries to symdiff via:
+    ```
+    cp %BoogiePath%/binaries/* %SymdiffPath%/Sources/references/
+    ```
+	   
+* Open Sources/SymDiff.sln in Visual Studio and select "Build -> Build SymDiff"
+
 
 ## End to end flow
 
