@@ -1,8 +1,28 @@
 ## Install VeriSol and Symdiff
 * Download and build VeriSol from Sources (don't use the nuget package, as it will be stale) from [here](https://github.com/microsoft/verisol/blob/master/INSTALL.md)
 * Follow instructions to download symdiff [instructions for Windows, Yu will write MacOS instructions here, or directly on symdiff page](https://github.com/boogie-org/symdiff/blob/master/docs/Documentation.md)
- 
+
+* MacOS instructions for installing symdiff
+  * Prerequisites
+    * Install [Z3 binary](https://github.com/Z3Prover/z3/releases) and copy Z3.exe (>= version 4.1) into the            
+    * and {dependency, rootcause}\bin\debug\  //TODO: keep in a centralized area
+	   * Z3 4.1 is currently needed for Rootcause. //TODO: fix prover errors related to 'relax_0' variables
+
 ## End to end flow
+
+Command for checking two programs:
+```
+cd examples/symdiff
+python3 check_eq.py benchmark1/C1.sol benchmark1/C2.sol
+```
+
+Command for verifying all existing benchmarks:
+```
+cd examples/symdiff
+sh regression.sh
+```
+ 
+## Step-by-step flow
 ### Run VeriSol to generate pair of BPL files
 Go to *benchmark1*
 * `dotnet %VerisolPath%/bin/debug/VeriSol.dll C1.sol C /noChk /noInlineAttrs /removeScopeInVarName /omitSourceLineInfo /omitDataValuesInTrace /omitUnsignedSemantics /omitAxioms /omitHarness` 
