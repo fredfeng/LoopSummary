@@ -5,6 +5,8 @@
 * MacOS instructions for installing symdiff
   * Prerequisites
     * Make sure you have already install the donet SDK 2.2 (It won't work for the latest SDK!)
+    * Download and install [VisualStudio](https://visualstudio.microsoft.com/)
+    * Install Mono from this [link](https://www.mono-project.com/download/stable/)
     * Install [Z3 binary](https://github.com/Z3Prover/z3/releases) and create its symbolic link under %SymdiffPath%/Sources/references/:
     ```
     ln -s /usr/local/bin/z3 %SymdiffPath%/Sources/references/z3.exe
