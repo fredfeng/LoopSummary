@@ -1,8 +1,8 @@
 from typing import cast, List
-from falx.tyrell.spec import TyrellSpec, Production
-from falx.tyrell.dsl import AtomNode, dfs
-from falx.tyrell.interpreter import Interpreter, InterpreterError, AssertionViolation
-from falx.tyrell.decider.blame import Blame
+from tyrell.spec import TyrellSpec, Production
+from tyrell.dsl import AtomNode, dfs
+from tyrell.interpreter import Interpreter, InterpreterError, AssertionViolation
+from tyrell.decider.blame import Blame
 
 
 class AssertionViolationHandler:

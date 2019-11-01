@@ -1,8 +1,8 @@
 from typing import Any, Callable, ClassVar, Dict
 import z3
 
-from falx.tyrell.spec.expr import *
-from falx.tyrell.visitor import GenericVisitor
+from tyrell.spec.expr import *
+from tyrell.visitor import GenericVisitor
 
 
 class ConstraintEncoder(GenericVisitor):

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
-from falx.tyrell.dsl import Node
-from falx.tyrell.interpreter import InterpreterError
-from falx.tyrell.decider.result import Result
+from tyrell.dsl import Node
+from tyrell.interpreter import InterpreterError
+from tyrell.decider.result import Result
 
 
 class Decider(ABC):

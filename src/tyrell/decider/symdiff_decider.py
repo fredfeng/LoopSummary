@@ -8,7 +8,7 @@ Example = NamedTuple('Example', [
     ('output', Any)])
 
 
-class ExampleDecider(Decider):
+class SymdiffDecider(Decider):
     _interpreter: Interpreter
     _examples: List[Example]
     _equal_output: Callable[[Any, Any], bool]
