@@ -3,6 +3,45 @@
 
 (provide (all-defined-out))
 
+;;; pragma solidity ^0.5.10;
+
+;;; contract C {
+    
+;;;     mapping (address => uint256[]) private lockTime;
+;;;     mapping (address => uint256[]) private tempLockTime;
+;;;     mapping (address => uint256) private lockNum;
+;;;     uint later = 1;
+;;;     uint earlier = 2;
+
+;;;     function foo(address _address) public {
+
+;;;         //uint256[] memory tempLockTime = new uint256[](lockNum[_address]);
+;;; 	for (uint i = 0; i < lockNum[_address]; ++i) {
+;;; 	      tempLockTime[_address][i] = lockTime[_address][i] + later-earlier;
+;;; 	}
+
+;;;     }
+;;; }
+
+(define contract-template "
+pragma solidity ^0.5.10;
+
+contract C {
+    
+    mapping (address => uint256[]) private _storage1;
+    mapping (address => uint256[]) private _storage2;
+    mapping (address => uint256) private _storage3;
+
+    function foo(_args) public {
+
+    _body
+
+    }
+}
+")
+
+(pretty-display contract-template)
+
 (define (generate-updaterange args)
   ;;; target
   (define arg0 (vector-ref args 0))
@@ -16,11 +55,13 @@
    	container[addresses[i]] = val;
    }
   ")
-  (pretty-display (string-replace 
+  (define loop-body (string-replace 
     (string-replace 
       (string-replace template "addresses" arg0) 
                                "container" arg1) 
-                               "val" arg2)))
+                               "val" arg2))
+  (pretty-display (string-replace (string-replace (string-replace contract-template "_body" loop-body) "_storage1" arg1) "_args" arg0))
+)
 
 
 (define (generate-shiftleft args)
