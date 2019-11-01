@@ -52,13 +52,13 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return args[0]
 
     def eval_plus(self, node, args):
-        return args[0] + args[1]
+        return args[0] + '+' + args[1]
 
     def eval_minus(self, node, args):
-        return args[0] - args[1]
+        return args[0] + '-' + args[1]
 
     def eval_mult(self, node, args):
-        return args[0] * args[1]
+        return args[0] + '*' + args[1]
     
     def eval_addressToArray(self, node, args):
         return args[0] + '[' + args[1] + ']'
@@ -126,7 +126,6 @@ def main(seed=None):
                 # we want to synthesize the program (x-y)*y (depth=3, loc=2)
                 # which is also equivalent to x*y-y*y (depth=3, loc=3)
                 Example(input=[4, 3], output=3),
-                Example(input=[1, 1], output=0),
             ]
         )
     )
