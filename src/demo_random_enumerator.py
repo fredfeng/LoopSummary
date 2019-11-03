@@ -7,9 +7,60 @@ from tyrell.enumerator import RandomEnumerator
 from tyrell.decider import Example, SymdiffDecider
 from tyrell.synthesizer import Synthesizer
 from tyrell.logger import get_logger
+from slither.slither import Slither
 
 logger = get_logger('tyrell')
 
+def add_var(arg_map, var):
+    type_name = str(var.type)
+    if type_name in arg_map:
+        arg_map[type_name].append('"' + var.name + '"')
+    else:
+        l = []
+        l.append('"' + var.name + '"')
+        arg_map[type_name] = l
+
+def instantiate_dsl(sol_file):
+## Step 1: parse the original source .sol.
+# Init slither
+    slither = Slither(sol_file)
+
+# Get the contract, all the contact's name is C by default.
+    contract = slither.get_contract_from_name('C')
+    harness_fun = contract.functions[0]
+    vars_map = {}
+
+# Get the function, which has name 'foo' by default.
+    assert harness_fun.name == 'foo'
+
+    for var in harness_fun.variables_read:
+        add_var(vars_map, var)
+
+    actual_spec = toy_spec_str
+
+    int_str = ""
+    address_str = ""
+    maparray_str = ""
+    mapint_str = ""
+
+    for k in vars_map:
+        v = vars_map[k]
+        actual_symbols = ",".join(v)
+        print('parsing key:', k, ",".join(v))
+        if k == 'uint256':
+            int_str = actual_symbols
+        elif k == 'address':
+            address_str = actual_symbols
+        elif k == 'mapping(address => uint256)':
+            mapint_str = actual_symbols
+        elif k == 'mapping(address => uint256[])':
+            maparray_str = actual_symbols
+        else:
+            pass
+    
+    actual_spec = actual_spec.format(startInt=int_str,Address=address_str, 
+                                    MapInt=mapint_str, MapArray=maparray_str)
+    return actual_spec
 
 #COPYRANGE(lockTime[_address], i0, lockNum[_address], tempLockTime, i0, lockNum[address], λ arg: arg+later-earlier)
 # for (uint i = 0; i < lockNum[_address]; ++i) {
@@ -17,21 +68,21 @@ logger = get_logger('tyrell')
 # }  
 
 toy_spec_str = '''
-enum startInt {
+enum startInt {{
   "0"
-}
+}}
 
-enum address {
-    "_address"
-}
+enum address {{
+    {Address}
+}}
 
-enum MapArray {
-    "lockTime", "tempLockTime"
-}
+enum MapArray {{
+    {MapArray}
+}}
 
-enum MapInt {
-    "lockNum"
-}
+enum MapInt {{
+    {MapInt}
+}}
 
 value Inst;
 value Stmt;
@@ -97,7 +148,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         print(contract_prog)
         # assert False
-        return "done"
+        return contract_prog
 
 
 def execute(interpreter, prog, args):
@@ -111,9 +162,13 @@ def test_all(interpreter, prog, inputs, outputs):
     )
 
 
-def main(seed=None):
+def main(sol_file):
+    seed = None
+    actual_spec = instantiate_dsl(sol_file)
+    print(actual_spec)
+    # assert False
     logger.info('Parsing Spec...')
-    spec = S.parse(toy_spec_str)
+    spec = S.parse(actual_spec)
     logger.info('Parsing succeeded')
 
     logger.info('Building synthesizer...')
@@ -140,10 +195,5 @@ def main(seed=None):
 
 if __name__ == '__main__':
     logger.setLevel('DEBUG')
-    seed = None
-    if len(argv) > 1:
-        try:
-            seed = int(argv[1])
-        except ValueError:
-            pass
-    main(seed)
+    assert len(argv) > 1
+    main(argv[1])
