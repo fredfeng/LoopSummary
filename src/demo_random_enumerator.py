@@ -14,10 +14,10 @@ logger = get_logger('tyrell')
 def add_var(arg_map, var):
     type_name = str(var.type)
     if type_name in arg_map:
-        arg_map[type_name].append('"' + var.name + '"')
+        arg_map[type_name].append(var.name)
     else:
         l = []
-        l.append('"' + var.name + '"')
+        l.append(var.name)
         arg_map[type_name] = l
 
 def instantiate_dsl(sol_file):
@@ -42,11 +42,16 @@ def instantiate_dsl(sol_file):
     address_str = ""
     maparray_str = ""
     mapint_str = ""
+    prog_decl = ""
 
     for k in vars_map:
-        v = vars_map[k]
-        actual_symbols = ",".join(v)
-        print('parsing key:', k, ",".join(v))
+        for v in vars_map[k]:
+            prog_decl += k + ' ' + v + '; \n'
+
+    for k in vars_map:
+        v = map(lambda x: '"' + x + '"', vars_map[k]) 
+        actual_symbols = ",".join(list(v))
+        print('parsing key:', k, ",".join(list(v)))
         if k == 'uint256':
             int_str = actual_symbols
         elif k == 'address':
@@ -60,7 +65,7 @@ def instantiate_dsl(sol_file):
     
     actual_spec = actual_spec.format(startInt=int_str,Address=address_str, 
                                     MapInt=mapint_str, MapArray=maparray_str)
-    return actual_spec
+    return actual_spec, prog_decl
 
 #COPYRANGE(lockTime[_address], i0, lockNum[_address], tempLockTime, i0, lockNum[address], λ arg: arg+later-earlier)
 # for (uint i = 0; i < lockNum[_address]; ++i) {
@@ -99,6 +104,24 @@ func COPYRANGE: Inst -> Array, startInt, endInt, Array, startInt, endInt;
 
 class SymDiffInterpreter(PostOrderInterpreter):
 
+    program_decl = ""
+
+    contract_prog = """pragma solidity ^0.5.10;
+
+        contract C {{
+            
+            {_decl}
+
+            function foo() public {{
+
+                {_body}
+
+            }}
+        }}"""
+
+    def __init__(self, decl=""):
+        self.program_decl = decl
+
     def eval_const(self, node, args):
         return args[0]
 
@@ -130,25 +153,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}
         """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtObj=tgt_array, srcObj=src_array)
 
-        contract_prog = """pragma solidity ^0.5.10;
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
-        contract C {{
-            
-            mapping (address => uint256[]) private {_storage1};
-            mapping (address => uint256[]) private {_storage2};
-            mapping (address => uint256) private {_storage3};
-            address private {_addr};
-
-            function foo() public {{
-
-                {_body}
-
-            }}
-        }}""".format(_body=loop_body, _storage1='lockTime', _storage2='tempLockTime', _storage3='lockNum', _addr='_address')
-
-        print(contract_prog)
+        # print(actual_contract)
         # assert False
-        return contract_prog
+        return actual_contract
 
 
 def execute(interpreter, prog, args):
@@ -164,7 +173,7 @@ def test_all(interpreter, prog, inputs, outputs):
 
 def main(sol_file):
     seed = None
-    actual_spec = instantiate_dsl(sol_file)
+    actual_spec, prog_decl = instantiate_dsl(sol_file)
     print(actual_spec)
     # assert False
     logger.info('Parsing Spec...')
@@ -176,7 +185,7 @@ def main(sol_file):
         enumerator=RandomEnumerator(
             spec, max_depth=4, seed=seed),
         decider=SymdiffDecider(
-            interpreter=SymDiffInterpreter(),
+            interpreter=SymDiffInterpreter(prog_decl),
             examples=[
                 # we want to synthesize the program (x-y)*y (depth=3, loc=2)
                 # which is also equivalent to x*y-y*y (depth=3, loc=3)
