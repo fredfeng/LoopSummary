@@ -50,6 +50,6 @@ class SymdiffDecider(Decider):
         This basic version of analyze() merely interpret the AST and see if it conforms to our examples
         '''
         if self.is_equivalent(prog):
-            return bad()
-        else:
             return ok()
+        else:
+            return bad()
