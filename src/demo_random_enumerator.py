@@ -15,7 +15,8 @@ logger = get_logger('tyrell')
 def add_var(arg_map, var):
     type_name = str(var.type)
     if type_name in arg_map:
-        arg_map[type_name].append(var.name)
+        if not var.name in arg_map[type_name]:
+            arg_map[type_name].append(var.name)
     else:
         l = []
         l.append(var.name)
@@ -35,6 +36,9 @@ def instantiate_dsl(sol_file):
     assert harness_fun.name == 'foo'
 
     for var in harness_fun.variables_read:
+        add_var(vars_map, var)
+
+    for var in harness_fun.variables_written:
         add_var(vars_map, var)
 
     actual_spec = toy_spec_str
