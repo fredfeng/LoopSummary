@@ -3,25 +3,18 @@ from tyrell.decider.decider import Decider
 from tyrell.interpreter import Interpreter
 from tyrell.decider.result import ok, bad
 
-Example = NamedTuple('Example', [
-    ('input', List[Any]),
-    ('output', Any)])
-
 
 class SymdiffDecider(Decider):
     _interpreter: Interpreter
-    _examples: List[Example]
+    _example: None
     _equal_output: Callable[[Any, Any], bool]
 
     def __init__(self,
                  interpreter: Interpreter,
-                 examples: List[Example],
+                 example: Any,
                  equal_output: Callable[[Any, Any], bool] = lambda x, y: x == y):
         self._interpreter = interpreter
-        if len(examples) == 0:
-            raise ValueError(
-                'ExampleDecider cannot take an empty list of examples')
-        self._examples = examples
+        self._example = example
         self._equal_output = equal_output
 
     @property
@@ -29,39 +22,34 @@ class SymdiffDecider(Decider):
         return self._interpreter
 
     @property
-    def examples(self):
-        return self._examples
+    def example(self):
+        return self._example
 
     @property
     def equal_output(self):
         return self._equal_output
 
-    def get_failed_examples(self, prog):
+    def is_equivalent(self, prog):
         '''
         Test the program on all examples provided.
         Return a list of failed examples.
         '''
-        return list(filter(
-            lambda x: not self._equal_output(
-                self.interpreter.eval(prog, x.input), x.output),
-            self._examples
-        ))
-
-    def has_failed_examples(self, prog):
-        '''
-        Test whether the given program would fail on any of the examples provided.
-        '''
-        return any(
-            not self._equal_output(
-                self.interpreter.eval(prog, x.input), x.output)
-            for x in self._examples
-        )
+        candidate_prog = self.interpreter.eval(prog, None)
+        # print("current candidate program:-------------")
+        # print(candidate_prog)
+        # print("target program:", self._example) 
+        # print("verifyer: ", self._equal_output)
+        candidate_file = open("_candidate.sol", "w")
+        candidate_file.write(candidate_prog)
+        candidate_file.close()
+        # trigger Symdiff
+        return self._equal_output("_candidate.sol", self._example)
 
     def analyze(self, prog):
         '''
         This basic version of analyze() merely interpret the AST and see if it conforms to our examples
         '''
-        if self.has_failed_examples(prog):
+        if self.is_equivalent(prog):
             return bad()
         else:
             return ok()

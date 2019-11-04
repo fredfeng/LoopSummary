@@ -18,6 +18,7 @@ def clean():
     os.system('rm C1C2.log')
 
 def check_eq(file1, file2):
+    res = False
     print('File1: ', file1)
     print('File2: ', file2)
     print('Step1: compiling contracts using VeriSol...')
@@ -44,11 +45,11 @@ def check_eq(file1, file2):
     print('Step3: Analyzing results...')
     if nums[1] == '0':
         print('PASS: Two programs are equivalent!')
+        res = True
     else:
         print('FAIL: Two programs are NOT equivalent!')
+        res = False
 
     # Clean up 
     clean()
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
+    return res

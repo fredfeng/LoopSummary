@@ -8,6 +8,7 @@ from tyrell.decider import Example, SymdiffDecider
 from tyrell.synthesizer import Synthesizer
 from tyrell.logger import get_logger
 from slither.slither import Slither
+from verify import check_eq
 
 logger = get_logger('tyrell')
 
@@ -185,13 +186,7 @@ def main(sol_file):
         enumerator=RandomEnumerator(
             spec, max_depth=4, seed=seed),
         decider=SymdiffDecider(
-            interpreter=SymDiffInterpreter(prog_decl),
-            examples=[
-                # we want to synthesize the program (x-y)*y (depth=3, loc=2)
-                # which is also equivalent to x*y-y*y (depth=3, loc=3)
-                Example(input=[4, 3], output=3),
-            ]
-        )
+            interpreter=SymDiffInterpreter(prog_decl), example=sol_file, equal_output=check_eq)
     )
     logger.info('Synthesizing programs...')
 
