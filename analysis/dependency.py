@@ -119,11 +119,14 @@ class Dependency(Analysis):
         return context.context[self.KEY_NON_SSA_UNPROTECTED].get(variable, [])
 
 
-    def pprint_dependency(self, context):
-        context = context.context
+    def pprint_dependency(self, context=None):
+        if context: context = context.context
         print('#### NON SSA ####')
-        for k, values in self.dependencies.items():
-        # for k, values in context[self.KEY_NON_SSA].items():
+        if context:
+            items = context[self.KEY_NON_SSA].items()
+        else:
+            items = self.dependencies.items()
+        for k, values in items:
             print('{} ({}):'.format(k, hex(id(k))))
             for v in values:
                 print('\t- {} ({})'.format(v, hex(id(v))))
