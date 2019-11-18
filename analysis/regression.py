@@ -22,5 +22,13 @@ class Regression(unittest.TestCase):
         self.compare_refinement(R, R.types, set(), set(), set(), set())
         self.compare_dependencies(D.dependencies, {})
         
+    def test_t2(self):
+        fname = os.path.join(testPath, 't2.sol')
+        D, R = analyze(fname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i']),
+                                set(['a', 'i']), set(['b', 'i']))
+        self.compare_dependencies(D.dependencies, {'a': set(['b', 'i']),
+                                                   'i': set(['i'])})
+        
 if __name__ == '__main__':
     unittest.main()

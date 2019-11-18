@@ -17,7 +17,7 @@ def setupArgs():
 
     return args
 
-def analyze(fname, cname, funcname):
+def analyze(fname, cname='MyContract', funcname='foo()'):
     slither = Slither(fname)
 
     myContract = slither.get_contract_from_name(cname)
@@ -65,6 +65,18 @@ def analyze(fname, cname, funcname):
     R.types[R.Typ.WRITTEN] = D.dependencies.keys()
     R.types[R.Typ.READ] = [x for vals in D.dependencies.values() for x in vals]
 
+    # Reformat refinement type entries
+    R_types_formatted = {}
+    for typ, vrs in R.types.items():
+        R_types_formatted[typ] = set(map(str, vrs))
+    R.types = R_types_formatted
+        
+    # Reformat dependencies entries
+    dependencies_formatted = {}
+    for v, vrs in D.dependencies.items():
+        dependencies_formatted[str(v)] = set(map(str, vrs))
+    D.dependencies = dependencies_formatted
+        
     return D, R    
 
 if __name__ == '__main__':
