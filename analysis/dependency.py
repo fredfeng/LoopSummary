@@ -14,6 +14,8 @@ from slither.core.solidity_types.type import Type
 
 class Dependency(Analysis):
 
+    dependencies = {}
+    
     def is_dependent(self, variable, source, context, only_unprotected=False):
         '''
         Args:
@@ -118,15 +120,10 @@ class Dependency(Analysis):
 
 
     def pprint_dependency(self, context):
-        # print('#### SSA ####')
         context = context.context
-        # for k, values in context[self.KEY_SSA].items():
-        #     print('{} ({}):'.format(k, id(k)))
-        #     for v in values:
-        #         print('\t- {}'.format(v))
-
         print('#### NON SSA ####')
-        for k, values in context[self.KEY_NON_SSA].items():
+        for k, values in self.dependencies.items():
+        # for k, values in context[self.KEY_NON_SSA].items():
             print('{} ({}):'.format(k, hex(id(k))))
             for v in values:
                 print('\t- {} ({})'.format(v, hex(id(v))))
@@ -151,7 +148,6 @@ class Dependency(Analysis):
             read = ir.function.return_values_ssa
         else:
             read = ir.read
-        print("{0}: {1}".format(lvalue, list(map(lambda i: i.name, read))))
         [function.context[self.KEY_SSA][lvalue].add(v) for v in read if not isinstance(v, Constant)]
         if not is_protected:
             [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read if not isinstance(v, Constant)]
@@ -168,21 +164,17 @@ class Dependency(Analysis):
         test = 0
         for node in function.nodes:
             for ir in node.irs_ssa:
-                print(ir)
                 if isinstance(ir, OperationWithLValue) and ir.lvalue and not isinstance(ir, Phi):
                     # if isinstance(ir, OperationWithLValue) and ir.lvalue:               
                     if test > -1:
-                        print("--"*8)
                         if isinstance(ir.lvalue, LocalIRVariable) and ir.lvalue.is_storage:
                             test += 1
                             continue
                         if isinstance(ir.lvalue, ReferenceVariable):
                             lvalue = ir.lvalue.points_to
                             if lvalue:
-                                print("\t: {0}, {1}".format(ir, lvalue))
                                 self.add(lvalue, function, ir, is_protected)
                         self.add(ir.lvalue, function, ir, is_protected)
-                        print("--"*8)
                     test += 1
 
         function.context[self.KEY_NON_SSA] = self.convert_to_non_ssa(function.context[self.KEY_SSA])

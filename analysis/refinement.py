@@ -18,13 +18,13 @@ class Refinement(Analysis):
     types = {}
     
     class Typ(Enum):
-        READ = 1
-        WRITTEN = 2
-        INDEX = 3
-        GUARD = 4
+        INDEX = 1
+        GUARD = 2
+        READ = 3
+        WRITTEN = 4
 
     def pprint_refinement(self):
-        enums = { 1: "READ", 2: "WRITTEN", 3: "INDEX", 4: "GUARD" }
+        enums = { 1: "INDEX", 2: "GUARD", 3: "READ", 4: "WRITTEN" }
         for e, vrs in self.types.items():
             print("{0}: {1}".format(enums[e], set(map(str, vrs))))
 
