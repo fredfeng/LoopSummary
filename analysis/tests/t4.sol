@@ -1,16 +1,16 @@
-// simple copy range: copyRange2(a, 0, b, 0, 10)
 contract MyContract{
     mapping (uint => uint) a;
     mapping (uint => uint) b;
+    mapping (uint => uint) c;
 
-    // INDEX: i
+    // INDEX: i, c
     // GUARD: i    
     // WRITTEN: a, i
-    // READ: b, i
-    // a' <-- b, a' <-- i, i' <-- i
+    // READ: b, c, i
+    // a' <-- b, a' <-- c, a' <-- i, i' <-- i
     function foo() public{
       for (uint i = 0; i < 10; i++) {
-    	a[i] = b[i];
+    	a[i] = b[c[i]];
       }
     }
 

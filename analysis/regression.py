@@ -58,8 +58,60 @@ class Regression(unittest.TestCase):
         fname = os.path.join(testPath, 't6.sol')
         D, R = analyze(fname)
         self.compare_refinement(R, R.types, set(['b', 'i']), set(['i']),
-                                set(['a', 'i']), set(['b', 'i']))
-        self.compare_dependencies(D.dependencies, {'i': set(['i'])})
+                                set(['a', 'i']), set(['b', 'i', 'c']))
+        self.compare_dependencies(D.dependencies, {'a': set(['c']),
+                                                   'i': set(['i'])})
+        
+    def test_t7(self):
+        fname = os.path.join(testPath, 't7.sol')
+        D, R = analyze(fname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i']),
+                                set(['a', 'i']), set(['i', 'c']))
+        self.compare_dependencies(D.dependencies, {'a': set(['c']),
+                                                   'i': set(['i'])})
+        
+    def test_t8(self):
+        fname = os.path.join(testPath, 't8.sol')
+        D, R = analyze(fname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i']),
+                                set(['a', 'i']), set(['a', 'i', 'c']))
+        self.compare_dependencies(D.dependencies, {'a': set(['c', 'a', 'i']),
+                                                   'i': set(['i'])})
+        
+    def test_t9(self):
+        fname = os.path.join(testPath, 't9.sol')
+        D, R = analyze(fname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i']),
+                                set(['a', 'i']), set(['a', 'b', 'i']))
+        self.compare_dependencies(D.dependencies, {'a': set(['b', 'a', 'i']),
+                                                   'i': set(['i'])})
+        
+    def test_t10(self):
+        fname = os.path.join(testPath, 't10.sol')
+        D, R = analyze(fname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i']),
+                                set(['a', 'b', 'i']), set(['b', 'c', 'i']))
+        self.compare_dependencies(D.dependencies, {'a': set(['b', 'i']),
+                                                   'b': set(['c', 'i']),
+                                                   'i': set(['i'])})
+        
+    def test_t11(self):
+        fname = os.path.join(testPath, 't11.sol')
+        D, R = analyze(fname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i']),
+                                set(['a', 'b', 'i']), set(['b', 'c', 'i']))
+        self.compare_dependencies(D.dependencies, {'a': set(['b', 'c', 'i']),
+                                                   'b': set(['c', 'i']),
+                                                   'i': set(['i'])})
+        
+    def test_t12(self):
+        fname = os.path.join(testPath, 't12.sol')
+        D, R = analyze(fname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i']),
+                                set(['a', 'c', 'i']), set(['b', 'a', 'i']))
+        self.compare_dependencies(D.dependencies, {'a': set(['b', 'i']),
+                                                   'c': set(['a', 'b', 'i']),
+                                                   'i': set(['i'])})
         
 if __name__ == '__main__':
     unittest.main()

@@ -1,16 +1,16 @@
-// simple copy range: copyRange2(a, 0, b, 0, 10)
+// simple map lambda: map(a, 0, 10, +c)
 contract MyContract{
     mapping (uint => uint) a;
-    mapping (uint => uint) b;
-
+    uint c;
+    
     // INDEX: i
     // GUARD: i    
     // WRITTEN: a, i
-    // READ: b, i
-    // a' <-- b, a' <-- i, i' <-- i
+    // READ: a, i, c
+    // a' <-- c, a' <-- a, a' <-- i, i' <-- i
     function foo() public{
       for (uint i = 0; i < 10; i++) {
-    	a[i] = b[i];
+    	a[i] += c;
       }
     }
 
