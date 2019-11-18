@@ -67,6 +67,10 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     R.types[R.Typ.WRITTEN] += D.dependencies.keys()
     R.types[R.Typ.READ] = [x for vals in D.dependencies.values() for x in vals]
 
+    # Anything that is an index or guard is also read
+    R.types[R.Typ.READ] += R.types[R.Typ.INDEX]
+    R.types[R.Typ.READ] += R.types[R.Typ.GUARD]    
+        
     # Reformat refinement type entries
     R_types_formatted = {}
     for typ, vrs in R.types.items():
