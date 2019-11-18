@@ -12,6 +12,8 @@ def setupArgs():
                         help='name of contract in file')
     parser.add_argument('--func', type=str, default='foo()', dest='funcname',
                         help='name of function in file')
+    parser.add_argument('--print', default=False, action='store_true',
+                        dest='print_output', help='name of function in file')
 
     args = parser.parse_args()    
 
@@ -62,7 +64,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
         D.dependencies.pop(x, None)
 
     # Fetch written and read types from dependencies
-    R.types[R.Typ.WRITTEN] = D.dependencies.keys()
+    R.types[R.Typ.WRITTEN] += D.dependencies.keys()
     R.types[R.Typ.READ] = [x for vals in D.dependencies.values() for x in vals]
 
     # Reformat refinement type entries
@@ -81,5 +83,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
 
 if __name__ == '__main__':
     args = setupArgs()
-    print(args)
-    analyze(args.fname, args.cname, args.funcname)
+    D, R = analyze(args.fname, args.cname, args.funcname)
+    if args.print_output:        
+        D.pprint_dependency()
+        R.pprint_refinement()

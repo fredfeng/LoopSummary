@@ -48,11 +48,20 @@ class Refinement(Analysis):
         if isinstance(ir, Condition):
             guard += [ir.value]
         return guard
+
+    def get_write_constant(self, ir):
+        written = []
+        if isinstance(ir, Assignment):
+            written.append(ir.lvalue)            
+            lvalue_pts_to = self.fetch_points_to(ir.lvalue)
+            if lvalue_pts_to: written.append(lvalue_pts_to)
+        return written
     
     def compute_function(self, function):
         self.types = {}
         self.types[self.Typ.INDEX] = []
-        self.types[self.Typ.GUARD] = []        
+        self.types[self.Typ.GUARD] = []
+        self.types[self.Typ.WRITTEN] = []
                         
         is_protected = function.is_protected()
         test = 0
@@ -60,7 +69,8 @@ class Refinement(Analysis):
             for ir in node.irs_ssa:
                 if not isinstance(ir, Phi):
                     self.types[self.Typ.INDEX] += self.get_index(ir)
-                    self.types[self.Typ.GUARD] += self.get_guard(ir)                
+                    self.types[self.Typ.GUARD] += self.get_guard(ir)
+                    self.types[self.Typ.WRITTEN] += self.get_write_constant(ir)
 
         self.types = self.convert_to_non_ssa(self.types)
 
