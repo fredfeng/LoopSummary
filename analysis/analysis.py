@@ -59,11 +59,15 @@ class Analysis():
         self.transitive_close(function, context_key, context_key_non_ssa)
         # Propage data dependency
         data_depencencies = function.context[context_key]
+        
         for (key, values) in data_depencencies.items():
+            # print("{0}: {1}".format(key, list(map(str, values))))
             if not key in contract.context[context_key]:
                 contract.context[context_key][key] = set(values)
             else:
                 contract.context[context_key][key].union(values)
+
+        # print("--"*8)
 
     def transitive_close(self, context, context_key, context_key_non_ssa):
         # transitive closure

@@ -19,6 +19,28 @@ def setupArgs():
 
     return args
 
+def find_deps(deps, toVisit, visited):
+    for v in toVisit:
+        if not v in visited:
+            visited.add(v)        
+            if v in deps:
+                visited = find_deps(deps, deps[v], visited)
+
+    return visited
+
+def transitive_close(deps):
+    new_deps = {}
+    changed = True
+    while changed:
+        changed = False
+        for tgt,vdeps in deps.items():
+            new_deps_tgt = find_deps(deps, vdeps, set())
+            if not tgt in new_deps or new_deps_tgt != new_deps[tgt]:
+                new_deps[tgt] = new_deps_tgt
+                changed = True
+            
+    return new_deps
+
 def analyze(fname, cname='MyContract', funcname='foo()'):
     slither = Slither(fname)
 
@@ -29,7 +51,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     D = Dependency()
     D.compute_contract(myContract, slither)
     D.dependencies = funcA.context[D.KEY_NON_SSA]        
-
+    
     # Refinement Analysis
     R = Refinement()
     R.compute_contract(myContract, slither)
@@ -43,11 +65,17 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     R.types[R.Typ.GUARD] += guards
 
     # Remove temporary variables and ref vars from types
+    to_delete = {}
     for typ in R.types:
+        to_delete[typ] = []
         for var in R.types[typ]:
             if var.name.startswith("REF") or var.name.startswith("TMP"):
-                R.types[typ].remove(var)
+                to_delete[typ].append(var)
 
+    for k,vals in to_delete.items():
+        for v in vals:
+            R.types[k].remove(v)
+                
     # Remove temporary variables and ref vars from dependencies
     to_delete = []
     for var in D.dependencies:
@@ -65,7 +93,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
 
     # Fetch written and read types from dependencies
     R.types[R.Typ.WRITTEN] += D.dependencies.keys()
-    R.types[R.Typ.READ] = [x for vals in D.dependencies.values() for x in vals]
+    R.types[R.Typ.READ] += [x for vals in D.dependencies.values() for x in vals]
 
     # Anything that is an index or guard is also read
     R.types[R.Typ.READ] += R.types[R.Typ.INDEX]
@@ -82,6 +110,9 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     for v, vrs in D.dependencies.items():
         dependencies_formatted[str(v)] = set(map(str, vrs))
     D.dependencies = dependencies_formatted
+
+    # # Transitive Closure of Dependencies
+    # D.dependencies = transitive_close(D.dependencies)
         
     return D, R    
 
