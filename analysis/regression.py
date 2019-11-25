@@ -177,7 +177,28 @@ class Regression(unittest.TestCase):
         funcname = "foo(uint256)"
         self.compare_opt(name, funcname=funcname)
 
+    def test_aaAltimxToken(self):
+        name = "aaAltimxToken"
+        funcname = "foo(uint256[])"
+        fname = os.path.join(optPath, name, '{0}.sol'.format(name))
+        D, R = analyze(fname, funcname=funcname)
+        self.compare_refinement(R, R.types, set(['i']), set(['i', '_amountOfLands']),
+                                set(['totalAmount', 'i', 'amount']),
+                                set(['_amountOfLands', 'Factor', 'amount', 'i',
+                                     'totalAmount']))
+        self.compare_dependencies(D.dependencies,
+                                  {'totalAmount':
+                                   set(['totalAmount', 'amount', '_amountOfLands',
+                                        'i', 'Factor']),
+                                   'amount':
+                                   set(['_amountOfLands', 'Factor', 'i']),
+                                   'i': set(['i'])})
 
+    def test_aaAltimxToken_Opt(self):
+        name = "aaAltimxToken"
+        funcname = "foo(uint256[])"
+        self.compare_opt(name, funcname=funcname)        
+        
         
 if __name__ == '__main__':
     unittest.main()

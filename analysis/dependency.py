@@ -4,7 +4,7 @@ from slither.core.declarations import (Contract, Enum, Function,
                                        SolidityFunction, SolidityVariable,
                                        SolidityVariableComposed, Structure)
 from slither.slithir.operations import (Index, OperationWithLValue, InternalCall,
-                                        Phi)
+                                        Phi, Length)
 from slither.slithir.variables import (Constant, LocalIRVariable,
                                        ReferenceVariable, ReferenceVariableSSA,
                                        StateIRVariable, TemporaryVariable,
@@ -167,7 +167,7 @@ class Dependency(Analysis):
         test = 0
         for node in function.nodes:
             for ir in node.irs_ssa:
-                if isinstance(ir, OperationWithLValue) and ir.lvalue and not isinstance(ir, Phi):
+                if isinstance(ir, OperationWithLValue) and ir.lvalue and not isinstance(ir, Phi) and not isinstance(ir, Length):
                     # if isinstance(ir, OperationWithLValue) and ir.lvalue:               
                     if test > -1:
                         if isinstance(ir.lvalue, LocalIRVariable) and ir.lvalue.is_storage:
@@ -179,6 +179,6 @@ class Dependency(Analysis):
                                 self.add(lvalue, function, ir, is_protected)
                         self.add(ir.lvalue, function, ir, is_protected)
                     test += 1
-
+                    
         function.context[self.KEY_NON_SSA] = self.convert_to_non_ssa(function.context[self.KEY_SSA])
         function.context[self.KEY_NON_SSA_UNPROTECTED] = self.convert_to_non_ssa(function.context[self.KEY_SSA_UNPROTECTED])

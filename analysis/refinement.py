@@ -46,6 +46,7 @@ class Refinement(Analysis):
     def get_guard(self, ir):
         guard = []
         if isinstance(ir, Condition):
+            print(ir.value)
             guard += [ir.value]
         return guard
 
@@ -64,7 +65,10 @@ class Refinement(Analysis):
         return read
     
     def compute_function(self, function):
-        self.types = {}
+        # TODO: HANDLE ANY FUNCTION NAME
+        if function.name != "foo":
+            return
+        
         self.types[self.Typ.INDEX] = []
         self.types[self.Typ.GUARD] = []
         self.types[self.Typ.WRITTEN] = []
