@@ -79,7 +79,7 @@ def create_refinement_types(analysis, base_types):
         '''.format(typ, ",".join(map(lambda x: '"' + x + '"', vs)))
         typ_enums += new_typ
 
-    return typ_enums
+    return typ_enums, final_typ_dict
 
         
 def instantiate_dsl(sol_file, analysis):
@@ -140,11 +140,11 @@ def instantiate_dsl(sol_file, analysis):
         else:
             pass
 
-    typ_enums = create_refinement_types(analysis, base_types)        
+    typ_enums, final_typ_dict = create_refinement_types(analysis, base_types)        
                     
     actual_spec = actual_spec.format(types=typ_enums)
 
-    return actual_spec, prog_decl
+    return actual_spec, prog_decl, final_typ_dict
 
 toy_spec_str = '''
 
@@ -255,10 +255,10 @@ def main(sol_file):
     # assert False
 
     logger.info('Analyzing Input...')
-    Deps, Refs = analyze(sol_file, "C", "foo()")
+    deps, refs = analyze(sol_file, "C", "foo()")
     logger.info('Analysis Successful!')
 
-    actual_spec, prog_decl = instantiate_dsl(sol_file, Refs.types)
+    actual_spec, prog_decl, types = instantiate_dsl(sol_file, refs.types)
     print(actual_spec)
     
     logger.info('Parsing Spec...')
@@ -268,7 +268,7 @@ def main(sol_file):
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
         enumerator=DependencyEnumerator(
-            spec, max_depth=4, seed=seed, deps=Deps),
+            spec, max_depth=4, seed=seed, analysis=deps.dependencies, types=types),
         decider=SymdiffDecider(
             interpreter=SymDiffInterpreter(prog_decl), example=sol_file, equal_output=check_eq)
     )
