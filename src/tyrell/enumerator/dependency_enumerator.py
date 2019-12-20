@@ -142,7 +142,7 @@ class DependencyEnumerator(Enumerator):
                 enum_children = self._generate_children(func, idx, new_conc_args)
                 if enum_children == None:
                     self._last_conc_args = new_conc_args
-                    self._generate_func(curr_type)
+                    return self._generate_func(curr_type)
             else:
                 enum_children = self._generate_children(func, 0, [])
             if enum_children != None:
@@ -157,10 +157,6 @@ class DependencyEnumerator(Enumerator):
         if idx == len(func.rhs):
             return conc_args
         poss_values = self.find_poss_hole_vals2(func,conc_args,idx)
-        if idx == 2:
-            print()
-            print(poss_values)
-            print()
         invalid_key = (func, tuple(conc_args), idx)
         invalid_values = []
         if invalid_key in self._invalid_args:
@@ -179,7 +175,7 @@ class DependencyEnumerator(Enumerator):
 
         productions = list(filter(lambda x: str(self._builder.make_node(x)) in poss_values, productions))
 
-        for pot_arg in productions:
+        for pot_arg in productions: 
             children = self._generate_children(func, idx+1, conc_args+[pot_arg])
             if children != None:
                 return children
