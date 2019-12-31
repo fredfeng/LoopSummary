@@ -159,7 +159,15 @@ value Array;
 program SymDiff(Stmt) -> Inst;
 func addressToArray: Array -> MapArray, address;
 func addressToInt: endInt -> MapInt, address;
+func INCRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read__int, Read__int;
+func COPYRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read__int, Read__int;
 func SUM: Inst -> Write__int, Read__MapInt, Read__int, Read__int;
+func SHIFTLEFT: Inst -> Read_Write__MapInt, Read__int, Read__int;
+func UPDATERANGE: Inst -> Index_Read__MapInt, Write__MapInt, Read__int, Read__int, Read__int;
+func MAP: Inst -> Write__MapInt, Read__int, Read__int, Read__int;
+'''
+
+extra = '''
 '''
 
 
@@ -222,15 +230,17 @@ class SymDiffInterpreter(PostOrderInterpreter):
     
     def eval_COPYRANGE(self, node, args):        
         src_array = args[0]
-        start_idx = args[1]
-        end_idx = args[2]
-        tgt_array = args[3]
-
+        start_src = args[1]
+        tgt_array = args[2]
+        start_tgt = args[3]
+        end_tgt = args[4]
+        
         loop_body = """
             for (uint i = {tgtStart}; i < {tgtEnd}; ++i) {{
-                {tgtObj}[i] = {srcObj}[i];
+                {tgtObj}[i] = {srcObj}[i+{srcStart}-{tgtStart}];
             }}
-        """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtObj=tgt_array, srcObj=src_array)
+        """.format(tgtStart=start_tgt, tgtEnd=end_tgt, tgtObj=tgt_array,
+                   srcStart=start_src, srcObj=src_array)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -238,6 +248,79 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # assert False
         return actual_contract
 
+    def eval_SHIFTLEFT(self, node, args):        
+        src_array = args[0]
+        start_idx = args[1]
+        end_idx = args[2]
+
+        loop_body = """
+            for (uint i = {start}; i < {end}; i++) {{
+                {arr}[i] = {arr}[i+1];
+            }}
+        """.format(start=start_idx, end=end_idx, arr=src_array)
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        # print(actual_contract)
+        # assert False
+        return actual_contract
+
+    def eval_UPDATERANGE(self, node, args):        
+        cont = args[0]
+        tgt = args[1]
+        start = args[2]
+        end = args[3]
+        val = args[4]
+
+        loop_body = """
+            for (uint i = {startIdx}; i < {endIdx}; i++) {{
+                {tgtArr}[{contArr}[i]] = {newVal};
+            }}
+        """.format(tgtArr=tgt, contArr=cont, startIdx=start, endIdx=end, newVal=val)
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        # print(actual_contract)
+        # assert False
+        return actual_contract
+
+    def eval_MAP(self, node, args):        
+        tgt = args[0]
+        start = args[1]
+        end = args[2]        
+        val = args[3]
+
+        loop_body = """
+            for (uint i = {start_idx}; i < {end_idx}; i++) {{
+                {tgtArr}[i] = {newVal};
+            }}
+        """.format(tgtArr=tgt, start_idx=start, end_idx=end, newVal=val)
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        # print(actual_contract)
+        # assert False
+        return actual_contract
+
+    def eval_INCRANGE(self, node, args):        
+        src = args[0]
+        start_src = args[1]
+        tgt = args[2]
+        start_tgt = args[3]
+        end_tgt = args[4]        
+
+        loop_body = """
+            for (uint i = {tgtStart}; i < {tgtEnd}; i++) {{
+                {tgtArr}[i] += {srcArr}[i+{srcStart}-{tgtStart}];
+            }}
+        """.format(tgtArr=tgt, tgtStart=start_tgt, tgtEnd=end_tgt,
+                   srcArr=src, srcStart=start_src)
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        # print(actual_contract)
+        # assert False
+        return actual_contract
 
 def execute(interpreter, prog, args):
     return interpreter.eval(prog, args)

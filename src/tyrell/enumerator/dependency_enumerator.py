@@ -5,8 +5,12 @@ from tyrell import dsl as D
 from tyrell import spec as S
 
 func_deps = {
-    "COPYRANGE": {3: [0,1,2,4,5]},
-    "SUM": {0: [0,1]}
+    "COPYRANGE": {2: [0]},
+    "SUM": {0: [0,1]},
+    "SHIFTLEFT": {0: [0]},
+    "UPDATERANGE": {1:[4]}, # SHOULD INCLUDE 0?
+    "MAP": {0: [3]},
+    "INCRANGE": {2: [0]}
 }
 
 class DependencyEnumerator(Enumerator):
@@ -129,7 +133,7 @@ class DependencyEnumerator(Enumerator):
         # First, get all the relevant function rules for current type
         productions = self._builder.get_productions_with_lhs(curr_type)
         productions = list(filter(lambda x: x.is_function(), productions))
-
+        
         for func in productions[self._func_idx:]:
             if self._last_conc_args != []:
                 new_conc_args = self._last_conc_args[:-1]
@@ -162,11 +166,6 @@ class DependencyEnumerator(Enumerator):
         if invalid_key in self._invalid_args:
             invalid_values = self._invalid_args[invalid_key]
         poss_values = list(filter(lambda x: not x in invalid_values, poss_values))
-        if idx == 2:
-            print()
-            print(poss_values)
-            print()
-        
         if [] in poss_values:
             return None
         arg = func.rhs[idx]
