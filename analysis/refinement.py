@@ -5,7 +5,7 @@ from slither.core.declarations import (Contract, Enum, Function,
                                        SolidityFunction, SolidityVariable,
                                        SolidityVariableComposed, Structure)
 from slither.slithir.operations import (Index, OperationWithLValue, InternalCall,
-                                        Phi, Condition, Operation, Assignment)
+                                        Phi, Condition, Operation, Assignment, Binary)
 from slither.slithir.variables import (Constant, LocalIRVariable,
                                        ReferenceVariable, ReferenceVariableSSA,
                                        StateIRVariable, TemporaryVariable,
@@ -22,9 +22,10 @@ class Refinement(Analysis):
         GUARD = 2
         READ = 3
         WRITTEN = 4
+        CONSTANT = 5
 
     def pprint_refinement(self):
-        enums = { 1: "INDEX", 2: "GUARD", 3: "READ", 4: "WRITTEN" }
+        enums = { 1: "INDEX", 2: "GUARD", 3: "READ", 4: "WRITTEN", 5: "CONSTANT" }
         for e, vrs in self.types.items():
             print("{0}: {1}".format(enums[e], set(map(str, vrs))))
 
@@ -46,7 +47,6 @@ class Refinement(Analysis):
     def get_guard(self, ir):
         guard = []
         if isinstance(ir, Condition):
-            print(ir.value)
             guard += [ir.value]
         return guard
 
@@ -63,6 +63,17 @@ class Refinement(Analysis):
         if isinstance(ir, Condition):
             read += [ir.value]
         return read
+
+    def get_constants(self, ir):
+        constants = []
+        if isinstance(ir, Constant):
+            constants.append(ir)            
+        if isinstance(ir, Assignment):
+            constants += self.get_constants(ir.rvalue)
+        if isinstance(ir, Binary):
+            for var in ir.get_variable:
+                constants += self.get_constants(var)
+        return constants
     
     def compute_function(self, function):
         # TODO: HANDLE ANY FUNCTION NAME
@@ -72,7 +83,8 @@ class Refinement(Analysis):
         self.types[self.Typ.INDEX] = []
         self.types[self.Typ.GUARD] = []
         self.types[self.Typ.WRITTEN] = []
-        self.types[self.Typ.READ] = []        
+        self.types[self.Typ.READ] = []
+        self.types[self.Typ.CONSTANT] = []
                         
         is_protected = function.is_protected()
         test = 0
@@ -83,6 +95,7 @@ class Refinement(Analysis):
                     self.types[self.Typ.GUARD] += self.get_guard(ir)
                     self.types[self.Typ.WRITTEN] += self.get_write_constant(ir)
                     self.types[self.Typ.READ] += self.get_read(ir)
+                    self.types[self.Typ.CONSTANT] += self.get_constants(ir)                    
                     
         self.types = self.convert_to_non_ssa(self.types)
 
