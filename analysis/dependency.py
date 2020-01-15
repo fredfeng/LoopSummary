@@ -15,6 +15,7 @@ from slither.core.solidity_types.type import Type
 class Dependency(Analysis):
 
     dependencies = {}
+    dependencies_phis = {}
     
     def is_dependent(self, variable, source, context, only_unprotected=False):
         '''
@@ -132,6 +133,7 @@ class Dependency(Analysis):
                 print('\t- {} ({})'.format(v, hex(id(v))))
 
     def add(self, lvalue, function, ir, is_protected):
+        phi = False
         if not lvalue in function.context[self.KEY_SSA]:
             function.context[self.KEY_SSA][lvalue] = set()
             if not is_protected:
@@ -149,8 +151,23 @@ class Dependency(Analysis):
             read = [ir.variable_left, ir.variable_right]
         elif isinstance(ir, InternalCall):
             read = ir.function.return_values_ssa
+        elif isinstance(ir, Phi):
+            phi = True
+            if lvalue not in self.dependencies_phis:
+                self.dependencies_phis[lvalue] = set()
+            for rv in ir.rvalues:
+                if not (lvalue in function.context[self.KEY_SSA] and rv in function.context[self.KEY_SSA][lvalue]):
+                    # print("ADDED: {0}, {1}".format(lvalue, rv))
+                    self.dependencies_phis[lvalue].add(rv)
+            # read = ir.rvalues
+            read = []
         else:
             read = ir.read
+        if not phi and lvalue in self.dependencies_phis:
+            for rv in read:
+                if not isinstance(rv, Constant) and rv in self.dependencies_phis[lvalue]:
+                    # print("REMOVED: {0}, {1}".format(lvalue, rv))
+                    self.dependencies_phis[lvalue].remove(rv)
         [function.context[self.KEY_SSA][lvalue].add(v) for v in read if not isinstance(v, Constant)]
         if not is_protected:
             [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read if not isinstance(v, Constant)]
@@ -179,6 +196,11 @@ class Dependency(Analysis):
                                 self.add(lvalue, function, ir, is_protected)
                         self.add(ir.lvalue, function, ir, is_protected)
                     test += 1
+                elif isinstance(ir, Phi):
+                    self.add(ir.lvalue, function, ir, is_protected)
                     
         function.context[self.KEY_NON_SSA] = self.convert_to_non_ssa(function.context[self.KEY_SSA])
         function.context[self.KEY_NON_SSA_UNPROTECTED] = self.convert_to_non_ssa(function.context[self.KEY_SSA_UNPROTECTED])
+        ret = self.dependencies_phis
+        self.dependencies_phis = {}
+        return ret
