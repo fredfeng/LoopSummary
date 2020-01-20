@@ -10,7 +10,8 @@ func_deps = {
     "SHIFTLEFT": {0: [0]},
     "UPDATERANGE": {1:[4]}, # SHOULD INCLUDE 0?
     "MAP": {0: [3]},
-    "INCRANGE": {2: [0]}
+    "INCRANGE": {2: [0]},
+    "MAPLAMBDA": {}
 }
 
 class DependencyEnumerator(Enumerator):

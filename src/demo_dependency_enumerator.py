@@ -13,7 +13,7 @@ from verify import check_eq
 import sys
 sys.path.append("../analysis")
 
-from analyze import analyze
+from analyze import analyze, analyze_lambdas
 from itertools import combinations 
 
 logger = get_logger('tyrell')
@@ -82,7 +82,7 @@ def create_refinement_types(analysis, base_types):
     return typ_enums, final_typ_dict
 
         
-def instantiate_dsl(sol_file, analysis):
+def instantiate_dsl(sol_file, analysis, lambdas):
 ## Step 1: parse the original source .sol.
 # Init slither
     slither = Slither(sol_file)
@@ -102,8 +102,6 @@ def instantiate_dsl(sol_file, analysis):
         add_var(vars_map, var)
 
     actual_spec = toy_spec_str
-
-    print(analysis)
     
     int_str = ""
     address_str = ""
@@ -141,9 +139,19 @@ def instantiate_dsl(sol_file, analysis):
             pass
 
     typ_enums, final_typ_dict = create_refinement_types(analysis, base_types)        
-                    
+
+    if lambdas != []:
+        typ_enums += '''
+            enum Lambda {{
+                {0}
+            }}
+        '''.format(','.join(map(lambda x: '"{0}"'.format(x), lambdas)))
+    
     actual_spec = actual_spec.format(types=typ_enums)
 
+    print(actual_spec)
+    print(lambdas)    
+    
     return actual_spec, prog_decl, final_typ_dict
 
 toy_spec_str = '''
@@ -159,15 +167,16 @@ value Array;
 program SymDiff(Stmt) -> Inst;
 func addressToArray: Array -> MapArray, address;
 func addressToInt: endInt -> MapInt, address;
+func MAPLAMBDA: Inst -> Write__MapInt, Read__int, Read__int, Lambda;
+'''
+
+extra = '''
 func INCRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read__int, Read__int;
 func COPYRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read__int, Read__int;
 func SUM: Inst -> Write__int, Read__MapInt, Read__int, Read__int;
 func SHIFTLEFT: Inst -> Read_Write__MapInt, Read__int, Read__int;
 func UPDATERANGE: Inst -> Index_Read__MapInt, Write__MapInt, Read__int, Read__int, Read__int;
 func MAP: Inst -> Write__MapInt, Read__int, Read__int, Read__int;
-'''
-
-extra = '''
 '''
 
 
@@ -322,6 +331,28 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # assert False
         return actual_contract
 
+    def eval_MAPLAMBDA(self, node, args):        
+        tgt = args[0]
+        start = args[1]
+        end = args[2]        
+        lam = args[3]
+
+        lam = lam[lam.index(":")+2:].replace("__x", "{0}[i]".format(tgt))
+        
+        loop_body = """
+            for (uint i = {start_idx}; i < {end_idx}; i++) {{
+                {tgtArr}[i] = {newVal};
+            }}
+        """.format(tgtArr=tgt, start_idx=start, end_idx=end, newVal=lam)
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        # print(actual_contract)
+        # assert False
+        return actual_contract
+
+    
+
 def execute(interpreter, prog, args):
     return interpreter.eval(prog, args)
 
@@ -339,10 +370,10 @@ def main(sol_file):
 
     logger.info('Analyzing Input...')
     deps, refs = analyze(sol_file, "C", "foo()")
+    lambdas = analyze_lambdas(sol_file, "C", "foo()")
     logger.info('Analysis Successful!')
 
-    actual_spec, prog_decl, types = instantiate_dsl(sol_file, refs.types)
-    print(actual_spec)
+    actual_spec, prog_decl, types = instantiate_dsl(sol_file, refs.types, lambdas)
     
     logger.info('Parsing Spec...')
     spec = S.parse(actual_spec)
