@@ -1,6 +1,7 @@
 from slither import Slither
 from dependency import Dependency
 from refinement import Refinement
+from lambdaAnalysis import LambdaAnalysis
 
 import argparse
 
@@ -41,6 +42,51 @@ def transitive_close(deps):
             
     return new_deps
 
+def analyze_lambdas(fname, cname='MyContract', funcname='foo()'):
+    slither = Slither(fname)
+    myContract = slither.get_contract_from_name(cname)
+
+    return get_lambda_analysis(fname, myContract, slither)
+
+def get_lambda_analysis(fname, myContract, slither):
+    # Lambda Analysis
+    L = LambdaAnalysis()
+    L.compute_contract(myContract, slither)
+
+    return get_lambdas(L.exprs)
+
+def get_lambdas(exprs):
+    commutative_operators = ["+", "*", "&&", "||"]
+    vs = []
+    lambdas = []
+    lambda_vname = "__x"
+    for expr in exprs:
+        op = expr[0]
+        arg1 = expr[1][0]
+        arg2 = expr[1][1]
+        if arg1[0] and arg2[0]:
+            vs.append("{0}{1}{2}".format(arg1[1], op, arg2[1]))
+        elif not arg1[0] and not arg2[0]:
+            for v in vs:
+                lambdas.append("lambda {0}: {1}{2}{0}".format(lambda_vname, v, op))
+                if not op in commutative_operators:
+                    lambdas.append("lambda {0}: {1}{2}{0}".format(v, lambda_vname, op))                
+        else:
+            if arg1[0]:
+                new_vs = [] + vs
+                for v in vs:
+                    new_vs.append("{0}{1}({2})".format(arg1[1], op, v))
+                vs = new_vs
+                lambdas.append("lambda {0}: {1}{2}{0}".format(lambda_vname, arg1[1], op))
+            else:
+                new_vs = [] + vs
+                for v in vs:
+                    new_vs.append("({0}){1}{2}".format(v, op, arg2[1]))
+                vs = new_vs
+                lambdas.append("lambda {0}: {0}{2}{1}".format(lambda_vname, arg2[1], op))
+                
+    return lambdas
+
 def analyze(fname, cname='MyContract', funcname='foo()'):
     slither = Slither(fname)
 
@@ -56,6 +102,9 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     R = Refinement()
     R.compute_contract(myContract, slither)
 
+    # Lambda Analysis
+    get_lambda_analysis(fname, myContract, slither)
+    
     # For Guard Types, use Dependency Analysis to fetch all vars which affect
     #   the Guard (i.e. on which the guard depends)
     guards = []
