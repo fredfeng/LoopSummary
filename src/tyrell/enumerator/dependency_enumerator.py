@@ -11,7 +11,7 @@ func_deps = {
     "UPDATERANGE": {1:[4]}, # SHOULD INCLUDE 0?
     "MAP": {0: [3]},
     "INCRANGE": {2: [0]},
-    "MAPLAMBDA": {}
+    "MAPLAMBDA": {0: [3]}
 }
 
 class DependencyEnumerator(Enumerator):
@@ -54,6 +54,8 @@ class DependencyEnumerator(Enumerator):
             if val in deps:
                 analysis_dep_from.append(var)
 
+        # print(val, deps_on, deps_from, args, analysis_dep_on, analysis_dep_from)
+                
         # Check both depends on and depends from
         for deps, analysis_deps in zip([deps_on, deps_from], [analysis_dep_on, analysis_dep_from]):
             # Check each production dependency

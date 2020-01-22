@@ -28,13 +28,16 @@ def add_var(arg_map, var):
         l.append(var.name)
         arg_map[type_name] = l
 
-def create_refinement_types(analysis, base_types):
-    ref_types = ["Index", "Guard", "Read", "Write"]
+def create_refinement_types(analysis, base_types, lambdas):
+    ref_types = ["Index", "Guard", "Read", "Write", "Constant", "GuardStart", "GuardEnd"]
     refinement_type_dict = {
         1: "Index",
         2: "Guard",
         3: "Read",
-        4: "Write"
+        4: "Write",
+        5: "Constant",
+        6: "GuardStart",
+        7: "GuardEnd"
     }
     
     final_typ_dict = {}
@@ -79,6 +82,21 @@ def create_refinement_types(analysis, base_types):
         '''.format(typ, ",".join(map(lambda x: '"' + x + '"', vs)))
         typ_enums += new_typ
 
+    if lambdas:
+        typ_enums += '''
+            enum Lambda {{
+                {0}
+            }}
+        '''.format(','.join(map(lambda x: '"{0}"'.format(x), lambdas)))
+    else:
+        typ_enums += '''
+            enum Lambda {{
+                {0}
+            }}
+        '''.format('"NA"') 
+        
+    final_typ_dict["Lambda"] = lambdas
+        
     return typ_enums, final_typ_dict
 
         
@@ -113,6 +131,10 @@ def instantiate_dsl(sol_file, analysis, lambdas):
         for v in vars_map[k]:
             prog_decl += k + ' ' + v + '; \n'
 
+    # TODO: Presumes all constants are integers
+    for const in analysis[5]:
+        vars_map['uint256'].append(const)
+                
     base_types = {
         "int": ["NA"],
         "address": ["NA"],
@@ -138,19 +160,12 @@ def instantiate_dsl(sol_file, analysis, lambdas):
         else:
             pass
 
-    typ_enums, final_typ_dict = create_refinement_types(analysis, base_types)        
+    typ_enums, final_typ_dict = create_refinement_types(analysis, base_types, lambdas)        
 
-    if lambdas != []:
-        typ_enums += '''
-            enum Lambda {{
-                {0}
-            }}
-        '''.format(','.join(map(lambda x: '"{0}"'.format(x), lambdas)))
-    
     actual_spec = actual_spec.format(types=typ_enums)
 
-    print(actual_spec)
-    print(lambdas)    
+    # print(actual_spec)
+    # print(lambdas)    
     
     return actual_spec, prog_decl, final_typ_dict
 
@@ -167,16 +182,16 @@ value Array;
 program SymDiff(Stmt) -> Inst;
 func addressToArray: Array -> MapArray, address;
 func addressToInt: endInt -> MapInt, address;
-func MAPLAMBDA: Inst -> Write__MapInt, Read__int, Read__int, Lambda;
+func INCRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
+func COPYRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
+func SUM: Inst -> Write__int, Read__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
+func SHIFTLEFT: Inst -> Read_Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
+func UPDATERANGE: Inst -> Index_Read__MapInt, Write__MapInt, Read__int, Read_GuardStart__int, Read_GuardEnd__int;
+func MAP: Inst -> Write__MapInt, Read__int, Read_GuardStart__int, Read_GuardEnd__int;
+func MAPLAMBDA: Inst -> Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int, Lambda;
 '''
 
 extra = '''
-func INCRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read__int, Read__int;
-func COPYRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read__int, Read__int;
-func SUM: Inst -> Write__int, Read__MapInt, Read__int, Read__int;
-func SHIFTLEFT: Inst -> Read_Write__MapInt, Read__int, Read__int;
-func UPDATERANGE: Inst -> Index_Read__MapInt, Write__MapInt, Read__int, Read__int, Read__int;
-func MAP: Inst -> Write__MapInt, Read__int, Read__int, Read__int;
 '''
 
 

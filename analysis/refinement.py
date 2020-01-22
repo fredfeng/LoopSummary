@@ -1,5 +1,6 @@
 from analysis import Analysis
 from enum import Enum
+import re
 
 from slither.core.declarations import (Contract, Enum, Function,
                                        SolidityFunction, SolidityVariable,
@@ -23,9 +24,11 @@ class Refinement(Analysis):
         READ = 3
         WRITTEN = 4
         CONSTANT = 5
+        GUARDSTART = 6
+        GUARDEND = 7
 
     def pprint_refinement(self):
-        enums = { 1: "INDEX", 2: "GUARD", 3: "READ", 4: "WRITTEN", 5: "CONSTANT" }
+        enums = { 1: "INDEX", 2: "GUARD", 3: "READ", 4: "WRITTEN", 5: "CONSTANT", 6: "GUARDSTART", 7: "GUARDEND" }
         for e, vrs in self.types.items():
             print("{0}: {1}".format(enums[e], set(map(str, vrs))))
 
@@ -74,6 +77,26 @@ class Refinement(Analysis):
             for var in ir.get_variable:
                 constants += self.get_constants(var)
         return constants
+
+    def raw_analysis(self):
+        self.types[self.Typ.GUARDSTART] = []
+        self.types[self.Typ.GUARDEND] = []                
+        if self.fname != '':
+            with open(self.fname, 'r') as sol_file:
+                for_loop = r'for\s*\(([^;]*);([^;]*);([^)]*)\)'
+                match = re.search(for_loop, sol_file.read())
+                if match:
+                    if match.group(1):
+                        eq_spl = match.group(1).split("=")
+                        if len(eq_spl) == 2:
+                            self.types[self.Typ.GUARDSTART].append(eq_spl[1].replace(' ', ''))
+                    if match.group(2):
+                        comps = ['<', '>', '<=', '>=']
+                        for comp in comps:
+                            if comp in comps:
+                                spl = match.group(2).split(comp)
+                                if len(spl) == 2:
+                                    self.types[self.Typ.GUARDEND].append(spl[1].replace(' ', ''))
     
     def compute_function(self, function):
         # TODO: HANDLE ANY FUNCTION NAME
@@ -85,7 +108,7 @@ class Refinement(Analysis):
         self.types[self.Typ.WRITTEN] = []
         self.types[self.Typ.READ] = []
         self.types[self.Typ.CONSTANT] = []
-                        
+        
         is_protected = function.is_protected()
         test = 0
         for node in function.nodes:
@@ -98,6 +121,7 @@ class Refinement(Analysis):
                     self.types[self.Typ.CONSTANT] += self.get_constants(ir)                    
                     
         self.types = self.convert_to_non_ssa(self.types)
+        self.raw_analysis()        
 
     def convert_to_non_ssa(self, data_depencies):
         # Need to create new set() as its changed during iteration

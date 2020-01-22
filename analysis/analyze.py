@@ -4,6 +4,7 @@ from refinement import Refinement
 from lambdaAnalysis import LambdaAnalysis
 
 import argparse
+import re
 
 def setupArgs():
     parser = argparse.ArgumentParser(description='Run dependency and refinement analysis on solidity loops.')
@@ -51,6 +52,7 @@ def analyze_lambdas(fname, cname='MyContract', funcname='foo()'):
 def get_lambda_analysis(fname, myContract, slither):
     # Lambda Analysis
     L = LambdaAnalysis()
+    L.exprs = []
     L.compute_contract(myContract, slither)
 
     return get_lambdas(L.exprs)
@@ -92,18 +94,19 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
 
     myContract = slither.get_contract_from_name(cname)
     funcA = myContract.get_function_from_signature(funcname)
-
+    
     # Dependency Analysis
     D = Dependency()
     D.compute_contract(myContract, slither)
     D.dependencies = funcA.context[D.KEY_NON_SSA]        
+
     
     # Refinement Analysis
     R = Refinement()
-    R.compute_contract(myContract, slither)
+    R.compute_contract(myContract, slither, fname)
 
     # Lambda Analysis
-    get_lambda_analysis(fname, myContract, slither)
+    lambdas = get_lambda_analysis(fname, myContract, slither)
     
     # For Guard Types, use Dependency Analysis to fetch all vars which affect
     #   the Guard (i.e. on which the guard depends)
@@ -117,9 +120,10 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     to_delete = {}
     for typ in R.types:
         to_delete[typ] = []
-        for var in R.types[typ]:
-            if var.name.startswith("REF") or var.name.startswith("TMP"):
-                to_delete[typ].append(var)
+        if typ != 6 and typ != 7:
+            for var in R.types[typ]:
+                if var.name.startswith("REF") or var.name.startswith("TMP"):
+                    to_delete[typ].append(var)
 
     for k,vals in to_delete.items():
         for v in vals:
@@ -160,6 +164,18 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
         dependencies_formatted[str(v)] = set(map(str, vrs))
     D.dependencies = dependencies_formatted
 
+    # Add lambdas to dependencies based on sub-parts
+    dependencies_lambdas = {}
+    for v, vrs in D.dependencies.items():
+        dependencies_lambdas[v] = vrs
+        for lam in lambdas:
+            lam_vrs = re.findall(r"[\w']+", lam[lam.index(":")+1:])
+            if any(map(lambda lv: lv in vrs, lam_vrs)):
+                dependencies_lambdas[v].add(lam)
+    D.dependencies = dependencies_lambdas
+
+    print(D.dependencies)
+    
     # # Transitive Closure of Dependencies
     # D.dependencies = transitive_close(D.dependencies)
         
