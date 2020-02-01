@@ -155,13 +155,21 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     # Reformat refinement type entries
     R_types_formatted = {}
     for typ, vrs in R.types.items():
-        R_types_formatted[typ] = set(map(str, vrs))
+        # Special check for lower casing True and False constants
+        rhs = list(map(lambda v: v.lower() if v=="True" or v=="False" else v,
+                       set(map(str, vrs))))
+        typ = typ.lower() if typ == "True" or typ == "False" else typ
+        R_types_formatted[typ] = rhs
     R.types = R_types_formatted
         
     # Reformat dependencies entries
     dependencies_formatted = {}
     for v, vrs in D.dependencies.items():
-        dependencies_formatted[str(v)] = set(map(str, vrs))
+        # Special check for lower casing True and False constants
+        lhs = str(v).lower() if str(v) == "True" or str(v) == "False" else str(v)
+        rhs = list(map(lambda v: v.lower() if v=="True" or v=="False" else v,
+                       set(map(str, vrs))))
+        dependencies_formatted[lhs] = rhs
     D.dependencies = dependencies_formatted
 
     # Add lambdas to dependencies based on sub-parts
@@ -174,7 +182,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
                 dependencies_lambdas[v].add(lam)
     D.dependencies = dependencies_lambdas
 
-    print(D.dependencies)
+    print(D.dependencies, R.types)    
     
     # # Transitive Closure of Dependencies
     # D.dependencies = transitive_close(D.dependencies)
