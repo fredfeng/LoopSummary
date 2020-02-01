@@ -150,7 +150,9 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
 
     # Anything that is an index or guard is also read
     R.types[R.Typ.READ] += R.types[R.Typ.INDEX]
-    R.types[R.Typ.READ] += R.types[R.Typ.GUARD]    
+    R.types[R.Typ.READ] += R.types[R.Typ.GUARD]
+    R.types[R.Typ.READ] += R.types[R.Typ.GUARDSTART]
+    R.types[R.Typ.READ] += R.types[R.Typ.GUARDEND]
         
     # Reformat refinement type entries
     R_types_formatted = {}
@@ -181,8 +183,6 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
             if any(map(lambda lv: lv in vrs, lam_vrs)):
                 dependencies_lambdas[v].add(lam)
     D.dependencies = dependencies_lambdas
-
-    print(D.dependencies, R.types)    
     
     # # Transitive Closure of Dependencies
     # D.dependencies = transitive_close(D.dependencies)
