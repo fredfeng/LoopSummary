@@ -45,6 +45,8 @@ class PostOrderInterpreter(Interpreter):
                     x) for x in apply_node.args]
                 self._context.pop()
                 method_name = self._eval_method_name(apply_node.name)
+                if "__" in method_name:
+                    method_name = method_name[:method_name.index("__")]
                 method = getattr(self._interp, method_name,
                                  self._method_not_found)
                 return method(apply_node, in_values)

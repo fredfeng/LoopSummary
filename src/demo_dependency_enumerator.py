@@ -14,7 +14,8 @@ import sys
 sys.path.append("../analysis")
 
 from analyze import analyze, analyze_lambdas
-from itertools import combinations 
+from itertools import combinations, product 
+import re
 
 logger = get_logger('tyrell')
 
@@ -74,13 +75,14 @@ def create_refinement_types(analysis, base_types, lambdas):
     # Build output DSL refinement type enums
     typ_enums = ""
     for typ, vs in final_typ_dict.items():
-        if vs == []: vs = ["NA"]
-        new_typ = '''
-        enum {0} {{
-            {1}
-        }}
-        '''.format(typ, ",".join(map(lambda x: '"' + x + '"', vs)))
-        typ_enums += new_typ
+        # if vs == []: vs = ["NA"]
+        if vs != []:
+            new_typ = '''
+            enum {0} {{
+                {1}
+            }}
+            '''.format(typ, ",".join(map(lambda x: '"' + x + '"', vs)))
+            typ_enums += new_typ
 
     if lambdas:
         typ_enums += '''
@@ -88,14 +90,14 @@ def create_refinement_types(analysis, base_types, lambdas):
                 {0}
             }}
         '''.format(','.join(map(lambda x: '"{0}"'.format(x), lambdas)))
-    else:
-        typ_enums += '''
-            enum Lambda {{
-                {0}
-            }}
-        '''.format('"NA"') 
+    # else:
+    #     typ_enums += '''
+    #         enum Lambda {{
+    #             {0}
+    #         }}
+    #     '''.format('"NA"') 
         
-    final_typ_dict["Lambda"] = lambdas
+        final_typ_dict["Lambda"] = lambdas
         
     return typ_enums, final_typ_dict
 
@@ -134,40 +136,114 @@ def instantiate_dsl(sol_file, analysis, lambdas):
     # TODO: Presumes all constants are integers
     for const in analysis[5]:
         vars_map['uint256'].append(const)
-                
-    base_types = {
-        "int": ["NA"],
-        "address": ["NA"],
-        "MapInt": ["NA"],
-        "MapArray": ["NA"]
-    }    
+
+    base_types = ["uint", "bool", "address"]
+    map_types = list(map(lambda x: "mapping({0} => {1})".format(x[0], x[1]), product(base_types, repeat=2)))
+
+    all_types = base_types + map_types
+
+    type_table = {}
+    
+    # base_types = {
+    #     "Int": ["NA"],
+    #     "Bool": ["NA"],
+    #     "Address": ["NA"],
+    #     "MapIntInt": ["NA"],
+    #     "MapAddressInt": ["NA"],
+    #     "MapAddressBool": ["NA"],
+    #     "MapIntAddress": ["NA"]        
+    # }
+    
     for k in vars_map:
         v = map(lambda x: '"' + x + '"', vars_map[k]) 
         actual_symbols = ",".join(list(v))
         print('parsing key:', k, ",".join(list(v)))
-        if k == 'uint256':
-            int_str = actual_symbols
-            base_types["int"] = actual_symbols.split(",")
-        elif k == 'address':
-            address_str = actual_symbols
-            base_types["address"] = actual_symbols.split(",")
-        elif k == 'mapping(uint256 => uint256)':
-            mapint_str = actual_symbols
-            base_types["MapInt"] = actual_symbols.split(",")
-        elif k == 'mapping(address => uint256[])':
-            maparray_str = actual_symbols
-            base_types["MapArray"] = actual_symbols.split(",")
+        k = k.replace("uint8", "uint")
+        k = k.replace("uint256", "uint")
+        if k in all_types:
+            if k in map_types:
+                matches = re.findall(r"(mapping\((.*) => (.*)\))", k)
+                if matches != []:
+                    full_dec = matches[0][0]
+                    dom = matches[0][1]
+                    codom = matches[0][2]
+                    k = "mapping_{0}_{1}".format(dom, codom)
+                
+            type_table[k] = actual_symbols.split(",")
         else:
+            print("IGNORED TYPE: {0}!".format(k))
             pass
+        # if k == 'uint':
+        #     int_str = actual_symbols
+        #     base_types["Int"] = actual_symbols.split(",")
+        # elif k == "bool":
+        #     base_types["Bool"] = actual_symbols.split(",")
+        # elif k == 'address':
+        #     address_str = actual_symbols
+        #     base_types["Address"] = actual_symbols.split(",")
+        # elif k == 'mapping(uint => uint)' or k == 'uint[]':
+        #     mapint_str = actual_symbols
+        #     base_types["MapIntInt"] = actual_symbols.split(",")
+        # elif k == 'mapping(address => uint[])':
+        #     maparray_str = actual_symbols
+        #     base_types["MapAddressInt"] = actual_symbols.split(",")
+        # elif k == 'mapping(address => bool)':
+        #     maparray_str = actual_symbols
+        #     base_types["MapAddressBool"] = actual_symbols.split(",")
+        # elif k == 'address[]':
+        #     maparray_str = actual_symbols
+        #     base_types["MapIntAddress"] = actual_symbols.split(",")
+        # else:
+        #     pass
 
-    typ_enums, final_typ_dict = create_refinement_types(analysis, base_types, lambdas)        
+    typ_enums, final_typ_dict = create_refinement_types(analysis, type_table, lambdas)        
 
+    actual_spec = expand_dsl(actual_spec, final_typ_dict, base_types)
+    
     actual_spec = actual_spec.format(types=typ_enums)
 
     # print(actual_spec)
-    # print(lambdas)    
     
     return actual_spec, prog_decl, final_typ_dict
+
+def expand_dsl(dsl, final_typ_dict, base_types):
+    new_dsl = []
+    for line in dsl.split("\n"):
+        if line.startswith("func"):
+            args = line.replace(";","").split("->")[1].split(",")
+            wildcards = set()
+            for arg in args:
+                matches = re.findall(r"(mapping\((.*) => (.*)\))", arg)
+                if matches != []:
+                    full_dec = matches[0][0]
+                    dom = matches[0][1]
+                    codom = matches[0][2]
+                    new_type = "mapping_{0}_{1}".format(dom, codom)
+                    line = line.replace(full_dec, new_type)
+                    if dom.startswith("#"): wildcards.add(dom)
+                    if codom.startswith("#"): wildcards.add(codom)
+            if len(wildcards) > 0:
+                poss_types = product(base_types, repeat=len(wildcards))
+                for types in poss_types:
+                    new_line = line
+                    for wildcard,typ in zip(wildcards, list(types)):
+                        new_line = new_line.replace(wildcard, typ)
+                    new_dsl.append(new_line)
+            else:
+                new_dsl.append(line)
+        else:
+            new_dsl.append(line)
+
+    final_dsl = []
+    for line in new_dsl:
+        if line.startswith("func"):
+            args = line.replace(";","").replace(" ", "").split("->")[1].split(",")
+            if all(map(lambda a: a in final_typ_dict and (len(final_typ_dict[a]) > 0), args)):
+               final_dsl.append(line)
+        else:
+            final_dsl.append(line)        
+            
+    return "\n".join(final_dsl)
 
 toy_spec_str = '''
 
@@ -180,18 +256,20 @@ value endInt;
 value Array;
 
 program SymDiff(Stmt) -> Inst;
+func INCRANGE: Inst -> Read__mapping(uint => uint), Read__uint, Write__mapping(uint => uint), Read_GuardStart__uint, Read_GuardEnd__uint;
+func COPYRANGE__#A: Inst -> Read__mapping(uint => #A), Read__uint, Write__mapping(uint => #A), Read_GuardStart__uint, Read_GuardEnd__uint;
+'''
+
+extra = '''
 func addressToArray: Array -> MapArray, address;
 func addressToInt: endInt -> MapInt, address;
-func INCRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
-func COPYRANGE: Inst -> Read__MapInt, Read__int, Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
+
 func SUM: Inst -> Write__int, Read__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
 func SHIFTLEFT: Inst -> Read_Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
 func UPDATERANGE: Inst -> Index_Read__MapInt, Write__MapInt, Read__int, Read_GuardStart__int, Read_GuardEnd__int;
 func MAP: Inst -> Write__MapInt, Read__int, Read_GuardStart__int, Read_GuardEnd__int;
 func MAPLAMBDA: Inst -> Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int, Lambda;
-'''
-
-extra = '''
+func SUMLAMBDA: Inst -> Write__int, Read__MapInt, Read_GuardStart__int, Read_GuardEnd__int, Lambda;
 '''
 
 
@@ -342,8 +420,6 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
-        # print(actual_contract)
-        # assert False
         return actual_contract
 
     def eval_MAPLAMBDA(self, node, args):        
@@ -366,6 +442,27 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # assert False
         return actual_contract
 
+    def eval_SUMLAMBDA(self, node, args):
+        acc = args[0]
+        arr = args[1]
+        start_idx = args[2]
+        end_idx = args[3]
+        lam = args[4]
+
+        lam = lam[lam.index(":")+2:].replace("__x", "{0}[i]".format(arr))
+        
+        loop_body = """
+            {tgtAcc} = 0;
+            for (uint i = {tgtStart}; i < {tgtEnd}; ++i) {{
+                {tgtAcc} += {lamVal};
+            }}
+        """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtAcc=acc, lamVal=lam)
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        # print(actual_contract)
+        # assert False
+        return actual_contract
     
 
 def execute(interpreter, prog, args):
@@ -389,6 +486,8 @@ def main(sol_file):
     logger.info('Analysis Successful!')
 
     actual_spec, prog_decl, types = instantiate_dsl(sol_file, refs.types, lambdas)
+
+    # print(actual_spec)
     
     logger.info('Parsing Spec...')
     spec = S.parse(actual_spec)
