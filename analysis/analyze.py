@@ -158,7 +158,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     R_types_formatted = {}
     for typ, vrs in R.types.items():
         # Special check for lower casing True and False constants
-        rhs = list(map(lambda v: v.lower() if v=="True" or v=="False" else v,
+        rhs = set(map(lambda v: v.lower() if v=="True" or v=="False" else v,
                        set(map(str, vrs))))
         typ = typ.lower() if typ == "True" or typ == "False" else typ
         R_types_formatted[typ] = rhs
@@ -169,7 +169,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     for v, vrs in D.dependencies.items():
         # Special check for lower casing True and False constants
         lhs = str(v).lower() if str(v) == "True" or str(v) == "False" else str(v)
-        rhs = list(map(lambda v: v.lower() if v=="True" or v=="False" else v,
+        rhs = set(map(lambda v: v.lower() if v=="True" or v=="False" else v,
                        set(map(str, vrs))))
         dependencies_formatted[lhs] = rhs
     D.dependencies = dependencies_formatted
