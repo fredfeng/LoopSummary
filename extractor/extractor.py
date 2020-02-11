@@ -11,7 +11,7 @@ from slither.core.cfg.node import NodeType
 # from slither.analyses.data_dependency.data_dependency import is_dependent
 
 BENCHMARK_OUT_PATH = os.path.join('.', 'benchmarks')
-BENCHMARK_IN_PATH = os.path.join('.', 'old_benchmarks')
+BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
 
 new_contract='''
 pragma solidity ^0.5.10;
@@ -95,6 +95,9 @@ def get_sol_files(folder):
                     for line in in_file:
                         if line.startswith("import"):
                             line = 'import "./' + line[line.rindex("/")+1:]
+                        elif line.startswith("pragma"):
+                            line = ""
+                            # line = "pragma solidity ^0.5.10;\n"
                         new_file += line                            
                     with (open(os.path.join(BENCHMARK_IN_PATH, file), 'w')) as out_file:
                         out_file.write(new_file)
@@ -102,4 +105,4 @@ def get_sol_files(folder):
 num_files = 0           
 main(BENCHMARK_IN_PATH)
 
-# get_sol_files("openzeppelin-contracts")
+# get_sol_files(BENCHMARK_IN_PATH)
