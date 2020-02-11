@@ -50,7 +50,8 @@ def extract_loops(contract, function, src):
             # TODO: This is meant as a dumb approx for sifting only single-statement loops
             #       Currently 3 because for-loop already (usually) contains 2 in header
             # TODO: Sometimes loop ends up being empty? For now, adding on a check...
-            if loop.count(";") <= 3 and len(loop) > 0:
+            # if loop.count(";") <= 3 and len(loop) > 0:
+            if len(loop) > 0:
                 print("**"*8)
                 print(loop)
                 print("**"*8)                
