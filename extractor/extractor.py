@@ -1,14 +1,5 @@
 import os
-from slither import Slither
-
-from slither.core.cfg.node import NodeType
-# from slither.detectors.abstract_detector import (AbstractDetector,
-#                                                  DetectorClassification)
-# from slither.slithir.operations import (HighLevelCall, LibraryCall, Call,
-#                                         LowLevelCall, Send, Transfer)
-# from slither.slithir.operations.condition import Condition
-# from slither.analyses.data_dependency.data_dependency import is_tainted
-# from slither.analyses.data_dependency.data_dependency import is_dependent
+import json
 
 BENCHMARK_OUT_PATH = os.path.join('.', 'benchmarks')
 BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
@@ -26,84 +17,132 @@ contract C {{
 }}
 '''
 
+solc4_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.4')
+solc5_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.5')
+sif_command = os.path.join('SIF', 'build', 'sif', 'sif')
+null_out = os.path.join('/', 'dev', 'null')
+temporary_json = os.path.join('.', 'tmp.json')
+temporary_ast = os.path.join('.', 'tmp.ast')
+
 def main(folder):
     extract_loops_from_folder(folder)
     
-def get_vars_decd(function, start, end):
-    vs = []
-    for node in function.nodes:
-        if node.type == 0x13:
-            start_idx = node.source_mapping["start"]
-            if start_idx >= start and start_idx <= end:
-                vs += node._vars_written
+def parse_sif_output(cname, output):
+    contracts = {}
+    loops = output.split("//#LOOP_END")
+    for i, loop in enumerate(loops[:-1]):
+        vars_decd = []
+        vars_used = []
+        num_lines = None
+        src = None        
+        for line in loop.split("\n"):
+            if line.startswith("//#NUMLINES: "):
+                num_lines = int(line[13:])
+            elif line.startswith("//#USED: "):
+                var_and_type = line[9:].split(", ")
+                vars_used.append((var_and_type[1], var_and_type[0]))
+            elif line.startswith("//#DECLARED: "):
+                vars_decd.append(line[13:])
+            elif line.startswith("//#LOOP_BEGIN"):
+                src = ""
+            elif src != None:
+                src += line + "\n"
 
-    return vs
+        global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in vars_decd, vars_used))))
 
-def extract_loops(contract, function, src):
-    global num_files
-    for node in function.nodes:
-        if node.type == NodeType.STARTLOOP:
-            src_map = node.source_mapping
-            start_idx = src_map["start"]
-            length = src_map["length"]
-            loop = src[start_idx:start_idx+length]
-            # TODO: This is meant as a dumb approx for sifting only single-statement loops
-            #       Currently 3 because for-loop already (usually) contains 2 in header
-            # TODO: Sometimes loop ends up being empty? For now, adding on a check...
-            # if loop.count(";") <= 3 and len(loop) > 0:
-            if len(loop) > 0:
-                print("**"*8)
-                print(loop)
-                print("**"*8)                
-                vars_decd = get_vars_decd(function, start_idx, start_idx+length)
-                loop_vars = set(filter(lambda x: x.name in loop and not x in vars_decd, function._vars_read_or_written))
-                global_vars = ";\n  ".join(list(map(lambda x: str(x.type) + " " + str(x), loop_vars))) + ";"
-                for var in loop_vars:
-                    if "." in var.name:
-                        global_vars = global_vars.replace(var.name, var.name.replace(".", "_"))
-                        loop = loop.replace(var.name, var.name.replace(".", "_"))
-                    if str(var.type) == "bytes":
-                        global_vars = global_vars.replace(str(var.type), "mapping(uint => uint)")
+        extracted_contract = new_contract.format(global_vars=global_vars, loop=src)
+
+        if not num_lines in contracts:
+            contracts[num_lines] = []
+
+        contracts[num_lines].append((i, os.path.basename(cname), extracted_contract))
+            
+        print("--"*8)
+        print(cname)
+        print(num_lines)
+        print("--"*8)
+        print(extracted_contract)
+        print("--"*8)
+
+    return contracts
+
+def extract_loops(cname):
+    with open(cname, 'r') as c_file:
+        pragma = c_file.readlines()[0][16:]
+        pragma = pragma[:-2]
+        pragma = pragma.replace("^", "")
+
+    solc_version = "0.5"
+    
+    if pragma.startswith("0.4"):
+        print("Using solc version 0.4")
+        solc_version = "0.4"
+        solc_command = solc4_command
+    elif pragma.startswith("0.5"):
+        print("Using solc version 0.5")        
+        solc_command = solc5_command
+    else:
+        print("WARNING: pragma version {0} unrecognized. Using solc version 0.5.".format(pragma))
+        solc_command = solc5_command
+        
+    solc_json_command = '{0} --ast-compact-json {1}'.format(solc_command, cname)
+    print("SOLC JSON COMMAND: {0}".format(solc_json_command))
+    stream = os.popen(solc_json_command)
+    solc_json_output = stream.read()
+    solc_json_output = json.loads(solc_json_output[solc_json_output.index('{'):])    
+
+    # Add isConstructor field to FunctionDefinition for solc-0.5
+    if solc_version == "0.5":
+        for k in solc_json_output["nodes"]:
+            if k["nodeType"] == "ContractDefinition":
+                for k2 in k["nodes"]:
+                    if k2["nodeType"] == "FunctionDefinition":
+                        if not "isConstructor" in k2:
+                            kind = k2["kind"]
+                            k2["isConstructor"] = kind == "constructor"
                         
-                extracted_contract = new_contract.format(global_vars=global_vars, loop=loop)
-                print("--"*8)
-                print(extracted_contract)
-                print("--"*8)
-                with open(os.path.join(BENCHMARK_OUT_PATH, "{0}_{1}_{2}.sol".format(contract.name, function.name, num_files)), 'w') as out_file:
-                    out_file.write(extracted_contract)
-                    num_files += 1
+
+    with open(temporary_json, "w") as tmp_json:
+        json_dict = json.dumps(solc_json_output)
+        header = '''
+        JSON AST (compact format):
+
+
+        ======= {0} =======
+        '''.format(cname)
+        tmp_json.write(header)
+        tmp_json.write(json_dict)
+
+    solc_ast_command = '{0} --ast {1} > {2}'.format(solc_command, cname, temporary_ast)
+    print("SOLC AST COMMAND: {0}".format(solc_ast_command))
+    os.system(solc_ast_command)
+
+    sif_run = '{0} -a {1} -j {2} -o {3}'.format(sif_command, temporary_ast, temporary_json, null_out)
+    print("SIF COMMAND: {0}".format(sif_run))
+    stream = os.popen(sif_run)
+    sif_output = stream.read()
+
+    contracts = parse_sif_output(cname, sif_output)
+
+    if not os.path.exists(BENCHMARK_OUT_PATH):
+        os.makedirs(BENCHMARK_OUT_PATH)
+    
+    for nl, conts in contracts.items():
+        out_path = os.path.join(BENCHMARK_OUT_PATH, str(nl))
+        if not os.path.exists(out_path):
+            os.makedirs(out_path)
+
+        for (i, cname, cont) in conts:
+            with open(os.path.join(out_path, "{0}_{1}.sol".format(cname, i)), "w") as out_file:
+                out_file.write(cont)
 
 def extract_loops_from_folder(folder):
     for fname in os.listdir(folder):
-        try:
-            slither = Slither(os.path.join(folder,fname))
-            
-            with open(os.path.join(folder,fname), "r") as src_file:
-                src = ''.join(src_file.readlines())
-                for contract in slither.contracts:
-                    for function in contract.functions_declared:
-                        extract_loops(contract, function, src)
-        except Exception as e:
-            print("FAILED TO RUN: {0}".format(fname))
-            print(e)
-
-def get_sol_files(folder):
-    for root, dirs, files in os.walk(folder):
-        for file in files:
-            if file.endswith(".sol"):
-                with(open(os.path.join(root, file), 'r')) as in_file:
-                    new_file = ""
-                    for line in in_file:
-                        if line.startswith("import"):
-                            line = 'import "./' + line[line.rindex("/")+1:]
-                        elif line.startswith("pragma"):
-                            line = ""
-                            # line = "pragma solidity ^0.5.10;\n"
-                        new_file += line                            
-                    with (open(os.path.join(BENCHMARK_IN_PATH, file), 'w')) as out_file:
-                        out_file.write(new_file)
+        with open(os.path.join(folder,fname), "r") as src_file:
+            src = ''.join(src_file.readlines())
+            extract_loops(os.path.join(folder, fname))
 
 num_files = 0           
-main(BENCHMARK_IN_PATH)
+# main(BENCHMARK_IN_PATH)
 
-# get_sol_files(BENCHMARK_IN_PATH)
+extract_loops("copyRangeTest.sol")
