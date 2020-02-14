@@ -1,3 +1,4 @@
+import argparse
 import os
 import json
 
@@ -24,8 +25,21 @@ null_out = os.path.join('/', 'dev', 'null')
 temporary_json = os.path.join('.', 'tmp.json')
 temporary_ast = os.path.join('.', 'tmp.ast')
 
-def main(folder):
-    extract_loops_from_folder(folder)
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", help="solidity file path from which to extract a loop", type=str)
+    parser.add_argument("--folder", help="folder from which to extract a loop", type=str)
+    return parser.parse_args()
+    
+
+def main():
+    args = parse_args()
+    if args.file:
+        print("Extracting loop from {0}.".format(args.file))
+        extract_loops(args.file)
+    elif args.folder:
+        print("Extracting loop from {0}.".format(args.folder))        
+        extract_loops_from_folder(args.folder)
     
 def parse_sif_output(cname, output):
     contracts = {}
@@ -55,7 +69,7 @@ def parse_sif_output(cname, output):
         if not num_lines in contracts:
             contracts[num_lines] = []
 
-        contracts[num_lines].append((i, os.path.basename(cname), extracted_contract))
+        contracts[num_lines].append((i, extracted_contract))
             
         print("--"*8)
         print(cname)
@@ -126,15 +140,20 @@ def extract_loops(cname):
 
     if not os.path.exists(BENCHMARK_OUT_PATH):
         os.makedirs(BENCHMARK_OUT_PATH)
-    
+
+    cbasename = os.path.basename(cname)        
     for nl, conts in contracts.items():
         out_path = os.path.join(BENCHMARK_OUT_PATH, str(nl))
         if not os.path.exists(out_path):
             os.makedirs(out_path)
 
-        for (i, cname, cont) in conts:
-            with open(os.path.join(out_path, "{0}_{1}.sol".format(cname, i)), "w") as out_file:
+        for (i, cont) in conts:
+            fname = "{0}_{1}.sol".format(cbasename.replace(".sol", ""), i)
+            with open(os.path.join(out_path, fname), "w") as out_file:
                 out_file.write(cont)
+
+            print("Saved {0} in the folder {1}!".format(fname, out_path))
+                
 
 def extract_loops_from_folder(folder):
     for fname in os.listdir(folder):
@@ -142,7 +161,4 @@ def extract_loops_from_folder(folder):
             src = ''.join(src_file.readlines())
             extract_loops(os.path.join(folder, fname))
 
-num_files = 0           
-# main(BENCHMARK_IN_PATH)
-
-extract_loops("copyRangeTest.sol")
+main()
