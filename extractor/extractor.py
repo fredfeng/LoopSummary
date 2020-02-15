@@ -8,7 +8,10 @@ BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
 new_contract='''
 pragma solidity ^0.5.10;
 
+{imports}
+
 contract C {{
+  {using}
 
   {global_vars}
 
@@ -25,30 +28,44 @@ null_out = os.path.join('/', 'dev', 'null')
 temporary_json = os.path.join('.', 'tmp.json')
 temporary_ast = os.path.join('.', 'tmp.ast')
 
+replace_safemath = False
+add_safemath = False
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", help="solidity file path from which to extract a loop", type=str)
     parser.add_argument("--folder", help="folder from which to extract a loop", type=str)
+    parser.add_argument("--replace_safemath", help="when activated, safemath ops will be replaced with regular operations", action="store_true")
+    parser.add_argument("--add_safemath", help="when activated, safemath import will be added (at ./SafeMath.sol) if detected in loop and using clause for uint256 will be added", action="store_true")
     return parser.parse_args()
-    
 
 def main():
+    global replace_safemath, add_safemath
     args = parse_args()
+    if args.replace_safemath:
+        replace_safemath = True
+    if args.add_safemath:
+        add_safemath = True
+
     if args.file:
         print("Extracting loop from {0}.".format(args.file))
         extract_loops(args.file)
     elif args.folder:
         print("Extracting loop from {0}.".format(args.folder))        
         extract_loops_from_folder(args.folder)
-    
+        
 def parse_sif_output(cname, output):
     contracts = {}
     loops = output.split("//#LOOP_END")
+    safe_math = False
     for i, loop in enumerate(loops[:-1]):
         vars_decd = []
         vars_used = []
+        func_split_called = []
         num_lines = None
-        src = None        
+        src = None
+        imports = ""
+        using = ""
         for line in loop.split("\n"):
             if line.startswith("//#NUMLINES: "):
                 num_lines = int(line[13:])
@@ -57,14 +74,37 @@ def parse_sif_output(cname, output):
                 vars_used.append((var_and_type[1], var_and_type[0]))
             elif line.startswith("//#DECLARED: "):
                 vars_decd.append(line[13:])
+            elif line.startswith("//#USINGSAFEMATH"):
+                safe_math = True
+            elif line.startswith("//#FUNC: "):
+                call = line[9:]
+                callee_split = call.split(".")
+                callee = callee_split[0]
+                arg_split = ".".join(callee_split[1:]).split("(")
+                func = arg_split[0]
+                args = "(".join(arg_split[1:])[:-1]
+                func_split_called.append((callee, func, args))
             elif line.startswith("//#LOOP_BEGIN"):
-                src = ""
+                src = ""                
             elif src != None:
                 src += line + "\n"
 
+        safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}
+        if safe_math and any(map(lambda x: x[1] in safemath_funcs,func_split_called)):
+            if replace_safemath:
+                func_split_called = sorted(func_split_called, key=lambda tup: len(tup[2]))[::-1]
+                for (callee, func, args) in func_split_called:
+                    old_call = "{0}.{1}({2})".format(callee, func, args)
+                    new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[func],args)
+                    print(old_call, new_call)
+                    src = src.replace(old_call, new_call)
+            elif add_safemath:
+                imports = 'import "./SafeMath.sol;"'
+                using = "using SafeMath for uint256;"
+            
         global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in vars_decd, vars_used))))
 
-        extracted_contract = new_contract.format(global_vars=global_vars, loop=src)
+        extracted_contract = new_contract.format(global_vars=global_vars, loop=src, imports=imports, using=using)
 
         if not num_lines in contracts:
             contracts[num_lines] = []
