@@ -58,10 +58,11 @@ def parse_sif_output(cname, output):
     contracts = {}
     loops = output.split("//#LOOP_END")
     safe_math = False
+    safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}    
     for i, loop in enumerate(loops[:-1]):
         vars_decd = []
         vars_used = []
-        func_split_called = []
+        funcs_called = []
         num_lines = None
         src = None
         imports = ""
@@ -77,26 +78,44 @@ def parse_sif_output(cname, output):
             elif line.startswith("//#USINGSAFEMATH"):
                 safe_math = True
             elif line.startswith("//#FUNC: "):
-                call = line[9:]
-                callee_split = call.split(".")
-                callee = callee_split[0]
-                arg_split = ".".join(callee_split[1:]).split("(")
-                func = arg_split[0]
-                args = "(".join(arg_split[1:])[:-1]
-                func_split_called.append((callee, func, args))
+                funcs_called.append(line[9:])
+                # call = line[9:]
+                # callee_split = call.split(".")
+                # callee = callee_split[0]
+                # arg_split = ".".join(callee_split[1:]).split("(")
+                # func = arg_split[0]
+                # args = "(".join(arg_split[1:])[:-1]
+                # func_split_called.append((callee, func, args))
             elif line.startswith("//#LOOP_BEGIN"):
                 src = ""                
             elif src != None:
                 src += line + "\n"
 
-        safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}
+        # Only analyze function calls if safemath triggered and a safemath flag set
+        if safe_math and (replace_safemath or add_safemath):
+            func_split_called = []
+            funcs_called = sorted(funcs_called, key=lambda x: len(x))
+            for i, func_call in enumerate(funcs_called):
+                print(func_call)
+                for k in safemath_funcs:
+                   splitter = ".{0}(".format(k)
+                   if splitter in func_call:
+                       func = k
+                       split = func_call.split(splitter)
+                       callee = split[0]
+                       args = split[1][:-1]
+                       func_split_called.append((callee, func, args))
+                       new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[func],args)
+                       for j in range(i+1, len(funcs_called)):
+                           funcs_called[j] = funcs_called[j].replace(func_call, new_call)
+                       break                   
+
+        # Do safemath adjustments if flags set and safemath functions used in loop
         if safe_math and any(map(lambda x: x[1] in safemath_funcs,func_split_called)):
             if replace_safemath:
-                func_split_called = sorted(func_split_called, key=lambda tup: len(tup[2]))[::-1]
                 for (callee, func, args) in func_split_called:
                     old_call = "{0}.{1}({2})".format(callee, func, args)
                     new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[func],args)
-                    print(old_call, new_call)
                     src = src.replace(old_call, new_call)
             elif add_safemath:
                 imports = 'import "./SafeMath.sol;"'
