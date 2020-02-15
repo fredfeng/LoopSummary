@@ -36,3 +36,10 @@ To run on all files in a folder, run
 `python extractor.py --folder <path_to_folder>`
 
 Results will be saved to the `BENCHMARK_OUT_PATH` directory (which will be created if it does not exist). Within this directory, subdirectories with numeric names (`1`, `2`, `3`, etc.) will be made, indicating the number of statements in the loop extracted. For example, if `foo.sol` had one loop with one statement in it, the extracted loop would be saved to `BENCHMARK_OUT_PATH/1/foo_0.sol`.
+
+## Limitations
+
+Currently, for the following, the loop extractor will not create a compile-able loop extraction:
+
+* Loops which include objects of a user-defined class (extractor does not copy over class definitions)
+* Loops which include function calls (function calls are not inlined)
