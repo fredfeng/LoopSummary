@@ -109,6 +109,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
 
 # Get the contract, all the contact's name is C by default.
     contract = slither.get_contract_from_name('C')
+    other_contracts = list(filter(lambda x: x != 'C', map(str, slither.contracts)))
     harness_fun = contract.functions[0]
     vars_map = {}
 
@@ -130,34 +131,37 @@ def instantiate_dsl(sol_file, analysis, lambdas):
     prog_decl = ""
 
     for k in vars_map:
-        for v in vars_map[k]:
+        for v in vars_map[k]:            
             prog_decl += k + ' ' + v + '; \n'
 
-    # TODO: Presumes all constants are integers
+    # TODO: Presumes all constants are integers or booleans
     for const in analysis[5]:
-        vars_map['uint256'].append(const)
+        try:
+            if 'uint256' in vars_map:
+                vars_map['uint256'].append(str(int(const)))
+            else:
+                vars_map['uint256'] = [str(int(const))]
+        except:
+            if 'bool' in vars_map:
+                vars_map['bool'].append(const)
+            else:
+                vars_map['bool'] = [const]
 
-    base_types = ["uint", "bool", "address"]
+    base_types = ["uint", "bool", "address"] + other_contracts
     map_types = list(map(lambda x: "mapping({0} => {1})".format(x[0], x[1]), product(base_types, repeat=2)))
 
     all_types = base_types + map_types
 
     type_table = {}
     
-    # base_types = {
-    #     "Int": ["NA"],
-    #     "Bool": ["NA"],
-    #     "Address": ["NA"],
-    #     "MapIntInt": ["NA"],
-    #     "MapAddressInt": ["NA"],
-    #     "MapAddressBool": ["NA"],
-    #     "MapIntAddress": ["NA"]        
-    # }
-    
+    length_vars = []
     for k in vars_map:
         v = map(lambda x: '"' + x + '"', vars_map[k]) 
         actual_symbols = ",".join(list(v))
         print('parsing key:', k, ",".join(list(v)))
+        if "[]" in k:
+            length_vars += vars_map[k]            
+            k = "mapping(uint => {0})".format(k.replace("[]", ""))
         k = k.replace("uint8", "uint")
         k = k.replace("uint256", "uint")
         if k in all_types:
@@ -173,28 +177,11 @@ def instantiate_dsl(sol_file, analysis, lambdas):
         else:
             print("IGNORED TYPE: {0}!".format(k))
             pass
-        # if k == 'uint':
-        #     int_str = actual_symbols
-        #     base_types["Int"] = actual_symbols.split(",")
-        # elif k == "bool":
-        #     base_types["Bool"] = actual_symbols.split(",")
-        # elif k == 'address':
-        #     address_str = actual_symbols
-        #     base_types["Address"] = actual_symbols.split(",")
-        # elif k == 'mapping(uint => uint)' or k == 'uint[]':
-        #     mapint_str = actual_symbols
-        #     base_types["MapIntInt"] = actual_symbols.split(",")
-        # elif k == 'mapping(address => uint[])':
-        #     maparray_str = actual_symbols
-        #     base_types["MapAddressInt"] = actual_symbols.split(",")
-        # elif k == 'mapping(address => bool)':
-        #     maparray_str = actual_symbols
-        #     base_types["MapAddressBool"] = actual_symbols.split(",")
-        # elif k == 'address[]':
-        #     maparray_str = actual_symbols
-        #     base_types["MapIntAddress"] = actual_symbols.split(",")
-        # else:
-        #     pass
+
+    if "uint" in type_table:
+        type_table["uint"] += list(map(lambda v: '"{0}.length"'.format(v), length_vars))
+    else:
+        type_table["uint"] = list(map(lambda v: '"{0}.length"'.format(v), length_vars))
 
     typ_enums, final_typ_dict = create_refinement_types(analysis, type_table, lambdas)        
 
@@ -258,18 +245,17 @@ value Array;
 program SymDiff(Stmt) -> Inst;
 func INCRANGE: Inst -> Read__mapping(uint => uint), Read__uint, Write__mapping(uint => uint), Read_GuardStart__uint, Read_GuardEnd__uint;
 func COPYRANGE__#A: Inst -> Read__mapping(uint => #A), Read__uint, Write__mapping(uint => #A), Read_GuardStart__uint, Read_GuardEnd__uint;
+func SUM: Inst -> Write__uint, Read__mapping(uint => uint), Read_GuardStart__uint, Read_GuardEnd__uint;
+func SHIFTLEFT__#A: Inst -> Read_Write__mapping(uint => #A), Read_GuardStart__uint, Read_GuardEnd__uint;
+func UPDATERANGE__#A_#B: Inst -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read_GuardStart__uint, Read_GuardEnd__uint, Read__#B;
+func MAP__#A: Inst -> Write__mapping(uint => #A), Read_GuardStart__uint, Read_GuardEnd__uint, Read__#A;
+func MAPLAMBDA__#A: Inst -> Write__mapping(uint => #A), Read_GuardStart__uint, Read_GuardEnd__uint, Lambda;
+func SUMLAMBDA: Inst -> Write__uint, Read__mapping(uint => uint), Read_GuardStart__uint, Read_GuardEnd__uint, Lambda;
 '''
 
 extra = '''
 func addressToArray: Array -> MapArray, address;
 func addressToInt: endInt -> MapInt, address;
-
-func SUM: Inst -> Write__int, Read__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
-func SHIFTLEFT: Inst -> Read_Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int;
-func UPDATERANGE: Inst -> Index_Read__MapInt, Write__MapInt, Read__int, Read_GuardStart__int, Read_GuardEnd__int;
-func MAP: Inst -> Write__MapInt, Read__int, Read_GuardStart__int, Read_GuardEnd__int;
-func MAPLAMBDA: Inst -> Write__MapInt, Read_GuardStart__int, Read_GuardEnd__int, Lambda;
-func SUMLAMBDA: Inst -> Write__int, Read__MapInt, Read_GuardStart__int, Read_GuardEnd__int, Lambda;
 '''
 
 
@@ -290,7 +276,13 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}
         }}"""
 
-    def __init__(self, decl=""):
+    extra_contract = """
+    contract {0} {{{{ }}}}
+    """
+
+    def __init__(self, decl="", contracts=[]):
+        for contract in contracts:
+            self.contract_prog += self.extra_contract.format(contract)
         self.program_decl = decl
 
     def eval_const(self, node, args):
@@ -336,14 +328,19 @@ class SymDiffInterpreter(PostOrderInterpreter):
         tgt_array = args[2]
         start_tgt = args[3]
         end_tgt = args[4]
-        
+
+        # if (start_src == "0" and start_tgt == "0"):
+        #     loop_offset = ""
+        # else:
+        #     loop_offset = "+{0}-{1}".format(start_src, start_tgt)
+            
         loop_body = """
-            for (uint i = {tgtStart}; i < {tgtEnd}; ++i) {{
+            for (uint i = {tgtStart}; i < {tgtEnd}; i++) {{
                 {tgtObj}[i] = {srcObj}[i+{srcStart}-{tgtStart}];
             }}
         """.format(tgtStart=start_tgt, tgtEnd=end_tgt, tgtObj=tgt_array,
                    srcStart=start_src, srcObj=src_array)
-
+        
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
         # print(actual_contract)
@@ -379,8 +376,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 {tgtArr}[{contArr}[i]] = {newVal};
             }}
         """.format(tgtArr=tgt, contArr=cont, startIdx=start, endIdx=end, newVal=val)
-
-        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+        
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)        
 
         # print(actual_contract)
         # assert False
@@ -397,7 +394,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 {tgtArr}[i] = {newVal};
             }}
         """.format(tgtArr=tgt, start_idx=start, end_idx=end, newVal=val)
-
+        
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
         # print(actual_contract)
@@ -493,20 +490,26 @@ def main(sol_file):
     spec = S.parse(actual_spec)
     logger.info('Parsing succeeded')
 
+    # Fetch other contract names
+    slither = Slither(sol_file)
+    other_contracts = list(filter(lambda x: x != 'C', map(str, slither.contracts)))
+    
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
         enumerator=DependencyEnumerator(
             spec, max_depth=4, seed=seed, analysis=deps.dependencies, types=types),
         decider=SymdiffDecider(
-            interpreter=SymDiffInterpreter(prog_decl), example=sol_file, equal_output=check_eq)
+            interpreter=SymDiffInterpreter(prog_decl, other_contracts), example=sol_file, equal_output=check_eq)
     )
     logger.info('Synthesizing programs...')
 
     prog = synthesizer.synthesize()
     if prog is not None:
         logger.info('Solution found: {}'.format(prog))
+        return True
     else:
         logger.info('Solution not found!')
+        return False
 
 
 if __name__ == '__main__':
