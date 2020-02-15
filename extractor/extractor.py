@@ -159,6 +159,10 @@ def extract_loops_from_folder(folder):
     for fname in os.listdir(folder):
         with open(os.path.join(folder,fname), "r") as src_file:
             src = ''.join(src_file.readlines())
-            extract_loops(os.path.join(folder, fname))
+            try:
+                extract_loops(os.path.join(folder, fname))
+            except Exception as e:
+                print("Failed to compile {0}".format(fname))
+                print(e)
 
 main()
