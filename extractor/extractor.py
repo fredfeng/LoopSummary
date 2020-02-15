@@ -1,6 +1,7 @@
 import argparse
 import os
 import json
+import re
 
 BENCHMARK_OUT_PATH = os.path.join('.', 'benchmarks')
 BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
@@ -19,6 +20,10 @@ contract C {{
     {loop}
   }}
 }}
+'''
+
+extra_contract='''
+contract {0} {{ }}
 '''
 
 solc4_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.4')
@@ -53,6 +58,21 @@ def main():
     elif args.folder:
         print("Extracting loop from {0}.".format(args.folder))        
         extract_loops_from_folder(args.folder)
+
+def get_var_types(vars_used):
+    types = list(map(lambda x: x[0], vars_used))
+    all_types = []
+    for typ in types:
+        matches = re.findall(r"(mapping\((.*) => (.*)\))", typ)
+        # TODO: handle nested mappings?
+        if matches != []:
+            all_types.append(matches[0][1])
+            all_types.append(matches[0][2])
+        else:
+            if typ != "":
+                all_types.append(typ)
+
+    return list(set(all_types))
         
 def parse_sif_output(cname, output):
     contracts = {}
@@ -79,13 +99,6 @@ def parse_sif_output(cname, output):
                 safe_math = True
             elif line.startswith("//#FUNC: "):
                 funcs_called.append(line[9:])
-                # call = line[9:]
-                # callee_split = call.split(".")
-                # callee = callee_split[0]
-                # arg_split = ".".join(callee_split[1:]).split("(")
-                # func = arg_split[0]
-                # args = "(".join(arg_split[1:])[:-1]
-                # func_split_called.append((callee, func, args))
             elif line.startswith("//#LOOP_BEGIN"):
                 src = ""                
             elif src != None:
@@ -120,10 +133,18 @@ def parse_sif_output(cname, output):
             elif add_safemath:
                 imports = 'import "./SafeMath.sol;"'
                 using = "using SafeMath for uint256;"
-            
+
+        all_var_types = get_var_types(vars_used)
+        classic_types = ["uint", "uint8", "uint128", "uint256", "bool", "address", "bytes"]
+        added_contracts = ""
+        for var_type in all_var_types:
+            if not var_type in classic_types:
+                added_contracts += extra_contract.format(var_type)
+                
         global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in vars_decd, vars_used))))
 
         extracted_contract = new_contract.format(global_vars=global_vars, loop=src, imports=imports, using=using)
+        extracted_contract += added_contracts
 
         if not num_lines in contracts:
             contracts[num_lines] = []

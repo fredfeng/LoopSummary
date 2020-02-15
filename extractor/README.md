@@ -37,9 +37,17 @@ To run on all files in a folder, run
 
 Results will be saved to the `BENCHMARK_OUT_PATH` directory (which will be created if it does not exist). Within this directory, subdirectories with numeric names (`1`, `2`, `3`, etc.) will be made, indicating the number of statements in the loop extracted. For example, if `foo.sol` had one loop with one statement in it, the extracted loop would be saved to `BENCHMARK_OUT_PATH/1/foo_0.sol`.
 
-## Limitations
+### Flags
+
+* `--replace_safemath`: When activated, safemath ops (mul, add, sub, div, mod) will be replaced with standard arithmetic ops
+* `--add_safemath`: When activated, if contract "Using" SafeMath and SafeMath operations used in loop, import for SafeMath at "./SafeMath" and "Using SafeMath for uint256" added to contract
+
+## NOTES
+
+* Unrecognized classes used in the loop will be replaced with an empty contract of that name in the output
+
+Limitations
 
 Currently, for the following, the loop extractor will not create a compile-able loop extraction:
 
-* Loops which include objects of a user-defined class (extractor does not copy over class definitions)
-* Loops which include function calls (function calls are not inlined)
+* Loops which include function calls not from SafeMath (function calls are not inlined)
