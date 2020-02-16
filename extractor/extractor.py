@@ -92,7 +92,9 @@ def parse_sif_output(cname, output):
                 num_lines = int(line[13:])
             elif line.startswith("//#USED: "):
                 var_and_type = line[9:].split(", ")
-                vars_used.append((var_and_type[1], var_and_type[0]))
+                if var_and_type[1] != "":
+                    print("No type found for var: {0}".format(var_and_type[0]))
+                    vars_used.append((var_and_type[1], var_and_type[0]))
             elif line.startswith("//#DECLARED: "):
                 vars_decd.append(line[13:])
             elif line.startswith("//#USINGSAFEMATH"):
@@ -207,10 +209,31 @@ def extract_loops(cname):
         tmp_json.write(header)
         tmp_json.write(json_dict)
 
-    solc_ast_command = '{0} --ast {1} > {2}'.format(solc_command, cname, temporary_ast)
-    print("SOLC AST COMMAND: {0}".format(solc_ast_command))
-    os.system(solc_ast_command)
+    # solc_ast_command = '{0} --ast {1} > {2}'.format(solc_command, cname, temporary_ast)
+    # print("SOLC AST COMMAND: {0}".format(solc_ast_command))
+    # os.system(solc_ast_command)
 
+    # BEN HACK FIX STARTS FOR PROBLEM WITH uint[2]
+    solc_ast_command = '{0} --ast {1}'.format(solc_command, cname)
+    print("SOLC AST COMMAND: {0}".format(solc_ast_command))
+    stream = os.popen(solc_ast_command)
+    solc_ast_output = stream.read()
+    lines_to_delete = []
+    
+    for i,line in enumerate(solc_ast_output.split("\n")):
+        if "Type unknown." in line:
+            lines_to_delete += [i-1, i, i+1]
+            
+    out_lines_ast = []
+    for i,line in enumerate(solc_ast_output.split("\n")):
+        if not i in lines_to_delete:
+            out_lines_ast.append(line)
+
+    out_ast = "\n".join(out_lines_ast)
+    with open(temporary_ast, "w") as tmp_ast:
+        tmp_ast.write(out_ast)
+    # BEN HACK FIX ENDS FOR PROBLEM WITH uint[2]
+        
     sif_run = '{0} -a {1} -j {2} -o {3}'.format(sif_command, temporary_ast, temporary_json, null_out)
     print("SIF COMMAND: {0}".format(sif_run))
     stream = os.popen(sif_run)
