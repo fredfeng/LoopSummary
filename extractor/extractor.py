@@ -105,8 +105,8 @@ def parse_sif_output(cname, output):
                 src += line + "\n"
 
         # Only analyze function calls if safemath triggered and a safemath flag set
+        func_split_called = []
         if safe_math and (replace_safemath or add_safemath):
-            func_split_called = []
             funcs_called = sorted(funcs_called, key=lambda x: len(x))
             for i, func_call in enumerate(funcs_called):
                 print(func_call)
