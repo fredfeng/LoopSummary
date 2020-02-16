@@ -66,10 +66,13 @@ def get_var_types(vars_used):
         matches = re.findall(r"(mapping\((.*) => (.*)\))", typ)
         # TODO: handle nested mappings?
         if matches != []:
-            all_types.append(matches[0][1])
-            all_types.append(matches[0][2])
+            typ1 = matches[0][1].replace("(", "").replace(")", "").replace("[]", "")
+            typ2 = matches[0][2].replace("(", "").replace(")", "").replace("[]", "")
+            all_types.append(typ1)
+            all_types.append(typ2)
         else:
             if typ != "":
+                typ = typ.replace("(", "").replace(")", "").replace("[]", "")
                 all_types.append(typ)
 
     return list(set(all_types))
@@ -137,7 +140,8 @@ def parse_sif_output(cname, output):
                 using = "using SafeMath for uint256;"
 
         all_var_types = get_var_types(vars_used)
-        classic_types = ["uint", "uint8", "uint128", "uint256", "bool", "address", "bytes"]
+        classic_types = ["uint", "uint8", "uint128", "uint256", "bool", "address", "bytes", "bytes32", "bytes64"]
+        # classic_types += list(map(lambda t: t+"[]", classic_types))
         added_contracts = ""
         for var_type in all_var_types:
             if not var_type in classic_types:
