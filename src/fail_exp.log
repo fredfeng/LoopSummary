@@ -80,6 +80,7 @@ ServiceController_3.sol
 SPYAsset_3.sol
 TournamentCore_30.sol
 XMIAsset_3.sol
+HHLCTOKEN_0.sol
 
 Map with constraint:
 BioXToken_3.sol
@@ -93,18 +94,6 @@ BSPMintable_6.sol
 
 Map Iterator (i.e. arr[i] = i):
 CommUtils_4.sol
-
-ERROR: Needs to handle iterator not named "i"
-CoreContract_2.sol
-EmissionProvider_5.sol
-EnishiCoin_2.sol
-FidelityHousePrivateSale_1.sol
-HHLCTOKEN_0.sol
-HHLCTOKEN_3.sol
-OnacleToken_0.sol
-Profiterole_5.sol
-TimeBankToken_1.sol
-WeightedTokenDistributor_0.sol
 
 Array of cumulative sums up to N:
 CryptoCrystal_0.sol
@@ -157,6 +146,7 @@ GuardEnd as expression:
 ItemSelling_8.sol
 Queue_1.sol
 SpecialWallet_2.sol
+EnishiCoin_2.sol
 
 ShiftLeft up to constraint:
 LooisCornerstoneHolder_1.sol
@@ -183,3 +173,7 @@ ShipCoinStorage_4.sol
 
 ShiftRight:
 SpecialWallet_3.sol
+
+ERROR (no idea what's happening)
+EmissionProvider_5.sol (SIF fails for some reason on extraction)
+OnacleToken_0.sol (saved indices change when using replace safemath?)
