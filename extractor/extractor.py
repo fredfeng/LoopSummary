@@ -20,6 +20,8 @@ contract C {{
     {loop}
   }}
 }}
+
+//#LOOPVARS: {loop_vars}
 '''
 
 extra_contract='''
@@ -86,6 +88,7 @@ def parse_sif_output(cname, output):
         vars_decd = []
         vars_used = []
         funcs_called = []
+        loop_vars = []
         num_lines = None
         src = None
         imports = ""
@@ -102,6 +105,8 @@ def parse_sif_output(cname, output):
                 vars_decd.append(line[13:])
             elif line.startswith("//#USINGSAFEMATH"):
                 safe_math = True
+            elif line.startswith("//#LOOPVAR: "):
+                loop_vars.append(line[12:])
             elif line.startswith("//#FUNC: "):
                 funcs_called.append(line[9:])
             elif line.startswith("//#LOOP_BEGIN"):
@@ -140,7 +145,7 @@ def parse_sif_output(cname, output):
                 using = "using SafeMath for uint256;"
 
         all_var_types = get_var_types(vars_used)
-        classic_types = ["uint", "uint8", "uint128", "uint256", "bool", "address", "bytes", "bytes32", "bytes64"]
+        classic_types = ["uint", "uint8", "uint16", "uint32", "uint64", "uint128", "uint256", "bool", "address", "bytes", "bytes8", "bytes16", "bytes32", "bytes64", "bytes128", "bytes256"]
         # classic_types += list(map(lambda t: t+"[]", classic_types))
         added_contracts = ""
         for var_type in all_var_types:
@@ -149,7 +154,7 @@ def parse_sif_output(cname, output):
                 
         global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in vars_decd, vars_used))))
 
-        extracted_contract = new_contract.format(global_vars=global_vars, loop=src, imports=imports, using=using)
+        extracted_contract = new_contract.format(global_vars=global_vars, loop=src, imports=imports, using=using, loop_vars=loop_vars)
         extracted_contract += added_contracts
 
         if not num_lines in contracts:

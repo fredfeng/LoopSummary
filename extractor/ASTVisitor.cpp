@@ -3,8 +3,23 @@
 namespace Sif {
 
   static bool in_loop = false;
+  static bool in_loopinit = false;  
   static std::vector<ASTNode*> seen_loops;
   static std::map<std::string, std::string> type_table;
+
+  std::string function_call_source_code(FunctionCallNode* fn, Indentation& _indentation) {
+    Indentation empty_indentation(0);
+    std::string result = fn->get_added_text_before() + fn->get_callee()->source_code(empty_indentation) + "(";
+    for (int i = 0; i < fn->num_arguments(); i++ ) {
+      result += fn->get_argument(i)->source_code(empty_indentation);
+      if (i != fn->num_arguments()-1) {
+	result += ", ";
+      }
+    }
+    result += ")" + fn->get_added_text_after();
+    return result;
+  }
+
   
   std::string for_source_code(ForStatementNode* fs, Indentation& _indentation) {
     // visit(this);
@@ -54,7 +69,6 @@ namespace Sif {
   }
 
   void visit(ASTNode* node) {
-    std::cout << "HERE\n";
     if (node->get_node_type() == NodeTypeForStatement &&
     	std::count(seen_loops.begin(), seen_loops.end(), node) == 0) {
       in_loop = true;
@@ -64,6 +78,9 @@ namespace Sif {
 
       BlockNodePtr fb = std::static_pointer_cast<BlockNode>(fs->get_body());
       std::cout << "//#NUMLINES: " << fb->num_statements() << "\n";
+      in_loopinit = true;
+      fs->get_init()->source_code(empty);
+      in_loopinit = false;
       std::cout << for_source_code(fs, empty) << "\n";
       in_loop = false;
     }
@@ -84,6 +101,15 @@ namespace Sif {
       std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();
       std::string var_type = ((VariableDeclarationNode*) node)->get_type()->source_code(empty);
       type_table[var_name] = var_type;
+      // std::cout << var_name << ", " << var_type << "\n";
+      if (in_loopinit) {
+	std::cout << "//#LOOPVAR: " << var_name << "\n";
+      }
+    }
+    if (node->get_node_type() == NodeTypeAssignment && in_loopinit) {
+      Indentation empty(0);
+      std::string var = ((AssignmentNode *) node)->get_left_hand_operand()->source_code(empty);
+      std::cout << "//#LOOPVAR: " << var << "\n";
     }
     if (node->get_node_type() == NodeTypeVariableDeclaration && in_loop) {
       std::cout << "//#DECLARED: " << ((VariableDeclarationNode*) node)->get_variable_name() << "\n";
@@ -92,6 +118,19 @@ namespace Sif {
       std::string var_name = ((IdentifierNode*) node)->get_name();
       std::string var_type = type_table[var_name];
       std::cout << "//#USED: " << var_name << ", " << var_type << "\n";      
+    }
+    if (node->get_node_type() == NodeTypeFunctionCall && in_loop) {
+      Indentation empty(0);
+      // std::string func_name = ((FunctionCallNode*) node)->source_code(empty);
+      std::string func_name = function_call_source_code(((FunctionCallNode*) node), empty);
+      std::cout << "//#FUNC: " << func_name << "\n";
+    }
+    if (node->get_node_type() == NodeTypeUsingForDirective && std::count(seen_loops.begin(), seen_loops.end(), node) == 0) {
+      seen_loops.push_back(node);      
+      std::string using_name = ((UsingForDirectiveNode*) node)->get_using();
+      if (using_name.compare("SafeMath") == 0) {
+    	std::cout << "//#USINGSAFEMATH\n";
+      }
     }
     return;
   }

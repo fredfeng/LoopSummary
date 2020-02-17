@@ -129,11 +129,25 @@ def instantiate_dsl(sol_file, analysis, lambdas):
     maparray_str = ""
     mapint_str = ""
     prog_decl = ""
-    i_global = "i" in list(map(str, contract.variables))
+
+    with open(sol_file, "r") as f:
+        ind = "//#LOOPVARS: "
+        body = f.read()
+        if ind in body:
+            global_vars = body[body.index(ind)+12:].split("\n")[0]
+            global_vars = global_vars.replace('[', "").replace(']', "").replace("'", "").replace(" ", "").split(", ")
+        else:
+            global_vars = ["i"]
+    
+    #TODO: HANDLE NESTED LOOPS
+    i_global = global_vars[0] in list(map(str, contract.variables))
     
     for k in vars_map:
         for v in vars_map[k]:
-            if not (v == "i" and not i_global):
+            if v == global_vars[0]:
+                if i_global:
+                    prog_decl += k + ' ' + v + '; \n'
+            else:
                 prog_decl += k + ' ' + v + '; \n'
 
     # TODO: Presumes all constants are integers or booleans
@@ -198,7 +212,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
 
     # print(actual_spec)
     
-    return actual_spec, prog_decl, final_typ_dict, i_global
+    return actual_spec, prog_decl, final_typ_dict, i_global, global_vars
 
 def expand_dsl(dsl, final_typ_dict, base_types):
     new_dsl = []
@@ -287,11 +301,13 @@ class SymDiffInterpreter(PostOrderInterpreter):
     contract {0} {{{{ }}}}
     """
 
-    def __init__(self, decl="", contracts=[], i_global=False):
+    def __init__(self, decl="", contracts=[], i_global=False, global_vars=["i"]):
         for contract in contracts:
             self.contract_prog += self.extra_contract.format(contract)
         self.program_decl = decl
         self.i_typ = "" if i_global else "uint"
+        # TODO: HANDLE NESTED LOOPS
+        self.iterator = global_vars[0]
 
     def eval_const(self, node, args):
         return args[0]
@@ -318,14 +334,14 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end_idx = args[3]
 
         loop_body = """
-            for ({i_typ} i = {tgtStart}; i < {tgtEnd}; ++i) {{
-                {tgtAcc} += {srcArr}[i];
+            for ({i_typ} {it} = {tgtStart}; {it} < {tgtEnd}; ++{it}) {{
+                {tgtAcc} += {srcArr}[{it}];
             }}
-        """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtAcc=acc, srcArr=arr, i_typ=self.i_typ)
+        """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtAcc=acc, srcArr=arr, i_typ=self.i_typ, it=self.iterator)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
-        # print(actual_contract)
+        print(actual_contract)
         # assert False
         return actual_contract
     
@@ -342,11 +358,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         #     loop_offset = "+{0}-{1}".format(start_src, start_tgt)
             
         loop_body = """
-            for ({i_typ} i = {tgtStart}; i < {tgtEnd}; i++) {{
-                {tgtObj}[i] = {srcObj}[i+{srcStart}-{tgtStart}];
+            for ({i_typ} {it} = {tgtStart}; {it} < {tgtEnd}; {it}++) {{
+                {tgtObj}[{it}] = {srcObj}[{it}+{srcStart}-{tgtStart}];
             }}
         """.format(tgtStart=start_tgt, tgtEnd=end_tgt, tgtObj=tgt_array,
-                   srcStart=start_src, srcObj=src_array, i_typ=self.i_typ)
+                   srcStart=start_src, srcObj=src_array, i_typ=self.i_typ, it=self.iterator)
         
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -360,10 +376,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end_idx = args[2]
 
         loop_body = """
-            for ({i_typ} i = {start}; i < {end}; i++) {{
-                {arr}[i] = {arr}[i+1];
+            for ({i_typ} {it} = {start}; {it} < {end}; {it}++) {{
+                {arr}[{it}] = {arr}[{it}+1];
             }}
-        """.format(start=start_idx, end=end_idx, arr=src_array, i_typ=self.i_typ)
+        """.format(start=start_idx, end=end_idx, arr=src_array, i_typ=self.i_typ, it=self.iterator)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -379,10 +395,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         val = args[4]
 
         loop_body = """
-            for ({i_typ} i = {startIdx}; i < {endIdx}; i++) {{
-                {tgtArr}[{contArr}[i]] = {newVal};
+            for ({i_typ} {it} = {startIdx}; {it} < {endIdx}; {it}++) {{
+                {tgtArr}[{contArr}[{it}]] = {newVal};
             }}
-        """.format(tgtArr=tgt, contArr=cont, startIdx=start, endIdx=end, newVal=val, i_typ=self.i_typ)
+        """.format(tgtArr=tgt, contArr=cont, startIdx=start, endIdx=end, newVal=val, i_typ=self.i_typ, it=self.iterator)
         
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)        
 
@@ -399,10 +415,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         val = args[3]
 
         loop_body = """
-            for ({i_typ} i = {start_idx}; i < {end_idx}; i++) {{
-                {tgtArr}[i] = {newVal};
+            for ({i_typ} {it} = {start_idx}; {it} < {end_idx}; {it}++) {{
+                {tgtArr}[{it}] = {newVal};
             }}
-        """.format(tgtArr=tgt, start_idx=start, end_idx=end, newVal=val, i_typ=self.i_typ)
+        """.format(tgtArr=tgt, start_idx=start, end_idx=end, newVal=val, i_typ=self.i_typ, it=self.iterator)
         
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -418,11 +434,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end_tgt = args[4]        
 
         loop_body = """
-            for ({i_typ} i = {tgtStart}; i < {tgtEnd}; i++) {{
-                {tgtArr}[i] += {srcArr}[i+{srcStart}-{tgtStart}];
+            for ({i_typ} {it} = {tgtStart}; {it} < {tgtEnd}; {it}++) {{
+                {tgtArr}[{it}] += {srcArr}[{it}+{srcStart}-{tgtStart}];
             }}
         """.format(tgtArr=tgt, tgtStart=start_tgt, tgtEnd=end_tgt,
-                   srcArr=src, srcStart=start_src, i_typ=self.i_typ)
+                   srcArr=src, srcStart=start_src, i_typ=self.i_typ, it=self.iterator)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -434,13 +450,13 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end = args[2]        
         lam = args[3]
 
-        lam = lam[lam.index(":")+2:].replace("__x", "{0}[i]".format(tgt))
+        lam = lam[lam.index(":")+2:].replace("__x", "{0}[{1}]".format(tgt, self.iterator))
         
         loop_body = """
-            for ({i_typ} i = {start_idx}; i < {end_idx}; i++) {{
-                {tgtArr}[i] = {newVal};
+            for ({i_typ} {it} = {start_idx}; {it} < {end_idx}; {it}++) {{
+                {tgtArr}[{it}] = {newVal};
             }}
-        """.format(tgtArr=tgt, start_idx=start, end_idx=end, newVal=lam, i_typ=self.i_typ)
+        """.format(tgtArr=tgt, start_idx=start, end_idx=end, newVal=lam, i_typ=self.i_typ, it=self.iterator)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -455,13 +471,13 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end_idx = args[3]
         lam = args[4]
 
-        lam = lam[lam.index(":")+2:].replace("__x", "{0}[i]".format(arr))
+        lam = lam[lam.index(":")+2:].replace("__x", "{0}[{1}]".format(arr, self.iterator))
         
         loop_body = """
-            for ({i_typ} i = {tgtStart}; i < {tgtEnd}; ++i) {{
+            for ({i_typ} {it} = {tgtStart}; {it} < {tgtEnd}; ++{it}) {{
                 {tgtAcc} += {lamVal};
             }}
-        """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtAcc=acc, lamVal=lam, i_typ=self.i_typ)
+        """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -493,7 +509,7 @@ def main(sol_file):
     # print(deps.dependencies)
     # print(refs.pprint_refinement())
 
-    actual_spec, prog_decl, types, i_global = instantiate_dsl(sol_file, refs.types, lambdas)
+    actual_spec, prog_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas)
 
     # print(actual_spec)
     
@@ -510,7 +526,7 @@ def main(sol_file):
         enumerator=DependencyEnumerator(
             spec, max_depth=4, seed=seed, analysis=deps.dependencies, types=types),
         decider=SymdiffDecider(
-            interpreter=SymDiffInterpreter(prog_decl, other_contracts, i_global), example=sol_file, equal_output=check_eq)
+            interpreter=SymDiffInterpreter(prog_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
     logger.info('Synthesizing programs...')
 
