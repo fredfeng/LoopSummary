@@ -165,6 +165,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
             length_vars += vars_map[k]            
             k = "mapping(uint => {0})".format(k.replace("[]", ""))
         k = k.replace("uint8", "uint")
+        k = k.replace("uint128", "uint")        
         k = k.replace("uint256", "uint")
         if k in all_types:
             if k in map_types:
@@ -174,8 +175,11 @@ def instantiate_dsl(sol_file, analysis, lambdas):
                     dom = matches[0][1]
                     codom = matches[0][2]
                     k = "mapping_{0}_{1}".format(dom, codom)
-                
-            type_table[k] = actual_symbols.split(",")
+
+            if not k in type_table:
+                type_table[k] = actual_symbols.split(",")
+            else:
+                type_table[k] += actual_symbols.split(",")
         else:
             print("IGNORED TYPE: {0}!".format(k))
             pass
@@ -184,7 +188,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
         type_table["uint"] += list(map(lambda v: '"{0}.length"'.format(v), length_vars))
     else:
         type_table["uint"] = list(map(lambda v: '"{0}.length"'.format(v), length_vars))
-
+        
     typ_enums, final_typ_dict = create_refinement_types(analysis, type_table, lambdas)        
 
     actual_spec = expand_dsl(actual_spec, final_typ_dict, base_types)
@@ -313,7 +317,6 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end_idx = args[3]
 
         loop_body = """
-            {tgtAcc} = 0;
             for ({i_typ} i = {tgtStart}; i < {tgtEnd}; ++i) {{
                 {tgtAcc} += {srcArr}[i];
             }}
@@ -382,7 +385,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)        
 
-        print(actual_contract)
+        # print(actual_contract)
         
         # print(actual_contract)
         # assert False
@@ -454,7 +457,6 @@ class SymDiffInterpreter(PostOrderInterpreter):
         lam = lam[lam.index(":")+2:].replace("__x", "{0}[i]".format(arr))
         
         loop_body = """
-            {tgtAcc} = 0;
             for ({i_typ} i = {tgtStart}; i < {tgtEnd}; ++i) {{
                 {tgtAcc} += {lamVal};
             }}
@@ -486,6 +488,9 @@ def main(sol_file):
     deps, refs = analyze(sol_file, "C", "foo()")
     lambdas = analyze_lambdas(sol_file, "C", "foo()")
     logger.info('Analysis Successful!')
+
+    # print(deps.dependencies)
+    # print(refs.pprint_refinement())
 
     actual_spec, prog_decl, types, i_global = instantiate_dsl(sol_file, refs.types, lambdas)
 
