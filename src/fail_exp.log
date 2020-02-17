@@ -113,6 +113,7 @@ Sum with extra array access:
 Dcmc_0.sol
 TournamentCore_3.sol (two accesses)
 Umx_0.sol
+SpecialWallet_0.sol
 
 Loop with no assignment?:
 Delivery_0.sol
@@ -179,13 +180,6 @@ ShipCoinStorage_1.sol
 ShipCoinStorage_25.sol (with constraint)
 ShipCoinStorage_3.sol
 ShipCoinStorage_4.sol
-
-ERROR (not sure what?):
-SpecialWallet_0.sol
-TokenAbbreviationLookup_2.sol
-TokenAbbreviationLookup_7.sol
-TokenAbbreviationLookup_8.sol
-TokenAbbreviationLookup_9.sol
 
 ShiftRight:
 SpecialWallet_3.sol

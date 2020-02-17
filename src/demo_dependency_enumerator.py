@@ -149,7 +149,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
             else:
                 vars_map['bool'] = [const]
 
-    base_types = ["uint", "bool", "address"] + other_contracts
+    base_types = ["uint", "bool", "address", "bytes"] + other_contracts
     map_types = list(map(lambda x: "mapping({0} => {1})".format(x[0], x[1]), product(base_types, repeat=2)))
 
     all_types = base_types + map_types
@@ -167,6 +167,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
         k = k.replace("uint8", "uint")
         k = k.replace("uint128", "uint")        
         k = k.replace("uint256", "uint")
+        k = k.replace("bytes32", "bytes")
         if k in all_types:
             if k in map_types:
                 matches = re.findall(r"(mapping\((.*) => (.*)\))", k)
