@@ -118,7 +118,7 @@ def parse_sif_output(cname, output):
         func_split_called = []
         if safe_math and (replace_safemath or add_safemath):
             funcs_called = sorted(funcs_called, key=lambda x: len(x))
-            for i, func_call in enumerate(funcs_called):
+            for i2, func_call in enumerate(funcs_called):
                 print(func_call)
                 for k in safemath_funcs:
                    splitter = ".{0}(".format(k)
@@ -129,7 +129,7 @@ def parse_sif_output(cname, output):
                        args = split[1][:-1]
                        func_split_called.append((callee, func, args))
                        new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[func],args)
-                       for j in range(i+1, len(funcs_called)):
+                       for j in range(i2+1, len(funcs_called)):
                            funcs_called[j] = funcs_called[j].replace(func_call, new_call)
                        break                   
 
@@ -159,7 +159,7 @@ def parse_sif_output(cname, output):
 
         if not num_lines in contracts:
             contracts[num_lines] = []
-
+        
         contracts[num_lines].append((i, extracted_contract))
             
         print("--"*8)
