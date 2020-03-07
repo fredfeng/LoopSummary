@@ -45,12 +45,12 @@ contract Cthulooo {
     
     function win() public {
         require(now > deadline);
-        uint amount = pot.div(WIN_CUTOFF);
+        uint amount = pot.div(WIN_CUTOFF); //amount * WIN_CUTOFF <= pot;
         address sendTo;
         for (uint i = 0; i < WIN_CUTOFF; i++) {
             sendTo = betAddressArray[i];
             sendTo.transfer(amount);
-            pot = pot.sub(amount);
+            pot = pot.sub(amount); // 
         }
         gameIsOver = true;
     }

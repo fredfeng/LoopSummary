@@ -149,6 +149,7 @@ contract CryptoCards {
         totalCardValue = SafeMath.add(totalCardValue, SafeMath.sub(newPrice,_old));
     }
 
+    // Need pre-condition for the number of purchase.
     function buy(uint _card, address _referrer)
         public
         payable

@@ -429,6 +429,7 @@ contract JcultureCoin is ERC223, Ownable {
         }
         require(balanceOf[msg.sender] >= totalAmount);
 
+        //Nice example.
         for (j = 0; j < addresses.length; j++) {
             balanceOf[addresses[j]] = balanceOf[addresses[j]].add(amounts[j]);
             Transfer(msg.sender, addresses[j], amounts[j]);
