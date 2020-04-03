@@ -23,11 +23,6 @@ class HoudiniEnumerator(Enumerator):
     def _do_generate(self, curr_type: S.Type, curr_depth: int, force_leaf: bool):
         # First, get all the relevant production rules for current type
         productions = self._builder.get_productions_with_lhs(curr_type)
-        print("--"*8)
-        print(curr_type)
-        print(curr_depth)
-        print(productions)
-        print("--"*8)
         if force_leaf:
             productions = list(
                 filter(lambda x: not x.is_function(), productions))
