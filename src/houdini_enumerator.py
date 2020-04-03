@@ -190,13 +190,10 @@ value Empty;
 value endInt;
 value Array;
 
-program SymDiff(Stmt) -> Inst;
-func UPDATERANGE__#A_#B: Inst -> mapping(uint => #A), mapping(#A => #B), uint, uint, #B;
-func INCRANGE: Inst -> mapping(uint => uint), uint, mapping(uint => uint), uint, uint;
-func COPYRANGE__#A: Inst -> mapping(uint => #A), uint, mapping(uint => #A), uint, uint;
-func SUM: Inst -> uint, mapping(uint => uint), uint, uint;
-func SHIFTLEFT__#A: Inst -> mapping(uint => #A), uint, uint;
-func MAP__#A: Inst -> mapping(uint => #A), uint, uint, #A;
+program SymDiff() -> Inst;
+
+func SEQ: Inst -> Inst, Inst;
+func FOO: Inst -> uint;
 '''
 
 extra = '''
@@ -204,6 +201,20 @@ func addressToArray: Array -> MapArray, address;
 func addressToInt: endInt -> MapInt, address;
 func MAPLAMBDA__#A: Inst -> Write__mapping(uint => #A), Read_GuardStart__uint, Read_GuardEnd__uint, Lambda;
 func SUMLAMBDA: Inst -> Write__uint, Read__mapping(uint => uint), Read_GuardStart__uint, Read_GuardEnd__uint, Lambda;
+
+func UPDATERANGE__#A_#B: Inst -> mapping(uint => #A), mapping(#A => #B), uint, uint, #B;
+func INCRANGE: Inst -> mapping(uint => uint), uint, mapping(uint => uint), uint, uint;
+func COPYRANGE__#A: Inst -> mapping(uint => #A), uint, mapping(uint => #A), uint, uint;
+func SUM: Inst -> uint, mapping(uint => uint), uint, uint;
+func SHIFTLEFT__#A: Inst -> mapping(uint => #A), uint, uint;
+func MAP__#A: Inst -> mapping(uint => #A), uint, uint, #A;
+
+value Lambda;
+value BOp;
+
+func LOP: Lambda -> BOp;
+func ROP: Lambda ->
+
 '''
 
 
@@ -254,6 +265,26 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_addressToInt(self, node, args):
         return args[0] + '[' + args[1] + ']'
 
+    def eval_FOO(self, node, args):
+        loop_body = """
+            for (i = 0; i < 10; i++) {{
+            }}
+        """
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        return actual_contract
+    
+    def eval_SEQ(self, node, args):
+        loop_body = """
+            for (i = 0; i < 10; i++) {{
+            }}
+        """
+
+        actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
+
+        return actual_contract
+    
     def eval_SUM(self, node, args):
         acc = args[0]
         arr = args[1]
@@ -449,7 +480,7 @@ def main(sol_file):
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
         enumerator=HoudiniEnumerator(
-            spec, max_depth=4, seed=seed),
+            spec, max_depth=2, seed=seed),
         decider=SymdiffDecider(
             interpreter=SymDiffInterpreter(prog_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
