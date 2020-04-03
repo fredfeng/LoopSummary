@@ -47,8 +47,8 @@ class HoudiniEnumerator(Enumerator):
 
     def next(self):
         node = self._generate(self._builder.output, 0)
-        # while (str(node) in self._history):
-        #     node = self._generate(self._builder.output, 0)
+        while (str(node) in self._history):
+            node = self._generate(self._builder.output, 0)
 
-        # self._history.append(str(node))
+        self._history.append(str(node))
         return node

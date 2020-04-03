@@ -267,9 +267,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
     def eval_FOO(self, node, args):
         loop_body = """
-            for (i = 0; i < 10; i++) {{
+            for ({i_typ} i = 0; i < 10; i++) {{
             }}
-        """
+        """.format(i_typ=self.i_typ)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
@@ -277,9 +277,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
     
     def eval_SEQ(self, node, args):
         loop_body = """
-            for (i = 0; i < 10; i++) {{
+            for ({i_typ} i = 0; i < 10; i++) {{
             }}
-        """
+        """.format(i_typ=self.i_typ)
 
         actual_contract = self.contract_prog.format(_body=loop_body, _decl=self.program_decl)
 
