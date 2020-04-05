@@ -4,7 +4,7 @@ from sys import argv
 import tyrell.spec as S
 from tyrell.interpreter import PostOrderInterpreter
 from tyrell.enumerator import HoudiniEnumerator
-from tyrell.decider import Example, SymdiffDecider
+from tyrell.decider import Example, BoundedModelCheckerDecider
 from tyrell.synthesizer import Synthesizer
 from tyrell.logger import get_logger
 from slither.slither import Slither
@@ -696,7 +696,7 @@ def main(sol_file):
     synthesizer = Synthesizer(
         enumerator=HoudiniEnumerator(
             spec, max_depth=2, seed=seed),
-        decider=SymdiffDecider(
+        decider=BoundedModelCheckerDecider(
             interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
     logger.info('Synthesizing programs...')
