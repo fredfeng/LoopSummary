@@ -146,15 +146,19 @@ def instantiate_dsl(sol_file):
 
     # Constant values
     # TODO: Use analysis to get these!
-    C = ['"0"', '"1"', '"-1"']
+    # C = ['"0"', '"1"', '"-1"']
+    C = ['"0"', '"1"']
 
     # Add int constants separately for DSL where only constants are needed
     type_table["C"] = C
+    # Non-zero values for div and mul
+    type_table["nonzero_uint"] = list(set(type_table["uint"] + [C[1]]))
     # Add int constants to ints
     type_table["uint"] = list(set(type_table["uint"]+C))
     # Add "true" and "false" as boolean constants
     type_table["bool"] = list(set(type_table["bool"]+['"true"', '"false"']))    
 
+    
     # Build DSL enums from type table
     typ_enums = ""
     for typ, vals in type_table.items():
@@ -277,7 +281,7 @@ def expand_dsl(dsl, type_table, base_types, all_types):
 
     return "\n".join(other_lines + function_lines)
 
-dsl_skeleton = '''
+min_dsl = '''
 
 {types}
 
@@ -286,18 +290,102 @@ value IF;
 value i;
 value F;
 value Cond;
+value Inv;
 
-program SolidityLoops() -> IF;
+program SolidityLoops() -> Inv;
+
+# DSL Functions (with lambda versions when appropriate)
+func SUM: IF -> g_int, mapping(uint => uint), i, i;
+
+func seq: Inv -> Inv, Inv;
+
+func intFunc: Inv -> IF;
+
+# Add constant for global integers
+func addc: i -> g_int, C;
+'''
+
+dsl_skeleton ='''
+{types}
+
+value L;
+value IF;
+value i;
+value F;
+value Cond;
+value Summary;
+value Inv;
+
+program SolidityLoops() -> Summary;
+
+func summarize: Summary -> Inv;
+
+func seqF: Inv -> F, Inv;
+func seqIF: Inv -> IF, Inv;
+
+func intFunc: Inv -> IF;
+func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
 func SUM_L: IF -> g_int, mapping(uint => uint), i, i, L;
 func SUM: IF -> g_int, mapping(uint => uint), i, i;
-func COPYRANGE_L__#A: F -> mapping(uint => #A), i, mapping(uint => #A), i, i, L;
+func COPYRANGE_L: IF -> mapping(uint => uint), i, mapping(uint => uint), i, i, L;
 func COPYRANGE__#A: IF -> mapping(uint => #A), i, mapping(uint => #A), i, i;
-func UPDATERANGE__#A_#B: IF -> mapping(uint => #A), mapping(#A => #B), i, i, #B;
-func MAP_L__#A: F -> mapping(uint => #A), i, i, L;
-func MAP__#A: IF -> mapping(uint => #A), i, i, #A;
-func INCRANGE_L: F -> mapping(uint => uint), i, mapping(uint => uint), i, i, L;
+func UPDATERANGE__#A_#B: F -> mapping(uint => #A), mapping(#A => #B), i, i, #B;
+func MAP_L: IF -> mapping(uint => uint), i, i, L;
+func MAP__#A: F -> mapping(uint => #A), i, i, #A;
+func INCRANGE_L: IF -> mapping(uint => uint), i, mapping(uint => uint), i, i, L;
+func INCRANGE: IF -> mapping(uint => uint), i, mapping(uint => uint), i, i;
+func FILTER__#A: F -> mapping(uint => #A), IF, Cond;
+
+# Arithmetic funcs for lambda
+func add: L -> uint;
+func mul: L -> nonzero_uint;
+func sub: L -> uint;
+func div: L -> nonzero_uint;
+
+# Add constant for global integers
+func addc: i -> g_int, C;
+
+# Boolean funcs for conditional lambda
+func lt: Cond -> uint;
+func gt: Cond -> uint;
+func eq: Cond -> uint;
+func lte: Cond -> uint;
+func gte: Cond -> uint;
+func and: Cond -> Cond, Cond;
+func or: Cond -> Cond, Cond;
+'''
+
+dsl_backup='''
+{types}
+
+value L;
+value IF;
+value i;
+value F;
+value Cond;
+value Summary;
+value Inv;
+
+program SolidityLoops() -> Summary;
+
+func summarize: Summary -> Inv;
+
+func seq: Inv -> Inv, Inv;
+
+func intFunc: Inv -> IF;
+func nonintFunc: Inv -> F;
+
+# DSL Functions (with lambda versions when appropriate)
+func SUM_L: IF -> g_int, mapping(uint => uint), i, i, L;
+func SUM: IF -> g_int, mapping(uint => uint), i, i;
+func COPYRANGE_L: IF -> mapping(uint => uint), i, mapping(uint => uint), i, i, L;
+func COPYRANGE__#A: IF -> mapping(uint => #A), i, mapping(uint => #A), i, i;
+func UPDATERANGE__#A_#B: F -> mapping(uint => #A), mapping(#A => #B), i, i, #B;
+func MAP_L: IF -> mapping(uint => uint), i, i, L;
+func MAP__#A: F -> mapping(uint => #A), i, i, #A;
+func INCRANGE_L: IF -> mapping(uint => uint), i, mapping(uint => uint), i, i, L;
 func INCRANGE: IF -> mapping(uint => uint), i, mapping(uint => uint), i, i;
 func FILTER__#A: F -> mapping(uint => #A), IF, Cond;
 
@@ -320,60 +408,6 @@ func gte: Cond -> uint;
 func and: Cond -> Cond, Cond;
 func or: Cond -> Cond, Cond;
 '''
-
-dsl = '''
-value Inv;
-value i;
-value C;
-value L;
-value Cond;
-value Summary;
-
-program foo() -> Summary;
-
-func summarize: Summary -> Inv;
-
-func seq: Inv -> Inv, Inv;
-
-func intFunc: Inv -> IF;
-func nonintFunc: Inv -> F;
-
-func FILTER__#A: F -> mapping(uint => #A), IF, Cond;
-
-// Lambda versions
-func INCRANGE_L: F -> mapping(uint => uint), i, mapping(uint => uint), i, i, L;
-func COPYRANGE_L__#A: F -> mapping(uint => #A), i, mapping(uint => #A), i, i, L;
-func SUM_L: IF -> g_int, mapping(uint => uint), i, i, L;
-func MAP_L__#A: F -> mapping(uint => #A), i, i, L;
-
-// Non-lambda versions
-func UPDATERANGE__#A_#B: IF -> mapping(uint => #A), mapping(#A => #B), i, i, #B;
-func INCRANGE: IF -> mapping(uint => uint), i, mapping(uint => uint), i, i;
-func COPYRANGE__#A: IF -> mapping(uint => #A), i, mapping(uint => #A), i, i;
-func SUM: IF -> g_int, mapping(uint => uint), i, i;
-func MAP__#A: IF -> mapping(uint => #A), i, i, #A;
-
-func addc: i -> g_int, C;
-
-enum C {
-  "0", "1", "-1"
-}
-
-func add: L -> uint;
-func mul: L -> uint;
-func sub: L -> uint;
-func div: L -> uint;
-func const: L -> #A;
-
-func lt: Cond -> uint;
-func gt: Cond -> uint;
-func eq: Cond -> uint;
-func lte: Cond -> uint;
-func gte: Cond -> uint;
-func and: Cond -> Cond, Cond;
-func or: Cond -> Cond, Cond;
-'''
-
 
 class SymDiffInterpreter(PostOrderInterpreter):
 
@@ -424,13 +458,16 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return "__y" + ">=" + args[0]
     
     def eval_and(self, node, args):
-        return "__y" + " && " + args[0]
+        return args[0] + " && " + args[1]
     
     def eval_or(self, node, args):
-        return "__y" + " || " + args[0]
+        return args[0] + " || " + args[1]
     
     def eval_addc(self, node, args):
-        return "__y" + '+' + args[0]
+        # return "__x" + '+' + args[0]
+        if args[1] == "-1":
+            return args[0] + '-1'
+        return args[0] + '+' + args[1]
 
     #########################################
     # Lambda operators
@@ -440,6 +477,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return args[0]
 
     def eval_add(self, node, args):
+        # return "__x" + '+' + args[0]
+        if args[0] == "-1":
+            return "__x-1"
         return "__x" + '+' + args[0]
 
     def eval_sub(self, node, args):
@@ -459,20 +499,26 @@ class SymDiffInterpreter(PostOrderInterpreter):
         arr = args[1]
         start_idx = args[2]
         end_idx = args[3]
+
+        val = "{srcArr}[{it}]".format(srcArr=arr, it=self.iterator)
         
         if l == False:
-            lam = "{srcArr}[{it}]".format(srcArr=arr, it=self.iterator)
+            lam = "+= {0}".format(val)
         else:
-            lam = args[4]            
-            lam = lam.replace("__x", "{0}[{1}]".format(arr, self.iterator))
+            lam = args[4]
+            if lam == "-1":
+                lam = "-= 1"
+            else:
+                lam = "+= "+lam
+            lam = lam.replace("__x", val)
         
         loop_body = """
             for ({i_typ} {it} = {tgtStart}; {it} < {tgtEnd}; ++{it}) {{
-                {tgtAcc} += {lamVal};
+                {tgtAcc} {lamVal};
             }}
         """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
-        return loop_body
+        return loop_body, val
         
     def eval_SUM(self, node, args):
         return self.build_sum(node, args, False)
@@ -504,7 +550,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(tgtStart=start_tgt, tgtEnd=end_tgt, tgtObj=tgt_array,
                    i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
-        return loop_body
+        return loop_body, val
     
     def eval_COPYRANGE(self, node, args):
         return self.build_copyrange(node, args, False)
@@ -533,7 +579,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(start=start_idx, end=end_idx, arr=src_array,
                    i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
-        return loop_body
+        return loop_body, val
 
     def eval_SHIFTLEFT(self, node, args):
         return self.build_shiftleft(node, args, False)
@@ -560,7 +606,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}
         """.format(tgtArr=tgt, contArr=cont, startIdx=start, endIdx=end, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
-        return loop_body
+        return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
+                                                             it=self.iterator)
 
     def eval_UPDATERANGE(self, node, args):
         return self.build_updaterange(node, args, False)
@@ -568,14 +615,16 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_UPDATERANGE_L(self, node, args):
         return self.build_updaterange(node, args, True)
 
-    def build_map(self, node, args):        
+    def build_map(self, node, args, l):        
         tgt = args[0]
         start = args[1]
         end = args[2]        
         lam = args[3]
 
+        val = "{tgtArr}[{it}]".format(tgtArr=tgt, it=self.iterator)
+        
         if l:
-            lam = lam.replace("__x", "{tgtArr}[{it}]")
+            lam = lam.replace("__x", val)
 
         loop_body = """
             for ({i_typ} {it} = {start_idx}; {it} < {end_idx}; {it}++) {{
@@ -584,7 +633,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(tgtArr=tgt, start_idx=start, end_idx=end,
                    lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
-        return loop_body
+        return loop_body, val
 
     def eval_MAP(self, node, args):
         return self.build_map(node, args, False)
@@ -592,14 +641,16 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_MAP_L(self, node, args):
         return self.build_map(node, args, True)
 
-    def eval_incrange(self, node, args):        
+    def build_incrange(self, node, args, l):        
         src = args[0]
         start_src = args[1]
         tgt = args[2]
         start_tgt = args[3]
         end_tgt = args[4]        
 
-        val = "{srcArr}[{it}+{srcStart}-{tgtStart}]"
+        val = "{srcArr}[{it}+{srcStart}-{tgtStart}]".format(srcArr=src, it=self.iterator,
+                                                            srcStart=start_src,
+                                                            tgtStart=start_tgt)
         
         if not l:
             lam = val
@@ -614,7 +665,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(tgtArr=tgt, tgtStart=start_tgt, tgtEnd=end_tgt, srcArr=src,
                    srcStart=start_src, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
-        return loop_body
+        return loop_body, val
 
     def eval_INCRANGE(self, node, args):
         return self.build_incrange(node, args, False)
@@ -623,39 +674,51 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return self.build_incrange(node, args, True)
 
     def eval_FILTER(self, node, args):
-        loop = args[0]
-        cond = args[1]
+        tgt = args[0]        
+        loop, cond_arg = args[1]
+        cond = args[2].replace("__y", cond_arg)
 
         matches = re.findall(r"(.*)\{.*\n(.*)\n.*\}", loop)
         if matches != []:
-            header = matches[0][0]
-            body = matches[0][1]
+            header = matches[0][0].replace(" ", "")
+            body = matches[0][1].replace(" ", "")
             new_loop = """
             {header} {{
-                if ({cond}) {
+                if ({cond}) {{
                     {body}
-                }
+                }}
             }}
             """.format(header=header, body=body, cond=cond)
         else:
             raise Exception("No body in:\n {0}".format(loop))
 
-        return new_loop
+        return new_loop, None 
         
     def eval_summarize(self, node, args):
-        actual_contract = self.contract_prog.format(_body=args[0], _decl=self.program_decl)
+        body, _ = args[0]
+        actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
 
+        print(actual_contract)
         return actual_contract
 
     def eval_intFunc(self, node, args):
-        return args[0]
+        loop, _ = args[0]
+        return loop, None
 
     def eval_nonintFunc(self, node, args):
-        return args[0]
+        loop, _ = args[0]
+        return loop, None
 
-    def eval_seq(self, node, args):
-        return args[0] + "\n\n" + args[1];
+    def build_seq(self, node, args):
+        loop0, _ = args[0]
+        loop1, _ = args[1]        
+        return loop0 + "\n\n" + loop1, None;
 
+    def eval_seqF(self, node, args):
+        return self.build_seq(node, args)
+
+    def eval_seqIF(self, node, args):
+        return self.build_seq(node, args)
     
 def execute(interpreter, prog, args):
     return interpreter.eval(prog, args)
@@ -695,7 +758,7 @@ def main(sol_file):
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
         enumerator=HoudiniEnumerator(
-            spec, max_depth=2, seed=seed),
+            spec, max_depth=10, seed=seed),
         decider=BoundedModelCheckerDecider(
             interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
