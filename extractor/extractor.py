@@ -61,8 +61,7 @@ def main():
         print("Extracting loop from {0}.".format(args.folder))        
         extract_loops_from_folder(args.folder)
 
-def get_var_types(vars_used):
-    types = list(map(lambda x: x[0], vars_used))
+def get_var_types(types):
     all_types = []
     for typ in types:
         matches = re.findall(r"(mapping\((.*) => (.*)\))", typ)
@@ -78,93 +77,109 @@ def get_var_types(vars_used):
                 all_types.append(typ)
 
     return list(set(all_types))
-        
+
+def extract_loop_info(info, source):
+    used = re.findall("USED: (.*)", info)[0].split(",")
+    decd = re.findall("DECLARED: (.*)", info)[0].split(",")
+    funcs = re.findall("FUNCTIONS: (.*)", info)[0].split(",")
+    it = re.findall("ITERATOR: (.*)", info)[0]
+    size = int(re.findall("SIZE: (.*)", info)[0])
+    
+    return LoopInfo(used, decd, funcs, it, size, source)
+
+def update_safemath(loop_info):
+    safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}
+
+    # Keep track of all safemath calls
+    safemath_calls = []
+    # Sort function calls by length, so we know we replace shortest first
+    funcs_called = sorted(loop_info.funcs, key=lambda x: len(x))
+
+    for i, func_call in enumerate(funcs_called):
+        for safe_func, repl in safemath_funcs.items():
+           splitter = ".{0}(".format(safe_func)
+           # If the safemath call is actually used in this function call
+           if splitter in func_call:
+               split = func_call.split(splitter)
+               callee = split[0]
+               args = split[1][:-1]
+               safemath_calls.append((callee, safe_func, args))
+               # Also, go forward through the functions called, and replace this
+               #   in place, as when we go to split in future iterations, this will
+               #   complicate things
+               new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[safe_func],args)
+               for j in range(i+1, len(funcs_called)):
+                   funcs_called[j] = funcs_called[j].replace(func_call, new_call)
+               break                   
+
+    # Do safemath adjustments if flags set and safemath functions used in loop
+    if any(map(lambda x: x[1] in safemath_funcs, safemath_calls)):
+        for (callee, func, args) in safemath_calls:
+            old_call = "{0}.{1}({2})".format(callee, func, args)
+            new_call = "({0}) {1} ({2})".format(callee, safemath_funcs[func], args)
+            loop_info.source = loop_info.source.replace(old_call, new_call)
+    
 def parse_sif_output(cname, output):
     contracts = {}
-    loops = output.split("//#LOOP_END")
-    safe_math = False
-    safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}    
-    for i, loop in enumerate(loops[:-1]):
-        vars_decd = []
-        vars_used = []
-        funcs_called = []
-        loop_vars = []
-        num_lines = None
-        src = None
-        imports = ""
-        using = ""
-        for line in loop.split("\n"):
-            if line.startswith("//#NUMLINES: "):
-                num_lines = int(line[13:])
-            elif line.startswith("//#USED: "):
-                var_and_type = line[9:].split(", ")
-                if var_and_type[1] != "":
-                    print("No type found for var: {0}".format(var_and_type[0]))
-                    vars_used.append((var_and_type[1], var_and_type[0]))
-            elif line.startswith("//#DECLARED: "):
-                vars_decd.append(line[13:])
-            elif line.startswith("//#USINGSAFEMATH"):
-                safe_math = True
-            elif line.startswith("//#LOOPVAR: "):
-                loop_vars.append(line[12:])
-            elif line.startswith("//#FUNC: "):
-                funcs_called.append(line[9:])
-            elif line.startswith("//#LOOP_BEGIN"):
-                src = ""                
-            elif src != None:
-                src += line + "\n"
 
-        # Only analyze function calls if safemath triggered and a safemath flag set
-        func_split_called = []
-        if safe_math and (replace_safemath or add_safemath):
-            funcs_called = sorted(funcs_called, key=lambda x: len(x))
-            for i2, func_call in enumerate(funcs_called):
-                print(func_call)
-                for k in safemath_funcs:
-                   splitter = ".{0}(".format(k)
-                   if splitter in func_call:
-                       func = k
-                       split = func_call.split(splitter)
-                       callee = split[0]
-                       args = split[1][:-1]
-                       func_split_called.append((callee, func, args))
-                       new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[func],args)
-                       for j in range(i2+1, len(funcs_called)):
-                           funcs_called[j] = funcs_called[j].replace(func_call, new_call)
-                       break                   
+    # Remove leading space
+    output = output[1:]
 
-        # Do safemath adjustments if flags set and safemath functions used in loop
-        if safe_math and any(map(lambda x: x[1] in safemath_funcs,func_split_called)):
-            if replace_safemath:
-                for (callee, func, args) in func_split_called:
-                    old_call = "{0}.{1}({2})".format(callee, func, args)
-                    new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[func],args)
-                    src = src.replace(old_call, new_call)
-            elif add_safemath:
-                imports = 'import "./SafeMath.sol;"'
-                using = "using SafeMath for uint256;"
+    # Split output by loops (last is not loop, but global info, so separate out)
+    loop_sep = "****************"
+    loops = output.split(loop_sep)
+    global_info = loops[-1]
+    loops = loops[:-1]
 
-        all_var_types = get_var_types(vars_used)
+    # Check if we use safemath
+    uses_safemath = bool(re.findall("USES SAFEMATH: (.*)", global_info)[0])
+
+    # Imports and libraries used (initialized to empty)
+    imports = ""
+    using = ""
+    
+    # Add safemath if requested and actually used
+    if uses_safemath and add_safemath:
+        imports = 'import "./SafeMath.sol;"'
+        using = "using SafeMath for uint256;"        
+    
+    for i,loop in enumerate(loops):
+        sep = "=============="
+        loop_parse = re.findall(r"{0}([\s\S]*){0}([\s\S]*){0}".format(sep), loop)
+        source = loop_parse[0][0]
+
+        # Extract relevant loop information
+        loop_info = extract_loop_info(loop_parse[0][1], source)
+        
+        # Extract types from mappings/arrays to add to all types
+        all_var_types = get_var_types(loop_info.type_table.values())
         classic_types = ["uint", "uint8", "uint16", "uint32", "uint64", "uint128", "uint256", "bool", "address", "bytes", "bytes8", "bytes16", "bytes32", "bytes64", "bytes128", "bytes256"]
-        # classic_types += list(map(lambda t: t+"[]", classic_types))
+
+        # Replace safemath if necessary
+        if uses_safemath and replace_safemath:
+            update_safemath(loop_info)
+        
+        # Add any user-defined contracts as necessary
         added_contracts = ""
         for var_type in all_var_types:
             if not var_type in classic_types:
                 added_contracts += extra_contract.format(var_type)
-                
-        global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in vars_decd, vars_used))))
 
-        extracted_contract = new_contract.format(global_vars=global_vars, loop=src, imports=imports, using=using, loop_vars=loop_vars)
+        # Create global variable declarations
+        global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in loop_info.decd, [(typ, var) for (var, typ) in loop_info.type_table.items()]))))
+        
+        # Plug the pieces into the contract
+        extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it)
         extracted_contract += added_contracts
 
-        if not num_lines in contracts:
-            contracts[num_lines] = []
-        
-        contracts[num_lines].append((i, extracted_contract))
+        # Add new loop contract to contracts, sorting by loop size
+        if not loop_info.size in contracts:
+            contracts[loop_info.size] = []        
+        contracts[loop_info.size].append((i, extracted_contract))
             
         print("--"*8)
         print(cname)
-        print(num_lines)
+        print(loop_info.size)
         print("--"*8)
         print(extracted_contract)
         print("--"*8)
@@ -277,4 +292,20 @@ def extract_loops_from_folder(folder):
                 print("Failed to compile {0}".format(fname))
                 print(e)
 
+class LoopInfo:
+
+    def __init__(self, used, decd, funcs, it, size, source):
+        self.type_table = {}
+        for entry in used:
+            tup = re.findall("(.*):(.*)", entry)
+            var = tup[0][0]
+            typ = tup[0][1]
+            self.type_table[var] = typ
+        self.used = self.type_table.keys()        
+        self.decd = decd
+        self.funcs = funcs
+        self.it = it
+        self.size = size
+        self.source = source
+                
 main()
