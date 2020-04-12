@@ -1,39 +1,56 @@
 #include "ASTVisitor.hpp"
+#include "LoopInfo.cpp"
+#include <stack>
 
 namespace Sif {
 
   static bool in_loop = false;
+  static bool in_loop_body = false;
   static bool in_loopinit = false;  
   static std::vector<ASTNode*> seen_loops;
-  static std::map<std::string, std::string> type_table;
+  static int num_lines = 0;
 
-  std::string function_call_source_code(FunctionCallNode* fn, Indentation& _indentation) {
-    Indentation empty_indentation(0);
-    std::string result = fn->get_added_text_before() + fn->get_callee()->source_code(empty_indentation) + "(";
-    for (int i = 0; i < fn->num_arguments(); i++ ) {
-      result += fn->get_argument(i)->source_code(empty_indentation);
-      if (i != fn->num_arguments()-1) {
-	result += ", ";
-      }
-    }
-    result += ")" + fn->get_added_text_after();
-    return result;
+  static std::vector<LoopInfo> all_loops;
+  static std::vector<ASTNode*> visited_loops;
+  static std::stack<LoopInfo*> current_loops;
+  static Indentation empty(0);
+  static std::vector<ASTNode*> visited;
+  static bool in_header = false;
+  static std::map<std::string, std::string> type_table;
+  static bool uses_safemath = false;
+  
+  
+  std::string function_call_source_code(FunctionCallNode* fn) {
+    return fn->get_callee()->source_code(empty);
   }
 
   
-  std::string for_source_code(ForStatementNode* fs, Indentation& _indentation) {
-    // visit(this);
+  LoopInfo for_source_code(ForStatementNode* fs) {
+    // Fetch current loop
+    LoopInfo* loop = current_loops.top();
+
+    // Cache loop size pre-header and set header flag for visit
+    int prev_loop_size = loop->size;
+    in_header = true;
+    
+    // Build loop condition string
     std::string condition_str = "; ";
-    Indentation empty_indentation(0);
-    if (fs->get_condition() != nullptr) condition_str = fs->get_condition()->source_code(empty_indentation) + "; ";
-
+    if (fs->get_condition() != nullptr) {
+      loop->condition = fs->get_condition()->source_code(empty) + "; ";
+    }   
+    
+    // Build loop initialization string
     std::string init_str = "; ";
-    if (fs->get_init() != nullptr) init_str = fs->get_init()->source_code(empty_indentation) + " ";
-
+    if (fs->get_init() != nullptr) {
+      loop->init = fs->get_init()->source_code(empty) + " ";
+    }
+      
+    // Build loop increment string
     std::string increment_str = "";
     if (fs->get_increment() != nullptr) {
-      increment_str = fs->get_increment()->source_code(empty_indentation);
+      increment_str = fs->get_increment()->source_code(empty);
       size_t increment_str_len = increment_str.length();
+      // Remove semicolon, newline, and space
       for (int i = increment_str.length() - 1; i >= 0; --i) {
   	char ch = increment_str[i];
   	if (ch == ' ' || ch == '\n') {
@@ -46,21 +63,36 @@ namespace Sif {
   	}
       }
       increment_str = increment_str.substr(0, increment_str_len);
+      loop->increment = increment_str;
     }
 
-    std::string result = "//#LOOP_BEGIN\n" +
-      fs->get_added_text_before()
-      + _indentation + "for (" + init_str + condition_str + increment_str + ") " 
-      + fs->get_body()->source_code(_indentation) + "\n"
-      + fs->get_added_text_after()
-      + "//#LOOP_END\n";
-    return result;
+    // Reset loop size so that header stuff isn't added, and unset header flag
+    loop->size = prev_loop_size;
+    in_header = false;
+
+    // Fetch loop body source
+    loop->body = fs->get_body()->source_code(empty) + "\n";
+
+    return *loop;
   }
 
-  std::string while_source_code(WhileStatementNode* ws, Indentation& _indentation) {
-    Indentation empty_indentation(0);
-    std::string result = "//#LOOP_BEGIN\n" + ws->get_added_text_before() + _indentation + "while(" + ws->get_condition()->source_code(empty_indentation) + ") " + ws->get_loop_body()->source_code(_indentation) + "\n" + ws->get_added_text_after() + "//#LOOP_END\n";
-    return result;
+  void while_source_code(WhileStatementNode* ws) {
+    // Fetch current loop
+    LoopInfo* loop = current_loops.top();
+
+    // Set loop as while
+    loop->is_while = true;
+    
+    int prev_loop_size = loop->size;
+
+    // Fetch loop condition
+    loop->condition = ws->get_condition()->source_code(empty);
+
+    // Reset loop size so that header stuff isn't added
+    loop->size = prev_loop_size;
+
+    // Fetch loop body source
+    loop->body = ws->get_loop_body()->source_code(empty);    
   }
   
 
@@ -68,74 +100,147 @@ namespace Sif {
     return;
   }
 
-  void visit(ASTNode* node) {
-    if (node->get_node_type() == NodeTypeForStatement &&
-    	std::count(seen_loops.begin(), seen_loops.end(), node) == 0) {
-      in_loop = true;
-      seen_loops.push_back(node);      
-      Indentation empty(0);
-      ForStatementNode* fs = (ForStatementNode*) node;
-
-      BlockNodePtr fb = std::static_pointer_cast<BlockNode>(fs->get_body());
-      std::cout << "//#NUMLINES: " << fb->num_statements() << "\n";
-      in_loopinit = true;
-      fs->get_init()->source_code(empty);
-      in_loopinit = false;
-      std::cout << for_source_code(fs, empty) << "\n";
-      in_loop = false;
-    }
-    if (node->get_node_type() == NodeTypeWhileStatement &&
-    	std::count(seen_loops.begin(), seen_loops.end(), node) == 0) {
-      in_loop = true;
-      seen_loops.push_back(node);      
-      Indentation empty(0);
-      WhileStatementNode* ws = (WhileStatementNode*) node;
-
-      BlockNodePtr wb = std::static_pointer_cast<BlockNode>(ws->get_loop_body());
-      std::cout << "//#NUMLINES: " << wb->num_statements() << "\n";
-      std::cout << while_source_code(ws, empty) << "\n";
-      in_loop = false;
-    }
-    if (node->get_node_type() == NodeTypeVariableDeclaration) {
-      Indentation empty(0);
-      std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();
-      std::string var_type = ((VariableDeclarationNode*) node)->get_type()->source_code(empty);
-      type_table[var_name] = var_type;
-      // std::cout << var_name << ", " << var_type << "\n";
-      if (in_loopinit) {
-	std::cout << "//#LOOPVAR: " << var_name << "\n";
+  void incrementLoopSize(ASTNode* node) {
+    if (current_loops.size() > 0) {
+      if (node->get_node_type() == NodeTypePlaceholderStatement ||
+      	  node->get_node_type() == NodeTypeIfStatement ||
+      	  node->get_node_type() == NodeTypeDoWhileStatement ||
+      	  node->get_node_type() == NodeTypeWhileStatement ||
+      	  node->get_node_type() == NodeTypeForStatement ||
+      	  node->get_node_type() == NodeTypeEmitStatement ||
+      	  node->get_node_type() == NodeTypeVariableDeclarationStatement ||
+      	  node->get_node_type() == NodeTypeExpressionStatement) {
+	((current_loops.top())->size)++;
       }
     }
-    if (node->get_node_type() == NodeTypeAssignment && in_loopinit) {
-      Indentation empty(0);
-      std::string var = ((AssignmentNode *) node)->get_left_hand_operand()->source_code(empty);
-      std::cout << "//#LOOPVAR: " << var << "\n";
-    }
-    if (node->get_node_type() == NodeTypeVariableDeclaration && in_loop) {
-      std::cout << "//#DECLARED: " << ((VariableDeclarationNode*) node)->get_variable_name() << "\n";
-    }
-    if (node->get_node_type() == NodeTypeIdentifier && in_loop) {
-      std::string var_name = ((IdentifierNode*) node)->get_name();
-      std::string var_type = type_table[var_name];
-      std::cout << "//#USED: " << var_name << ", " << var_type << "\n";      
-    }
-    if (node->get_node_type() == NodeTypeFunctionCall && in_loop) {
-      Indentation empty(0);
-      // std::string func_name = ((FunctionCallNode*) node)->source_code(empty);
-      std::string func_name = function_call_source_code(((FunctionCallNode*) node), empty);
-      std::cout << "//#FUNC: " << func_name << "\n";
-    }
-    if (node->get_node_type() == NodeTypeUsingForDirective && std::count(seen_loops.begin(), seen_loops.end(), node) == 0) {
-      seen_loops.push_back(node);      
-      std::string using_name = ((UsingForDirectiveNode*) node)->get_using();
-      if (using_name.compare("SafeMath") == 0) {
-    	std::cout << "//#USINGSAFEMATH\n";
-      }
-    }
-    return;
   }
 
+  void process_loop(ASTNode*node, bool is_while) {
+    // Add loop to set of visited loops
+    visited_loops.push_back(node);      
+
+    // Build new loop, and add to both current loops
+    LoopInfo loop;
+    current_loops.push(&loop);
+
+    // Fetch and set loop source code
+    if (is_while) {
+      WhileStatementNode* ws = (WhileStatementNode*) node;
+      while_source_code(ws);
+    } else {
+      ForStatementNode* fs = (ForStatementNode*) node;
+      for_source_code(fs);
+    }
+    
+    // Remove loop from current set and add to history of all loops
+    current_loops.pop();
+    all_loops.push_back(loop);
+
+    // Update outer loop's size accordingly if this loop was nested
+    if (current_loops.size() > 0)
+      current_loops.top()->size += loop.size;
+    
+  }
+  
+  void visit(ASTNode* node) {
+    // Only visit previously unvisited nodes
+    if (std::count(visited.begin(), visited.end(), node) != 0) {
+      return;
+    }
+    // Add node to visited
+    visited.push_back(node);
+
+    // Increment loop size as necessary
+    incrementLoopSize(node);
+
+    // Process For loop
+    if (node->get_node_type() == NodeTypeForStatement &&
+    	std::count(visited_loops.begin(), visited_loops.end(), node) == 0) {
+      process_loop(node, false);
+    }
+
+    // Process While loop
+    if (node->get_node_type() == NodeTypeWhileStatement &&
+    	std::count(seen_loops.begin(), seen_loops.end(), node) == 0) {
+      process_loop(node, true);
+    }
+
+    // Record variable types (technically, this could be wonky with scoping)
+    if (node->get_node_type() == NodeTypeVariableDeclaration) {
+      // Fetch variable name
+      std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();      
+      // Fetch variable type
+      std::string var_type = ((VariableDeclarationNode*) node)->get_type()->source_code(empty);
+      type_table[var_name] = var_type;
+    }
+
+    if (node->get_node_type() == NodeTypeUsingForDirective) {
+      // Fetch lib being used
+      std::string lib = ((UsingForDirectiveNode*) node)->get_using();
+
+      if (lib == "SafeMath") {
+	uses_safemath = true;
+      }
+    }
+    
+    // The rest of the actions should only occur when in a loop,
+    //   so return if not in a loop
+    if (current_loops.size() == 0) return;
+    
+    // Fetch current loop
+    LoopInfo* loop = current_loops.top();
+    
+    // Process variable declarations in loop
+    if (node->get_node_type() == NodeTypeVariableDeclaration) {
+      // Fetch variable name
+      std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();      
+
+      // If we declare a var in header, we assume this is the loop iterator
+      if (in_header) {
+	loop->iterator = var_name;
+      } else {
+	(loop->variables_declared).push_back(var_name);
+      }
+    }
+
+    // Fetch loop iterator if not already found in a declaration
+    if (node->get_node_type() == NodeTypeAssignment && in_header && loop->iterator == "") {
+      // Fetch variable name
+      std::string var_name = ((AssignmentNode *) node)->get_left_hand_operand()->source_code(empty);
+      loop->iterator = var_name;
+    }
+
+    // Fetch all used variables
+    if (node->get_node_type() == NodeTypeIdentifier) {
+      std::string var_name = ((IdentifierNode*) node)->get_name();
+      std::string var_type = type_table[var_name];
+
+      std::string tuple = "("+var_name+","+var_type+")";
+      
+      if(std::count(loop->variables_used.begin(), loop->variables_used.end(), tuple) == 0
+	 && var_type != "") {
+	loop->variables_used.push_back(tuple);
+      }
+    }
+
+    // Fetch all function calls
+    if (node->get_node_type() == NodeTypeFunctionCall) {
+      // Fetch and add function name
+      std::string func_name = function_call_source_code(((FunctionCallNode*) node));
+      (loop->functions_called).push_back(func_name);
+    }
+
+    return;
+  }
+  
   void after() {
+    std::vector<LoopInfo>::iterator it;
+    for(it = all_loops.begin(); it != all_loops.end(); ++it) {
+      std::cout << " " << (*it).to_str();
+    }
+
+    std::cout << "\nUSES SAFEMATH: " << std::to_string(uses_safemath) << "\n";
+    
     return;
   }
 
