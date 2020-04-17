@@ -3,7 +3,7 @@ import os
 import json
 import re
 
-BENCHMARK_OUT_PATH = os.path.join('.', 'benchmarks')
+BENCHMARK_OUT_PATH = os.path.join('.', 'test')
 BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
 
 new_contract='''
@@ -13,6 +13,8 @@ pragma solidity ^0.5.10;
 
 contract C {{
   {using}
+
+  {structs}
 
   {global_vars}
 
@@ -30,7 +32,7 @@ contract {0} {{ }}
 
 solc4_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.4')
 solc5_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.5')
-sif_command = os.path.join('SIF', 'build', 'sif', 'sif')
+sif_command = os.path.join('SIF2', 'build', 'sif', 'sif')
 null_out = os.path.join('/', 'dev', 'null')
 temporary_json = os.path.join('.', 'tmp.json')
 temporary_ast = os.path.join('.', 'tmp.ast')
@@ -78,14 +80,20 @@ def get_var_types(types):
 
     return list(set(all_types))
 
-def extract_loop_info(info, source):
+def extract_loop_info(sif_output):
+    source = sif_output[0][0]
+    info = sif_output[0][1]
+    
     used = re.findall("USED: (.*)", info)[0].split(",")
     decd = re.findall("DECLARED: (.*)", info)[0].split(",")
     funcs = re.findall("FUNCTIONS: (.*)", info)[0].split(",")
+    structs_used = re.findall("STRUCTS: (.*)", info)[0].split(",")
     it = re.findall("ITERATOR: (.*)", info)[0]
     size = int(re.findall("SIZE: (.*)", info)[0])
+
+    structs_src = sif_output[0][2].split("$$$$$$$$$$$$$")
     
-    return LoopInfo(used, decd, funcs, it, size, source)
+    return LoopInfo(used, decd, funcs, structs_used, it, size, source, structs_src)
 
 def update_safemath(loop_info):
     safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}
@@ -122,9 +130,8 @@ def update_safemath(loop_info):
 def parse_sif_output(cname, output):
     contracts = {}
 
-    # Remove leading space
-    output = output[1:]
-
+    print(output)
+    
     # Split output by loops (last is not loop, but global info, so separate out)
     loop_sep = "****************"
     loops = output.split(loop_sep)
@@ -145,11 +152,11 @@ def parse_sif_output(cname, output):
     
     for i,loop in enumerate(loops):
         sep = "=============="
-        loop_parse = re.findall(r"{0}([\s\S]*){0}([\s\S]*){0}".format(sep), loop)
+        loop_parse = re.findall(r"{0}([\s\S]*){0}([\s\S]*){0}([\s\S]*){0}".format(sep), loop)
         source = loop_parse[0][0]
 
         # Extract relevant loop information
-        loop_info = extract_loop_info(loop_parse[0][1], source)
+        loop_info = extract_loop_info(loop_parse)
         
         # Extract types from mappings/arrays to add to all types
         all_var_types = get_var_types(loop_info.type_table.values())
@@ -158,18 +165,18 @@ def parse_sif_output(cname, output):
         # Replace safemath if necessary
         if uses_safemath and replace_safemath:
             update_safemath(loop_info)
-        
+
         # Add any user-defined contracts as necessary
         added_contracts = ""
         for var_type in all_var_types:
-            if not var_type in classic_types:
+            if not var_type in classic_types+loop_info.structs_used:
                 added_contracts += extra_contract.format(var_type)
 
         # Create global variable declarations
         global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in loop_info.decd, [(typ, var) for (var, typ) in loop_info.type_table.items()]))))
         
         # Plug the pieces into the contract
-        extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it)
+        extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it, structs=loop_info.structs_source())
         extracted_contract += added_contracts
 
         # Add new loop contract to contracts, sorting by loop size
@@ -294,7 +301,7 @@ def extract_loops_from_folder(folder):
 
 class LoopInfo:
 
-    def __init__(self, used, decd, funcs, it, size, source):
+    def __init__(self, used, decd, funcs, structs_used, it, size, source, structs_src):
         self.type_table = {}
         for entry in used:
             tup = re.findall("(.*):(.*)", entry)
@@ -304,8 +311,13 @@ class LoopInfo:
         self.used = self.type_table.keys()        
         self.decd = decd
         self.funcs = funcs
+        self.structs_used = structs_used
         self.it = it
         self.size = size
         self.source = source
+        self.structs_src = structs_src
+
+    def structs_source(self):
+        return "".join(self.structs_src)
                 
 main()

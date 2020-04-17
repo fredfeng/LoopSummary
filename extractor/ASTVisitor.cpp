@@ -16,12 +16,21 @@ namespace Sif {
   static Indentation empty(0);
   static std::vector<ASTNode*> visited;
   static bool in_header = false;
-  static std::map<std::string, std::string> type_table;
+  static std::map<std::string, ASTNode*> type_table;
   static bool uses_safemath = false;
-  
+  static std::map<std::string, std::string> struct_table;
   
   std::string function_call_source_code(FunctionCallNode* fn) {
-    return fn->get_callee()->source_code(empty);
+
+    std::string result = fn->get_callee()->source_code(empty) + "(";
+    for (int i = 0; i < fn->num_arguments(); i++ ) {
+      result += fn->get_argument(i)->source_code(empty);
+      if (i != fn->num_arguments()-1) {
+	result += ", ";
+      }
+    }
+    result += ")";
+    return result;
   }
 
   
@@ -115,6 +124,23 @@ namespace Sif {
     }
   }
 
+  void fetch_struct_types(ASTNode* node, LoopInfo* loop) {
+    // Fetch possible structs. Note, this could be other contracts as well
+    if (node->get_node_type() == NodeTypeUserDefinedTypeName) {
+      loop->structs_used.push_back(node->source_code(empty));
+    }
+    // Recursively fetch possible structs used in mappings
+    if (node->get_node_type() == NodeTypeMapping) {
+      fetch_struct_types((((MappingNode*) node)->get_key_type()).get(), loop);
+      fetch_struct_types((((MappingNode*) node)->get_value_type()).get(), loop);      
+    }
+    // Recursively fetch types in arrays
+    if (node->get_node_type() == NodeTypeArrayTypeName) {
+      fetch_struct_types((((ArrayTypeNameNode*) node)->get_base_type()).get(), loop);
+    }
+    
+  }
+  
   void process_loop(ASTNode*node, bool is_while) {
     // Add loop to set of visited loops
     visited_loops.push_back(node);      
@@ -165,12 +191,20 @@ namespace Sif {
       process_loop(node, true);
     }
 
+    // Record struct source
+    if (node->get_node_type() == NodeTypeStructDefinition) {
+      std::string name = ((StructDefinitionNode*) node)->get_name();
+      std::string source = ((StructDefinitionNode*) node)->source_code(empty);
+
+      struct_table[name] = source;
+    }
+    
     // Record variable types (technically, this could be wonky with scoping)
     if (node->get_node_type() == NodeTypeVariableDeclaration) {
       // Fetch variable name
       std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();      
       // Fetch variable type
-      std::string var_type = ((VariableDeclarationNode*) node)->get_type()->source_code(empty);
+      ASTNode* var_type = (((VariableDeclarationNode*) node)->get_type()).get();
       type_table[var_name] = var_type;
     }
 
@@ -209,13 +243,15 @@ namespace Sif {
       std::string var_name = ((AssignmentNode *) node)->get_left_hand_operand()->source_code(empty);
       loop->iterator = var_name;
     }
-
     // Fetch all used variables
     if (node->get_node_type() == NodeTypeIdentifier) {
       std::string var_name = ((IdentifierNode*) node)->get_name();
-      std::string var_type = type_table[var_name];
+      ASTNode* type = type_table[var_name];
+      std::string var_type = type->source_code(empty);
 
-      std::string tuple = "("+var_name+","+var_type+")";
+      std::string tuple = var_name+":"+var_type;
+
+      fetch_struct_types(type, loop); 
       
       if(std::count(loop->variables_used.begin(), loop->variables_used.end(), tuple) == 0
 	 && var_type != "") {
@@ -236,7 +272,8 @@ namespace Sif {
   void after() {
     std::vector<LoopInfo>::iterator it;
     for(it = all_loops.begin(); it != all_loops.end(); ++it) {
-      std::cout << " " << (*it).to_str();
+      std::cout << (*it).to_str(struct_table);
+      std::cout << "****************\n";
     }
 
     std::cout << "\nUSES SAFEMATH: " << std::to_string(uses_safemath) << "\n";
