@@ -3,6 +3,7 @@
 from sys import argv
 import tyrell.spec as S
 from tyrell.interpreter import PostOrderInterpreter
+from tyrell.enumerator.full_dsl_dependency_enumerator import DependencyEnumerator
 from tyrell.enumerator import HoudiniEnumerator
 from tyrell.decider import Example, BoundedModelCheckerDecider
 from tyrell.synthesizer import Synthesizer
@@ -152,7 +153,8 @@ def create_refinement_types(analysis, type_table, base_types):
     # Remove empty entries from type table
     for typ, vs in type_table.items():
         if vs != []:
-            final_type_dict[typ] = type_table[typ]
+            # Remove duplicate entries if any
+            final_type_dict[typ] = list(set(type_table[typ]))
         
     return final_type_dict
 
@@ -226,6 +228,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
     # Add "true" and "false" as boolean constants
     type_table["bool"] = list(set(type_table["bool"]+B))    
 
+    
     # Add in lambdas if present
     if (lambdas):
         type_table["Lambda"] = list(map(lambda x: '"{0}"'.format(x), lambdas))
@@ -248,7 +251,7 @@ def instantiate_dsl(sol_file, analysis, lambdas):
     # Fills in typ_enums
     actual_spec = actual_spec.format(types=typ_enums)
     
-    return actual_spec, glob_decl, i_global, [iterator_var]
+    return actual_spec, glob_decl, type_table, i_global, [iterator_var]
 
 def convert_map_types(types):
     new_types = set()
@@ -394,7 +397,7 @@ value Inv;
 
 program SolidityLoops() -> Summary;
 
-func summarize: Summary -> Inv;
+func summarize: Summary -> IF;
 
 func seqF: Inv -> F, Inv;
 func seqIF: Inv -> IF, Inv;
@@ -403,6 +406,7 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
+func BEN: IF -> Write__g_int, i_st;
 func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), i_st, i_end, L;
 func SUM: IF -> Write__g_int, Read__mapping(uint => uint), i_st, i_end;
 func COPYRANGE_L: IF -> Read__mapping(uint => uint), i_st, Write__mapping(uint => uint), i_st, i_end, L;
@@ -561,7 +565,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(tgtStart=start_idx, tgtEnd=end_idx, tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
         return loop_body, val
-        
+
+    def eval_BEN(self, node, args):
+        return "{0} = {1};".format(args[0], args[1]), None
+    
     def eval_SUM(self, node, args):
         return self.build_sum(node, args, False)
 
@@ -741,6 +748,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
 
         print(actual_contract)
+        
         return actual_contract
 
     def eval_intFunc(self, node, args):
@@ -785,9 +793,9 @@ def main(sol_file):
     # print(deps.dependencies)
     # print(refs.pprint_refinement())
     
-    actual_spec, glob_decl, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas)
+    actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas)
 
-    print(actual_spec)
+    # print(actual_spec)
     
     logger.info('Parsing Spec...')
     spec = S.parse(actual_spec)
@@ -799,8 +807,8 @@ def main(sol_file):
     
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
-        enumerator=HoudiniEnumerator(
-            spec, max_depth=10, seed=seed),
+        enumerator=DependencyEnumerator(
+            spec, max_depth=6, seed=seed, analysis=deps.dependencies, types=types),
         decider=BoundedModelCheckerDecider(
             interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
