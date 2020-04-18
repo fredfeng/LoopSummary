@@ -46,6 +46,9 @@ class EnumNode():
 
     def build_candidate(self):
         return self.builder.make_node(self.val)
+
+    def copy(self):
+        return self
     
 class FunctionNode():
 
@@ -69,6 +72,12 @@ class FunctionNode():
     def build_candidate(self):
         built_args = list(map(lambda x: x.build_candidate(),self.children))
         return self.builder.make_node(self.func_prod, built_args)
+
+    def copy(self):
+        arg_types = list(self.arg_types)
+        children = list(map(lambda c: c.copy() if c != None else None, self.children))
+
+        return FunctionNode(self.func_prod, arg_types, children, self.builder)
         
     def expand(self):
         # Expand root first if there are remaining args
@@ -83,8 +92,9 @@ class FunctionNode():
                     new_node = FunctionNode(arg_prod, arg_prod.rhs, [], self.builder)
                 else:
                     new_node = EnumNode(arg_prod, self.builder)
-                self.children[index] = new_node
-                expanded_nodes.append(self)            
+                copy_self = self.copy()
+                copy_self.children[index] = new_node
+                expanded_nodes.append(copy_self)            
 
             return expanded_nodes
 
@@ -96,8 +106,9 @@ class FunctionNode():
                 if child_exps != []:
                     expanded_nodes = []
                     for child_exp in child_exps:
-                        self.children[i] = child_exp
-                        expanded_nodes.append(self)
+                        copy_self = self.copy()
+                        copy_self.children[i] = child_exp
+                        expanded_nodes.append(copy_self)
                     return expanded_nodes
             
         # If no child could be expanded, then no expansions are possible
