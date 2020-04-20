@@ -397,7 +397,7 @@ value Inv;
 
 program SolidityLoops() -> Summary;
 
-func summarize: Summary -> IF;
+func summarize: Summary -> Inv;
 
 func seqF: Inv -> F, Inv;
 func seqIF: Inv -> IF, Inv;
@@ -406,7 +406,6 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-func BEN: IF -> Write__g_int, i_st;
 func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), i_st, i_end, L;
 func SUM: IF -> Write__g_int, Read__mapping(uint => uint), i_st, i_end;
 func COPYRANGE_L: IF -> Read__mapping(uint => uint), i_st, Write__mapping(uint => uint), i_st, i_end, L;
@@ -415,7 +414,7 @@ func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A
 func MAP_L: IF -> Read_Write__mapping(uint => uint), i_st, i_end, L;
 func MAP__#A: F -> Write__mapping(uint => #A), i_st, i_end, Read__#A;
 func INCRANGE_L: IF -> Read__mapping(uint => uint), i_st, Write__mapping(uint => uint), i_st, i_end, L;
-func INCRANGE: IF -> Read__mapping(uint => uint), i_st, Write__mapping(uint => uint), i_st, i_st;
+func INCRANGE: IF -> Read__mapping(uint => uint), i_st, Write__mapping(uint => uint), i_st, i_end;
 func FILTER__#A: F -> Write__mapping(uint => #A), IF, Cond;
 
 # Arithmetic funcs for lambda
@@ -566,9 +565,6 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         return loop_body, val
 
-    def eval_BEN(self, node, args):
-        return "{0} = {1};".format(args[0], args[1]), None
-    
     def eval_SUM(self, node, args):
         return self.build_sum(node, args, False)
 
@@ -784,7 +780,7 @@ def test_all(interpreter, prog, inputs, outputs):
 def main(sol_file):    
     seed = None
     # assert False
-
+    
     logger.info('Analyzing Input...')
     deps, refs = analyze(sol_file, "C", "foo()")
     lambdas = analyze_lambdas(sol_file, "C", "foo()")
@@ -795,7 +791,7 @@ def main(sol_file):
     
     actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas)
 
-    # print(actual_spec)
+    print(actual_spec)
     
     logger.info('Parsing Spec...')
     spec = S.parse(actual_spec)
