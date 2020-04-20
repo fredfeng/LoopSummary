@@ -79,6 +79,7 @@ class Refinement(Analysis):
         return constants
 
     def raw_analysis(self):
+        # TODO: replace with slithir AST traversing
         self.types[self.Typ.GUARDSTART] = []
         self.types[self.Typ.GUARDEND] = []                
         if self.fname != '':
@@ -96,7 +97,19 @@ class Refinement(Analysis):
                             if comp in comps:
                                 spl = match.group(2).split(comp)
                                 if len(spl) == 2:
-                                    self.types[self.Typ.GUARDEND].append(spl[1].replace(' ', ''))
+                                    # TODO: Make this cleaner / more robust
+                                    var = spl[1].replace(' ', '')
+                                    ar_ops = ['+', '-']
+                                    for op in ar_ops:
+                                        if op in var:
+                                            var_spl = var.split(op)
+                                            lhs = var_spl[0]
+                                            rhs = var_spl[1]
+                                            self.types[self.Typ.GUARDEND].append(lhs)
+                                            self.types[self.Typ.GUARDEND].append(rhs)
+                                            return
+
+                                    self.types[self.Typ.GUARDEND].append(var)
     
     def compute_function(self, function):
         # TODO: HANDLE ANY FUNCTION NAME
