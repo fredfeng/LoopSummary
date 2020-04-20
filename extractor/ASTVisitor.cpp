@@ -42,18 +42,18 @@ namespace Sif {
     int prev_loop_size = loop->size;
     in_header = true;
     
-    // Build loop condition string
-    std::string condition_str = "; ";
-    if (fs->get_condition() != nullptr) {
-      loop->condition = fs->get_condition()->source_code(empty) + "; ";
-    }   
-    
     // Build loop initialization string
     std::string init_str = "; ";
     if (fs->get_init() != nullptr) {
       loop->init = fs->get_init()->source_code(empty) + " ";
     }
       
+    // Build loop condition string
+    std::string condition_str = "; ";
+    if (fs->get_condition() != nullptr) {
+      loop->condition = fs->get_condition()->source_code(empty) + "; ";
+    }   
+    
     // Build loop increment string
     std::string increment_str = "";
     if (fs->get_increment() != nullptr) {
@@ -213,7 +213,7 @@ namespace Sif {
       std::string lib = ((UsingForDirectiveNode*) node)->get_using();
 
       if (lib == "SafeMath") {
-	uses_safemath = true;
+    	uses_safemath = true;
       }
     }
     
@@ -228,12 +228,16 @@ namespace Sif {
     if (node->get_node_type() == NodeTypeVariableDeclaration) {
       // Fetch variable name
       std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();      
-
+      // Fetch variable type
+      ASTNode* var_type = (((VariableDeclarationNode*) node)->get_type()).get();
+      // Add to type table
+      type_table[var_name] = var_type;
+      
       // If we declare a var in header, we assume this is the loop iterator
       if (in_header) {
-	loop->iterator = var_name;
+    	loop->iterator = var_name;
       } else {
-	(loop->variables_declared).push_back(var_name);
+    	(loop->variables_declared).push_back(var_name);
       }
     }
 
@@ -249,13 +253,18 @@ namespace Sif {
       ASTNode* type = type_table[var_name];
       std::string var_type = type->source_code(empty);
 
+      // Replace bytes with integer array
+      if (var_type == "bytes") {
+      	var_type = "uint[]";
+      }
+      
       std::string tuple = var_name+":"+var_type;
 
       fetch_struct_types(type, loop); 
       
       if(std::count(loop->variables_used.begin(), loop->variables_used.end(), tuple) == 0
-	 && var_type != "") {
-	loop->variables_used.push_back(tuple);
+      	 && var_type != "") {
+      	loop->variables_used.push_back(tuple);
       }
     }
 
