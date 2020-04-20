@@ -59,12 +59,12 @@ def get_lambda_analysis(fname, myContract, slither):
 
 def get_lambdas(exprs):
     commutative_operators = ["+", "*", "&&", "||"]
-    vs = []
+    # keeps track of expressions which can be used as args to lambda operations
+    #   where one side can be replaced
+    vs = [] 
     lambdas = []
     lambda_vname = "__x"
-    print(exprs)
     for expr in exprs:
-        print(vs)
         op = expr[0]
         arg1 = expr[1][0]
         arg2 = expr[1][1]
@@ -101,6 +101,19 @@ def get_lambdas(exprs):
 
     return lambdas
 
+def get_requires_conditions(fname):
+    # TODO: replace with slithir AST traversing
+    conds = []
+    if fname != '':
+        with open(fname, 'r') as sol_file:
+            # Find requires statements
+            req = r'require\s*\((.*)\);'
+            match = re.search(req, sol_file.read())
+            if match:                
+                conds.append(match.group(1))
+
+    return conds
+                
 def analyze(fname, cname='MyContract', funcname='foo()'):
     slither = Slither(fname)
 
@@ -118,7 +131,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
 
     # Lambda Analysis
     lambdas = get_lambda_analysis(fname, myContract, slither)
-    
+
     # For Guard Types, use Dependency Analysis to fetch all vars which affect
     #   the Guard (i.e. on which the guard depends)
     guards = []
