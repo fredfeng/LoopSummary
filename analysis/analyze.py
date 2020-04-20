@@ -62,7 +62,9 @@ def get_lambdas(exprs):
     vs = []
     lambdas = []
     lambda_vname = "__x"
+    print(exprs)
     for expr in exprs:
+        print(vs)
         op = expr[0]
         arg1 = expr[1][0]
         arg2 = expr[1][1]
@@ -77,16 +79,26 @@ def get_lambdas(exprs):
             if arg1[0]:
                 new_vs = [] + vs
                 for v in vs:
+                    lambdas.append("lambda {3}: {0}{1}({2})".format(arg1[1], op, v, lambda_vname))
+                for v in vs:
                     new_vs.append("{0}{1}({2})".format(arg1[1], op, v))
                 vs = new_vs
+                lam = "{0}{1}{2}".format(arg1[1], op, lambda_vname)
+                if not lam in vs:
+                    vs.append(lam)
                 lambdas.append("lambda {0}: {1}{2}{0}".format(lambda_vname, arg1[1], op))
             else:
                 new_vs = [] + vs
                 for v in vs:
+                    lambdas.append("lambda {3}: ({0}){1}{2}".format(v, op, arg2[1], lambda_vname))
+                for v in vs:
                     new_vs.append("({0}){1}{2}".format(v, op, arg2[1]))
                 vs = new_vs
+                lam = "{0}{1}{2}".format(lambda_vname, op, arg2[1])
+                if not lam in vs:
+                    vs.append(lam)
                 lambdas.append("lambda {0}: {0}{2}{1}".format(lambda_vname, arg2[1], op))
-                
+
     return lambdas
 
 def analyze(fname, cname='MyContract', funcname='foo()'):
@@ -98,8 +110,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
     # Dependency Analysis
     D = Dependency()
     D.compute_contract(myContract, slither)
-    D.dependencies = funcA.context[D.KEY_NON_SSA]        
-
+    D.dependencies = funcA.context[D.KEY_NON_SSA]
     
     # Refinement Analysis
     R = Refinement()
@@ -192,6 +203,8 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
 if __name__ == '__main__':
     args = setupArgs()
     D, R = analyze(args.fname, args.cname, args.funcname)
+    L = analyze_lambdas(args.fname, args.cname, args.funcname)
     if args.print_output:        
         D.pprint_dependency()
         R.pprint_refinement()
+        print("Lambdas: {0}".format(L))
