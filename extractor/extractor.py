@@ -90,10 +90,12 @@ def extract_loop_info(sif_output):
     structs_used = re.findall("STRUCTS: (.*)", info)[0].split(",")
     it = re.findall("ITERATOR: (.*)", info)[0]
     size = int(re.findall("SIZE: (.*)", info)[0])
+    loop_dec = int(re.findall("LOOP DEC: (.*)", info)[0])    
 
     structs_src = sif_output[0][2].split("$$$$$$$$$$$$$")
     
-    return LoopInfo(used, decd, funcs, structs_used, it, size, source, structs_src)
+    return LoopInfo(used, decd, funcs, structs_used, it,
+                    size, loop_dec, source, structs_src)
 
 def update_safemath(loop_info):
     safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}
@@ -173,7 +175,10 @@ def parse_sif_output(cname, output):
                 added_contracts += extra_contract.format(var_type)
 
         # Create global variable declarations
-        global_vars = "\n".join(set(map(lambda y: y[0] + " " + y[1] + ";", filter(lambda x: not x[1] in loop_info.decd, [(typ, var) for (var, typ) in loop_info.type_table.items()]))))
+        all_vars = set([(typ, var) for (var, typ) in loop_info.type_table.items()])
+        should_create_glob = lambda v: not v[1] in loop_info.decd and not (v[1] == loop_info.it and loop_info.loop_dec)
+        vars_to_create = filter(should_create_glob, all_vars)
+        global_vars = "\n".join(map(lambda y: "{0} {1};".format(y[0],y[1]), vars_to_create))
         
         # Plug the pieces into the contract
         extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it, structs=loop_info.structs_source())
@@ -301,7 +306,8 @@ def extract_loops_from_folder(folder):
 
 class LoopInfo:
 
-    def __init__(self, used, decd, funcs, structs_used, it, size, source, structs_src):
+    def __init__(self, used, decd, funcs, structs_used,
+                 it, size, loop_dec, source, structs_src):
         self.type_table = {}
         for entry in used:
             tup = re.findall("(.*):(.*)", entry)
@@ -312,8 +318,9 @@ class LoopInfo:
         self.decd = decd
         self.funcs = funcs
         self.structs_used = structs_used
-        self.it = it
+        self.it = it if it != "" else "i" # Default iterator is i if none found
         self.size = size
+        self.loop_dec = bool(loop_dec)
         self.source = source
         self.structs_src = structs_src
 

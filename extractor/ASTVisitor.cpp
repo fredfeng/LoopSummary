@@ -235,6 +235,7 @@ namespace Sif {
       
       // If we declare a var in header, we assume this is the loop iterator
       if (in_header) {
+	loop->iterator_decd_in_loop = true;
     	loop->iterator = var_name;
       } else {
     	(loop->variables_declared).push_back(var_name);
