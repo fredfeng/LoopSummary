@@ -78,39 +78,52 @@ class Refinement(Analysis):
                 constants += self.get_constants(var)
         return constants
 
+    def extract_guard_end(self, match):
+        if match:
+            comps = ['<', '>', '<=', '>=']
+            for comp in comps:
+                if comp in comps:
+                    spl = match.split(comp)
+                    if len(spl) == 2:
+                        # TODO: Make this cleaner / more robust
+                        var = spl[1].replace(' ', '')
+                        ar_ops = ['+', '-']
+                        for op in ar_ops:
+                            if op in var:
+                                var_spl = var.split(op)
+                                lhs = var_spl[0]
+                                rhs = var_spl[1]
+                                self.types[self.Typ.GUARDEND].append(lhs)
+                                self.types[self.Typ.GUARDEND].append(rhs)
+                                return
+                        self.types[self.Typ.GUARDEND].append(var)                        
+        
+    def extract_while_loop(self, contents):
+        while_loop = r'while\s*\((.*)\)'
+        match = re.search(while_loop, contents)
+        if match:
+            self.extract_guard_end(match.group(1))
+                        
+    def extract_for_loop(self, contents):
+        for_loop = r'for\s*\(([^;]*);([^;]*);([^)]*)\)'
+        match = re.search(for_loop, contents)
+        if match:
+            if match.group(1):
+                eq_spl = match.group(1).split("=")
+                if len(eq_spl) == 2:
+                    self.types[self.Typ.GUARDSTART].append(eq_spl[1].replace(' ', ''))
+            self.extract_guard_end(match.group(2))
+                    
     def raw_analysis(self):
         # TODO: replace with slithir AST traversing
         self.types[self.Typ.GUARDSTART] = []
         self.types[self.Typ.GUARDEND] = []                
         if self.fname != '':
             with open(self.fname, 'r') as sol_file:
-                for_loop = r'for\s*\(([^;]*);([^;]*);([^)]*)\)'
-                match = re.search(for_loop, sol_file.read())
-                if match:
-                    if match.group(1):
-                        eq_spl = match.group(1).split("=")
-                        if len(eq_spl) == 2:
-                            self.types[self.Typ.GUARDSTART].append(eq_spl[1].replace(' ', ''))
-                    if match.group(2):
-                        comps = ['<', '>', '<=', '>=']
-                        for comp in comps:
-                            if comp in comps:
-                                spl = match.group(2).split(comp)
-                                if len(spl) == 2:
-                                    # TODO: Make this cleaner / more robust
-                                    var = spl[1].replace(' ', '')
-                                    ar_ops = ['+', '-']
-                                    for op in ar_ops:
-                                        if op in var:
-                                            var_spl = var.split(op)
-                                            lhs = var_spl[0]
-                                            rhs = var_spl[1]
-                                            self.types[self.Typ.GUARDEND].append(lhs)
-                                            self.types[self.Typ.GUARDEND].append(rhs)
-                                            return
-
-                                    self.types[self.Typ.GUARDEND].append(var)
-    
+                contents = sol_file.read()
+                self.extract_for_loop(contents)
+                self.extract_while_loop(contents)
+                
     def compute_function(self, function):
         # TODO: HANDLE ANY FUNCTION NAME
         if function.name != "foo":

@@ -35,11 +35,14 @@ def fetch_iterators(sol_file):
     with open(sol_file, "r") as f:
         ind = "//#LOOPVARS: "
         body = f.read()
+        iterator_vars = []
         if ind in body:
             # Parse syntax arround global variables
             iterator_vars = body[body.index(ind)+12:].split("\n")[0]
             iterator_vars = iterator_vars.replace('[', "").replace(']', "").replace("'", "").replace(" ", "").split(", ")
-        else:
+            # remove empty elements (occurs if no loop vars given
+            iterator_vars = list(filter(lambda x: x != '', iterator_vars))
+        if iterator_vars == []:
             # If analysis reported no loop variables, assume iterator is "i" and global
             iterator_vars = ["i"]
 
@@ -412,6 +415,7 @@ func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
 func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
+func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
 func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
