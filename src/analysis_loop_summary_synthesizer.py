@@ -175,10 +175,10 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds):
     assert harness_fun.name == 'foo'
 
     # Add all read and written variables to the variable map
-    for var in harness_fun.variables_read:
+    for var in harness_fun.state_variables_read:
         add_var(vars_map, var)
 
-    for var in harness_fun.variables_written:
+    for var in harness_fun.state_variables_written:
         add_var(vars_map, var)
 
     actual_spec = dsl_skeleton
