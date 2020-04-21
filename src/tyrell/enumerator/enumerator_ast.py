@@ -1,39 +1,51 @@
 from tyrell import spec as S
+import sys
+
+# sys.setrecursionlimit(1000000)
 
 class EnumeratorAST():
 
-    def __init__(self, typ, builder):
+    def __init__(self, typ, func_deps, analysis, builder):
         # self.root_node = Node(productions, builder)
         self.builder = builder
+        self.func_deps = func_deps
+        self.analysis = analysis
         productions = self.builder.get_productions_with_lhs(typ)
-        summarize = productions[0]
-        self.queue = [FunctionNode(summarize, summarize.rhs, [], builder)]
-
-        self.i = 50
-        
+        if len(productions) > 0:
+            summarize = productions[0]            
+            self.queue = [FunctionNode(summarize, summarize.rhs, [],
+                                       func_deps, analysis, builder)]
+        else:
+            print("No candidates available!")
+            self.queue = []
+            
     def next_candidate(self):
-        # self.i -= 1
-
-        # if self.i == 0:
-        #     return None
-        
         # If we had a finite grammar, we can run out of candidates
         if self.queue == []:
             return None
 
         # Pop first node from queue
         fnode = self.queue.pop(0)
-        
+
         # If no more non-terminals, return candidate
         if fnode.complete():
             return fnode.build_candidate()
 
+        # Prune partial programs which do not satisy dependencies
+        while not fnode.is_legal():
+            # If no more options, back out
+            if self.queue == []:
+                return None
+            fnode = self.queue.pop(0)
+            
         # Expand first non-terminal in fnode and add to queue
         fnodes = fnode.expand()
         self.queue += fnodes
         
         # Since we didn't get a concrete candidate, try again
-        return self.next_candidate()
+        return False
+        # return self.next_candidate()
+        # return None
 
 class EnumNode():
 
@@ -47,18 +59,71 @@ class EnumNode():
     def build_candidate(self):
         return self.builder.make_node(self.val)
 
+    def is_legal(self):
+        return True
+
+    def vars_contained(self):
+        return [str(self.build_candidate())]
+    
     def copy(self):
         return self
+
+    def __str__(self):
+        return str(self.val)
     
 class FunctionNode():
 
-    def __init__(self, func_prod, arg_types, children, builder):
+    def __init__(self, func_prod, arg_types, children, func_deps, analysis, builder):
         self.func_prod = func_prod
         # copy arg_types to avoid aliasing
         self.arg_types = list(arg_types)
         self.children = children
         self.builder = builder
+        self.func_deps = func_deps
+        self.analysis = analysis
         # self.isFunc = True
+
+    def vars_contained(self):
+        vars_contd = []
+        for child in self.children:
+            vars_contd += child.vars_contained()
+        return vars_contd
+        
+    def is_legal(self):
+        # Check if this function satisfies dependency constraints
+        if self.func_prod.name in self.func_deps:
+            for val_idx, depends_on_idxs in self.func_deps[self.func_prod.name].items():
+                # We can only process depends analysis if the lhs is processed
+                if len(self.children) > val_idx:
+                    val = self.children[val_idx]
+                    # Retrieve all variables which compose this element
+                    vars_in_val = val.vars_contained()
+                    # For each variable, check that it satisfies constraints
+                    for var in vars_in_val:
+                        if not var in self.analysis:
+                            continue
+                        # Iterate through each dependency
+                        for dependency_idx in depends_on_idxs:
+                            # Only check if this child has been created and is complete
+                            if len(self.children) > dependency_idx:
+                                child = self.children[dependency_idx]
+                                if child.complete():
+                                    vars_in_child = child.vars_contained()
+                                    # Fetch variable dependencies from loop
+                                    vars_depd_on = self.analysis[var]
+                                    # If none of the vars in child match deps, reject
+                                    if not any([v in vars_in_child for v in vars_depd_on]):
+                                        return False
+                    
+            return True
+
+        # Check if all children of this function satisfy dependency constraints
+        for child in self.children:
+            if not child.is_legal():
+                return False
+
+        # If there are no violations of dependency constraints, function is legal
+        return True
         
     def complete(self):
         # If all argument types have been expanded
@@ -77,7 +142,8 @@ class FunctionNode():
         arg_types = list(self.arg_types)
         children = list(map(lambda c: c.copy() if c != None else None, self.children))
 
-        return FunctionNode(self.func_prod, arg_types, children, self.builder)
+        return FunctionNode(self.func_prod, arg_types, children,
+                            self.func_deps, self.analysis, self.builder)
         
     def expand(self):
         # Expand root first if there are remaining args
@@ -89,7 +155,8 @@ class FunctionNode():
             expanded_nodes = []
             for arg_prod in arg_prods:
                 if arg_prod.is_function():
-                    new_node = FunctionNode(arg_prod, arg_prod.rhs, [], self.builder)
+                    new_node = FunctionNode(arg_prod, arg_prod.rhs, [],
+                                            self.func_deps, self.analysis, self.builder)
                 else:
                     new_node = EnumNode(arg_prod, self.builder)
                 copy_self = self.copy()
@@ -115,7 +182,13 @@ class FunctionNode():
         return []
 
     def __str__(self):
-        return "{0}, {1}, {2}".format(self.func_prod, len(self.arg_types), len(self.children))
+        r = "{0}, {1}, {2}\n".format(self.func_prod, len(self.arg_types), len(self.children))
+        children_strs = map(str, self.children)
+        split_strs = map(lambda s: s.split("\n"), children_strs)        
+        add_tab = map(lambda s: map(lambda l: "\t"+l, s), split_strs)
+        aggregate = "\n\n".join(map(lambda s: "\n".join(s), add_tab))
+        
+        return r + "\n" + aggregate + "\n"
         
 class ProductionNode():
 
