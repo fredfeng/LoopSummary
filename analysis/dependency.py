@@ -157,6 +157,8 @@ class Dependency(Analysis):
             if lvalue not in self.dependencies_phis:
                 self.dependencies_phis[lvalue] = set()
             for rv in ir.rvalues:
+                if isinstance(rv, Constant):
+                    rv = Const(str(rv))
                 if not (lvalue in function.context[self.KEY_SSA] and rv in function.context[self.KEY_SSA][lvalue]):
                     # print("ADDED: {0}, {1}".format(lvalue, rv))
                     self.dependencies_phis[lvalue].add(rv)
@@ -166,6 +168,8 @@ class Dependency(Analysis):
             read = ir.read
         if not phi and lvalue in self.dependencies_phis:
             for rv in read:
+                if isinstance(rv, Constant):
+                    rv = Const(str(rv))                
                 # if not isinstance(rv, Constant) and rv in self.dependencies_phis[lvalue]:
                 if rv in self.dependencies_phis[lvalue]:
                     # print("REMOVED: {0}, {1}".format(lvalue, rv))
