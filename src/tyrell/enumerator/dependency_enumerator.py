@@ -11,7 +11,8 @@ func_deps = {
     "UPDATERANGE": {1:[4]}, # SHOULD INCLUDE 0?
     "MAP": {0: [3]},
     "INCRANGE": {2: [0]},
-    "MAPLAMBDA": {0: [3]}
+    "MAPLAMBDA": {0: [3]},
+    "SUMLAMBDA": {0: [0,1]}
 }
 
 class DependencyEnumerator(Enumerator):

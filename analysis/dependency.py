@@ -165,12 +165,15 @@ class Dependency(Analysis):
             read = ir.read
         if not phi and lvalue in self.dependencies_phis:
             for rv in read:
-                if not isinstance(rv, Constant) and rv in self.dependencies_phis[lvalue]:
+                # if not isinstance(rv, Constant) and rv in self.dependencies_phis[lvalue]:
+                if rv in self.dependencies_phis[lvalue]:
                     # print("REMOVED: {0}, {1}".format(lvalue, rv))
                     self.dependencies_phis[lvalue].remove(rv)
-        [function.context[self.KEY_SSA][lvalue].add(v) for v in read if not isinstance(v, Constant)]
+        # [function.context[self.KEY_SSA][lvalue].add(v) for v in read if not isinstance(v, Constant)]
+        [function.context[self.KEY_SSA][lvalue].add(v) for v in read]
         if not is_protected:
-            [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read if not isinstance(v, Constant)]
+            # [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read if not isinstance(v, Constant)]
+            [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read]
 
 
     def compute_function(self, function):

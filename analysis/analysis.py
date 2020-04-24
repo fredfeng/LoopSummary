@@ -31,26 +31,38 @@ class Analysis():
         for contract in slither.contracts:
             compute_contract(contract, slither)
 
-    def compute_contract(self, contract, slither):
+    def compute_contract(self, contract, slither, fname=""):
         # if KEY_SSA in contract.context:
         #     return
 
+        self.fname = fname
         contract.context[self.KEY_SSA] = dict()
         contract.context[self.KEY_SSA_UNPROTECTED] = dict()
 
         for function in contract.all_functions_called:
-            self.compute_function(function)
+            deps = self.compute_function(function)
 
+            # if deps:
+            #     self.pprint_dependency(function)            
+                
             self.propagate_function(contract, function, self.KEY_SSA,
                                     self.KEY_NON_SSA)
             self.propagate_function(contract,
-                               function,
-                               self.KEY_SSA_UNPROTECTED,
-                               self.KEY_NON_SSA_UNPROTECTED)
+                                    function,
+                                    self.KEY_SSA_UNPROTECTED,
+                                    self.KEY_NON_SSA_UNPROTECTED)
 
             if function.visibility in ['public', 'external']:
                 [slither.context[self.KEY_INPUT].add(p) for p in function.parameters]
                 [slither.context[self.KEY_INPUT_SSA].add(p) for p in function.parameters_ssa]
+
+            # if deps:
+            #     for lvalue, rvalues in deps.items():
+            #         for rv in rvalues:
+            #             if lvalue in function.context[self.KEY_SSA]:
+            #                 if rv in function.context[self.KEY_SSA][lvalue]:
+            #                     function.context[self.KEY_SSA][lvalue].remove(rv)
+            #     function.context[self.KEY_NON_SSA] = self.convert_to_non_ssa(function.context[self.KEY_SSA])
 
         self.propagate_contract(contract, self.KEY_SSA, self.KEY_NON_SSA)
         self.propagate_contract(contract, self.KEY_SSA_UNPROTECTED, self.KEY_NON_SSA_UNPROTECTED)
@@ -77,13 +89,17 @@ class Analysis():
             # Need to create new set() as its changed during iteration
             data_depencencies = {k: set([v for v in values]) for k, values in context.context[context_key].items()}
             for key, items in data_depencencies.items():
+                # print("KEY: {0}".format(key))
                 for item in items:
                     if item in data_depencencies:
+                        # print("\tDEP: {0}".format(item))
                         additional_items = context.context[context_key][item]
                         for additional_item in additional_items:
                             if not additional_item in items and additional_item != key:
+                                # print("\t\tADD: {0}".format(additional_item))
                                 changed = True
                                 context.context[context_key][key].add(additional_item)
+        # print("--"*8)
         context.context[context_key_non_ssa] = self.convert_to_non_ssa(context.context[context_key])
 
 

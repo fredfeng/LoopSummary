@@ -44,7 +44,7 @@ class LambdaAnalysis(Analysis):
             lvalue_pts_to = self.fetch_points_to(ir.lvalue)
             if lvalue_pts_to: written.append(lvalue_pts_to)
         return written
-
+ 
     def get_read(self, ir):
         read = []
         if isinstance(ir, Condition):
