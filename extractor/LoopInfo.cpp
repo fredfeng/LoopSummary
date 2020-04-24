@@ -15,6 +15,7 @@ public:
   vector<string> functions_called;
   vector<string> structs_used;
   bool is_while = false;
+  bool iterator_decd_in_loop = false;
 
   string variables_used_str();
   string variables_declared_str();
@@ -73,6 +74,7 @@ string LoopInfo::to_str(map<string,string> struct_table) {
   string str = sep + src + sep + "\n" + vars_used + vars_decd + funcs_called + structs_used;
   str += "ITERATOR: " + this->iterator + "\n";
   str += "SIZE: " + to_string(this->size) + "\n";
+  str += "LOOP DEC: " + to_string(this->iterator_decd_in_loop) + "\n";  
   str += sep;
   str += structs_source + sep;
   return str;
