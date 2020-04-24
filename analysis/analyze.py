@@ -187,7 +187,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
         typ = typ.lower() if typ == "True" or typ == "False" else typ
         R_types_formatted[typ] = rhs
     R.types = R_types_formatted
-        
+
     # Reformat dependencies entries
     dependencies_formatted = {}
     for v, vrs in D.dependencies.items():
@@ -197,7 +197,7 @@ def analyze(fname, cname='MyContract', funcname='foo()'):
                        set(map(str, vrs))))
         dependencies_formatted[lhs] = rhs
     D.dependencies = dependencies_formatted
-
+    
     # Add lambdas to dependencies based on sub-parts
     dependencies_lambdas = {}
     for v, vrs in D.dependencies.items():
