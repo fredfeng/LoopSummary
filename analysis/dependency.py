@@ -11,6 +11,7 @@ from slither.slithir.variables import (Constant, LocalIRVariable,
                                        TemporaryVariableSSA, TupleVariableSSA)
 from slither.core.solidity_types.type import Type
 
+from Const import Const
 
 class Dependency(Analysis):
 
@@ -170,10 +171,19 @@ class Dependency(Analysis):
                     # print("REMOVED: {0}, {1}".format(lvalue, rv))
                     self.dependencies_phis[lvalue].remove(rv)
         # [function.context[self.KEY_SSA][lvalue].add(v) for v in read if not isinstance(v, Constant)]
-        [function.context[self.KEY_SSA][lvalue].add(v) for v in read]
+        for v in read:
+            if isinstance(v, Constant):
+                v = Const(str(v))
+            function.context[self.KEY_SSA][lvalue].add(v)
+        # [function.context[self.KEY_SSA][lvalue].add(v) for v in read]
         if not is_protected:
             # [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read if not isinstance(v, Constant)]
-            [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read]
+            
+            for v in read:
+                if isinstance(v, Constant):
+                    v = Const(str(v))
+                function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v)
+            # [function.context[self.KEY_SSA_UNPROTECTED][lvalue].add(v) for v in read]
 
 
     def compute_function(self, function):

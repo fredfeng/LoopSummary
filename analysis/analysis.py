@@ -12,6 +12,10 @@ from slither.slithir.variables import (Constant, LocalIRVariable,
                                        TemporaryVariableSSA, TupleVariableSSA)
 from slither.core.solidity_types.type import Type
 
+# import sys
+# sys.path.append("../analysis")
+from Const import Const
+
 class Analysis():
 
     KEY_SSA = "DATA_DEPENDENCY_SSA"
@@ -115,7 +119,7 @@ class Analysis():
     def convert_variable_to_non_ssa(self, v):
         if isinstance(v, (LocalIRVariable, StateIRVariable, TemporaryVariableSSA, ReferenceVariableSSA, TupleVariableSSA)):
             return v.non_ssa_version
-        assert isinstance(v, (Constant, SolidityVariable, Contract, Enum, SolidityFunction, Structure, Function, Type))
+        assert isinstance(v, (Constant, SolidityVariable, Contract, Enum, SolidityFunction, Structure, Function, Type, Const))
         return v
 
     def convert_to_non_ssa(self, data_depencies):
