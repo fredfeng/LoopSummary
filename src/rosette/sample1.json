@@ -1,1 +1,0 @@
-{"read": ["acc", "arr", "end", "strt"], "write": ["acc"], "insts": ["0x1: acc = 0", "0x6: i = ADD i 1"]}

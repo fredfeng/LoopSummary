@@ -1,1 +1,0 @@
-{"read": ["acc", "arr", "end", "strt"], "write": ["acc"], "insts": ["0x1: acc = 0", "0x2: i = strt", "0x3: TMP_0 = LT i end", "0x4: REF_0 = ARRAYACCESS arr i", "0x5: acc = ADD acc REF_0", "0x6: i = ADD i 1"]}
