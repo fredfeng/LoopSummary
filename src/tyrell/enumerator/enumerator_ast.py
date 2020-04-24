@@ -90,6 +90,10 @@ class FunctionNode():
         return vars_contd
         
     def is_legal(self):
+        # Always return true if pruning not selected, i.e., analysis is null
+        if self.analysis == None:
+            return True
+        
         # Check if this function satisfies dependency constraints
         if self.func_prod.name in self.func_deps:
             for val_idx, depends_on_idxs in self.func_deps[self.func_prod.name].items():

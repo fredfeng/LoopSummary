@@ -18,6 +18,7 @@ from analyze import analyze, analyze_lambdas, get_requires_conditions
 from itertools import combinations, product 
 import re
 from collections import defaultdict
+import argparse
 
 logger = get_logger('tyrell')
 
@@ -161,7 +162,7 @@ def create_refinement_types(analysis, type_table, base_types):
         
     return final_type_dict
 
-def instantiate_dsl(sol_file, analysis, lambdas, req_conds):
+def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     # Init slither
     slither = Slither(sol_file)
 
@@ -214,7 +215,7 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds):
     type_table["g_int"] = list(set(type_table["uint"]))
 
     # Fetch integer constant values
-    C = fetch_int_constants(analysis[5])
+    C = fetch_int_constants(analysis[5]) if prune else []        
     # Add 0 and 1 and remove duplicates
     C = list(set(C+['"0"', '"1"']))
     # Non-zero constants
@@ -231,7 +232,6 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds):
     # Add "true" and "false" as boolean constants
     type_table["bool"] = list(set(type_table["bool"]+B))    
 
-    
     # Add in lambdas if present
     if (lambdas):
         type_table["Lambda"] = list(map(lambda x: '"{0}"'.format(x), lambdas))
@@ -240,9 +240,21 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds):
     if (req_conds):
         type_table["ReqCond"] = list(map(lambda x: '"{0}"'.format(x), req_conds))
         
-    # Create and add in refinement types from analysis
-    type_table = create_refinement_types(analysis, type_table, base_types)
-    
+    if prune:
+        # Create and add in refinement types from analysis        
+        type_table = create_refinement_types(analysis, type_table, base_types)
+    else:
+        # Remove refinement types from dsl
+        actual_spec = remove_refinement(actual_spec)
+        # Add in arithmetic lambda funcs
+        actual_spec += '''
+func add: L -> uint;
+func mul: L -> nonzero_uint;
+func sub: L -> uint;
+func div: L -> nonzero_uint;
+        '''
+        # Use filter conditional for require as well as filter
+        actual_spec = actual_spec.replace("ReqCond", "Cond")        
     # Build DSL enums from type table
     typ_enums = ""
     for typ, vals in type_table.items():
@@ -259,6 +271,40 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds):
     actual_spec = actual_spec.format(types=typ_enums)
     
     return actual_spec, glob_decl, type_table, i_global, [iterator_var]
+
+def get_base_type(typ):
+    if not "__" in typ:
+        return typ
+
+    return typ.split("__")[1]
+
+def remove_refinement(dsl):
+    new_dsl = []
+    for line in dsl.split("\n"):
+        if line.startswith("func"):
+            # extract arg types
+            args = line.split("->")[1][:-1].split(",")            
+            for arg in args:
+                # replace map types first
+                matches = re.findall(r"(mapping\((.*) => (.*)\))", arg)                
+                if matches:
+                    dom = matches[0][1]
+                    codom = matches[0][2]
+                    new_dom = get_base_type(dom)
+                    new_codom = get_base_type(codom)
+                    new_arg = "mapping({0} => {1})".format(new_dom, new_codom)
+                    line = line.replace(matches[0][0], new_arg)
+
+                # replace parent type
+                line = line.replace(arg, get_base_type(arg))
+
+            # Write adjusted func line
+            new_dsl.append(line)
+        else:
+            # Write all non-func lines
+            new_dsl.append(line)
+            
+    return "\n".join(new_dsl)
 
 def convert_map_types(types):
     new_types = set()
@@ -796,21 +842,30 @@ def test_all(interpreter, prog, inputs, outputs):
         for x in range(0, len(inputs))
     )
 
-def main(sol_file):    
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", help="solidity file path from which to extract a loop", type=str)
+    parser.add_argument("--prune", help="Activates analysis-based pruning", action="store_true")
+    return parser.parse_args()
+
+def main():    
+    args = parse_args()
+    sol_file = args.file
     seed = None
     # assert False
-    
-    logger.info('Analyzing Input...')
-    deps, refs = analyze(sol_file, "C", "foo()")
-    lambdas = analyze_lambdas(sol_file, "C", "foo()")
-    req_conds = get_requires_conditions(sol_file)
-    logger.info('Analysis Successful!')
 
-    # print(deps.dependencies)
-    # print(refs.pprint_refinement())
-    
-    actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas, req_conds)
+    if args.prune:
+        logger.info('Analyzing Input...')
+        deps, refs = analyze(sol_file, "C", "foo()")
+        lambdas = analyze_lambdas(sol_file, "C", "foo()")
+        req_conds = get_requires_conditions(sol_file)
+        logger.info('Analysis Successful!')
 
+    if args.prune:
+        actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas, req_conds, True)
+    else:
+        actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, None, None, None, False)
+        
     print(actual_spec)
     
     logger.info('Parsing Spec...')
@@ -824,7 +879,7 @@ def main(sol_file):
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
         enumerator=DependencyEnumerator(
-            spec, max_depth=6, seed=seed, analysis=deps.dependencies, types=types),
+            spec, max_depth=6, seed=seed, analysis=deps.dependencies if args.prune else None, types=types),
         decider=BoundedModelCheckerDecider(
             interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
@@ -842,4 +897,4 @@ def main(sol_file):
 if __name__ == '__main__':
     logger.setLevel('DEBUG')
     assert len(argv) > 1
-    main(argv[1])
+    main()
