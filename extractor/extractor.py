@@ -3,6 +3,9 @@ import os
 import json
 import re
 
+from stubs import erc20, erc20_vars, safemath
+from collections import defaultdict
+
 BENCHMARK_OUT_PATH = os.path.join('.', 'test')
 BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
 
@@ -10,6 +13,8 @@ new_contract='''
 pragma solidity ^0.5.10;
 
 {imports}
+
+{safemath}
 
 contract C {{
   {using}
@@ -24,10 +29,24 @@ contract C {{
 }}
 
 //#LOOPVARS: {loop_vars}
+
+{erc20}
 '''
 
 extra_contract='''
 contract {0} {{ }}
+'''
+
+safemath_skeleton='''
+library SafeMath {{
+  {body}
+}}
+'''
+
+erc20_skeleton='''
+contract {contract} {{
+  {body}
+}}
 '''
 
 solc4_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.4')
@@ -37,31 +56,25 @@ null_out = os.path.join('/', 'dev', 'null')
 temporary_json = os.path.join('.', 'tmp.json')
 temporary_ast = os.path.join('.', 'tmp.ast')
 
-replace_safemath = False
-add_safemath = False
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", help="solidity file path from which to extract a loop", type=str)
     parser.add_argument("--folder", help="folder from which to extract a loop", type=str)
     parser.add_argument("--replace_safemath", help="when activated, safemath ops will be replaced with regular operations", action="store_true")
     parser.add_argument("--add_safemath", help="when activated, safemath import will be added (at ./SafeMath.sol) if detected in loop and using clause for uint256 will be added", action="store_true")
+    parser.add_argument("--stub_safemath", help="adds in stubs for safemath functions if used in loop",action="store_true")
+    parser.add_argument("--stub_erc20", help="adds in stubs for known erc20 functions if used in loop (will even attempt other non-erc20 tokens)",action="store_true")    
     return parser.parse_args()
 
 def main():
     global replace_safemath, add_safemath
     args = parse_args()
-    if args.replace_safemath:
-        replace_safemath = True
-    if args.add_safemath:
-        add_safemath = True
-
     if args.file:
         print("Extracting loop from {0}.".format(args.file))
-        extract_loops(args.file)
+        extract_loops(args.file, args)
     elif args.folder:
         print("Extracting loop from {0}.".format(args.folder))        
-        extract_loops_from_folder(args.folder)
+        extract_loops_from_folder(args.folder, args)
 
 def get_var_types(types):
     all_types = []
@@ -128,11 +141,55 @@ def update_safemath(loop_info):
             old_call = "{0}.{1}({2})".format(callee, func, args)
             new_call = "({0}) {1} ({2})".format(callee, safemath_funcs[func], args)
             loop_info.source = loop_info.source.replace(old_call, new_call)
+
+def get_func_names(func_call):
+    matches = re.findall(r"[^(]*\.([^(]*)\(", func_call)
+    return matches
+
+def get_func_caller_pairs(func_call):
+    matches = re.findall(r"([^(]*)\.([^(]*)\(", func_call)
+    return matches
     
-def parse_sif_output(cname, output):
+def create_stub_safemath(loop_info):
+    stubs = []
+
+    # Fetch function names from function call-sites
+    funcs_called = []
+    for func in loop_info.funcs:
+        funcs_called += get_func_names(func)
+
+    for fname,stub in safemath.items():        
+        # Only add stub function if it is in loop        
+        if fname in funcs_called:
+            stubs.append(stub)
+
+    return "\n".join(stubs)
+            
+def create_stub_erc20(loop_info):
+    stubs = defaultdict(set)    
+    glob_vars = defaultdict(set)    
+
+    # Fetch function names and their callers
+    func_caller_pairs = []
+    for func in loop_info.funcs:
+        func_caller_pairs += get_func_caller_pairs(func)
+
+    for caller, func in func_caller_pairs:
+        if func in erc20 and caller in loop_info.type_table:
+            typ = loop_info.type_table[caller]
+            stubs[typ].add(erc20[func])
+            glob_vars[typ] = set(list(glob_vars[typ]) + erc20_vars[func])
+
+    for typ in stubs:
+        stubs[typ] = "\n".join(list(glob_vars[typ]) + list(stubs[typ]))
+            
+    return stubs
+
+    
+def parse_sif_output(cname, output, args):
     contracts = {}
 
-    print(output)
+    # print(output)
     
     # Split output by loops (last is not loop, but global info, so separate out)
     loop_sep = "****************"
@@ -148,7 +205,7 @@ def parse_sif_output(cname, output):
     using = ""
     
     # Add safemath if requested and actually used
-    if uses_safemath and add_safemath:
+    if uses_safemath and args.add_safemath:
         imports = 'import "./SafeMath.sol;"'
         using = "using SafeMath for uint256;"        
     
@@ -165,13 +222,27 @@ def parse_sif_output(cname, output):
         classic_types = ["uint", "uint8", "uint16", "uint32", "uint64", "uint128", "uint256", "bool", "address", "bytes", "bytes8", "bytes16", "bytes32", "bytes64", "bytes128", "bytes256"]
 
         # Replace safemath if necessary
-        if uses_safemath and replace_safemath:
+        if uses_safemath and args.replace_safemath:
             update_safemath(loop_info)
 
+        # Add in stubs for erc20 and safemath as requested
+        safemath_stub = ""
+        erc20_stub = ""
+        erc20_cls = []
+        if args.stub_safemath:
+            safemath_stub = create_stub_safemath(loop_info)
+            if safemath_stub != "":
+                safemath_stub = safemath_skeleton.format(body=safemath_stub)
+        if args.stub_erc20:
+            erc20_stubs = create_stub_erc20(loop_info)
+            for cls, stub in erc20_stubs.items():
+                erc20_stub += erc20_skeleton.format(contract=cls, body=stub)
+                erc20_cls.append(cls)
+            
         # Add any user-defined contracts as necessary
         added_contracts = ""
         for var_type in all_var_types:
-            if not var_type in classic_types+loop_info.structs_used:
+            if not var_type in classic_types+loop_info.structs_used+erc20_cls:
                 added_contracts += extra_contract.format(var_type)
 
         # Create global variable declarations
@@ -181,7 +252,7 @@ def parse_sif_output(cname, output):
         global_vars = "\n".join(map(lambda y: "{0} {1};".format(y[0],y[1]), vars_to_create))
         
         # Plug the pieces into the contract
-        extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it, structs=loop_info.structs_source())
+        extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it, structs=loop_info.structs_source(), safemath=safemath_stub, erc20=erc20_stub)
         extracted_contract += added_contracts
 
         # Add new loop contract to contracts, sorting by loop size
@@ -198,7 +269,7 @@ def parse_sif_output(cname, output):
 
     return contracts
 
-def extract_loops(cname):
+def extract_loops(cname, args):
     with open(cname, 'r') as c_file:
         pragma = c_file.readlines()[0][16:]
         pragma = pragma[:-2]
@@ -275,7 +346,7 @@ def extract_loops(cname):
     stream = os.popen(sif_run)
     sif_output = stream.read()
 
-    contracts = parse_sif_output(cname, sif_output)
+    contracts = parse_sif_output(cname, sif_output, args)
 
     if not os.path.exists(BENCHMARK_OUT_PATH):
         os.makedirs(BENCHMARK_OUT_PATH)
@@ -294,12 +365,12 @@ def extract_loops(cname):
             print("Saved {0} in the folder {1}!".format(fname, out_path))
                 
 
-def extract_loops_from_folder(folder):
+def extract_loops_from_folder(folder, args):
     for fname in os.listdir(folder):
         with open(os.path.join(folder,fname), "r") as src_file:
             src = ''.join(src_file.readlines())
             try:
-                extract_loops(os.path.join(folder, fname))
+                extract_loops(os.path.join(folder, fname), args)
             except Exception as e:
                 print("Failed to compile {0}".format(fname))
                 print(e)
@@ -326,5 +397,6 @@ class LoopInfo:
 
     def structs_source(self):
         return "".join(self.structs_src)
+
                 
 main()
