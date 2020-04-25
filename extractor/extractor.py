@@ -6,7 +6,7 @@ import re
 from stubs import erc20, erc20_vars, safemath
 from collections import defaultdict
 
-BENCHMARK_OUT_PATH = os.path.join('.', 'test')
+BENCHMARK_OUT_PATH = os.path.join('.', 'benchmarks')
 BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
 
 new_contract='''
@@ -25,6 +25,12 @@ contract C {{
 
   function foo() public {{
     {loop}
+  }}
+
+  {erc20_in}
+
+  function _msgSender() public returns (address) {{
+    return msg.sender;
   }}
 }}
 
@@ -51,7 +57,7 @@ contract {contract} {{
 
 solc4_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.4')
 solc5_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.5')
-sif_command = os.path.join('SIF2', 'build', 'sif', 'sif')
+sif_command = os.path.join('SIF', 'build', 'sif', 'sif')
 null_out = os.path.join('/', 'dev', 'null')
 temporary_json = os.path.join('.', 'tmp.json')
 temporary_ast = os.path.join('.', 'tmp.ast')
@@ -99,7 +105,8 @@ def extract_loop_info(sif_output):
     
     used = re.findall("USED: (.*)", info)[0].split(",")
     decd = re.findall("DECLARED: (.*)", info)[0].split(",")
-    funcs = re.findall("FUNCTIONS: (.*)", info)[0].split(",")
+    funcs = re.findall("FUNCTIONS: (.*)", info)[0].split("$$")
+    events = re.findall("EVENTS: (.*)", info)[0].split("$$")    
     structs_used = re.findall("STRUCTS: (.*)", info)[0].split(",")
     it = re.findall("ITERATOR: (.*)", info)[0]
     size = int(re.findall("SIZE: (.*)", info)[0])
@@ -107,10 +114,10 @@ def extract_loop_info(sif_output):
 
     structs_src = sif_output[0][2].split("$$$$$$$$$$$$$")
     
-    return LoopInfo(used, decd, funcs, structs_used, it,
+    return LoopInfo(used, decd, funcs, events, structs_used, it,
                     size, loop_dec, source, structs_src)
 
-def update_safemath(loop_info):
+def update_safemath(loop_info, uses_safemath):
     safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}
 
     # Keep track of all safemath calls
@@ -120,26 +127,37 @@ def update_safemath(loop_info):
 
     for i, func_call in enumerate(funcs_called):
         for safe_func, repl in safemath_funcs.items():
-           splitter = ".{0}(".format(safe_func)
-           # If the safemath call is actually used in this function call
-           if splitter in func_call:
-               split = func_call.split(splitter)
-               callee = split[0]
-               args = split[1][:-1]
-               safemath_calls.append((callee, safe_func, args))
-               # Also, go forward through the functions called, and replace this
-               #   in place, as when we go to split in future iterations, this will
-               #   complicate things
-               new_call = "({0}) {1} ({2})".format(callee,safemath_funcs[safe_func],args)
-               for j in range(i+1, len(funcs_called)):
-                   funcs_called[j] = funcs_called[j].replace(func_call, new_call)
-               break                   
+            new_call = ""
+            if not uses_safemath:
+                matches = re.findall(r"SafeMath.{0}\((.*), (.*)\)".format(safe_func),
+                                     func_call)
+                if matches:
+                    lhs = matches[0][0]
+                    rhs = matches[0][1]                    
+                    new_call = "(({0}) {1} ({2}))".format(lhs,safemath_funcs[safe_func], rhs)
+                    safemath_calls.append((lhs, safe_func, rhs, func_call))                    
+            else:
+                splitter = ".{0}(".format(safe_func)           
+                # If the safemath call is actually used in this function call
+                if splitter in func_call:
+                    split = func_call.split(splitter)
+                    callee = split[0]
+                    args = split[1][:-1]
+                    safemath_calls.append((callee, safe_func, args, func_call))
+                    # Also, go forward through the functions called, and replace this
+                    #   in place, as when we go to split in future iterations, this will
+                    #   complicate things
+                    new_call = "(({0}) {1} ({2}))".format(callee,safemath_funcs[safe_func],
+                                                        args)
+            if new_call != "":
+                for j in range(i+1, len(funcs_called)):
+                    funcs_called[j] = funcs_called[j].replace(func_call, new_call)
+                break                   
 
     # Do safemath adjustments if flags set and safemath functions used in loop
     if any(map(lambda x: x[1] in safemath_funcs, safemath_calls)):
-        for (callee, func, args) in safemath_calls:
-            old_call = "{0}.{1}({2})".format(callee, func, args)
-            new_call = "({0}) {1} ({2})".format(callee, safemath_funcs[func], args)
+        for (callee, func, args, old_call) in safemath_calls:
+            new_call = "(({0}) {1} ({2}))".format(callee, safemath_funcs[func], args)
             loop_info.source = loop_info.source.replace(old_call, new_call)
 
 def get_func_names(func_call):
@@ -173,8 +191,8 @@ def create_stub_erc20(loop_info):
     func_caller_pairs = []
     for func in loop_info.funcs:
         func_caller_pairs += get_func_caller_pairs(func)
-
-    for caller, func in func_caller_pairs:
+        
+    for caller, func in func_caller_pairs:            
         if func in erc20 and caller in loop_info.type_table:
             typ = loop_info.type_table[caller]
             stubs[typ].add(erc20[func])
@@ -182,7 +200,7 @@ def create_stub_erc20(loop_info):
 
     for typ in stubs:
         stubs[typ] = "\n".join(list(glob_vars[typ]) + list(stubs[typ]))
-            
+        
     return stubs
 
     
@@ -198,7 +216,7 @@ def parse_sif_output(cname, output, args):
     loops = loops[:-1]
 
     # Check if we use safemath
-    uses_safemath = bool(re.findall("USES SAFEMATH: (.*)", global_info)[0])
+    uses_safemath = bool(int(re.findall("USES SAFEMATH: (.*)", global_info)[0]))
 
     # Imports and libraries used (initialized to empty)
     imports = ""
@@ -222,12 +240,13 @@ def parse_sif_output(cname, output, args):
         classic_types = ["uint", "uint8", "uint16", "uint32", "uint64", "uint128", "uint256", "bool", "address", "bytes", "bytes8", "bytes16", "bytes32", "bytes64", "bytes128", "bytes256"]
 
         # Replace safemath if necessary
-        if uses_safemath and args.replace_safemath:
-            update_safemath(loop_info)
+        if args.replace_safemath:
+            update_safemath(loop_info, uses_safemath)
 
         # Add in stubs for erc20 and safemath as requested
         safemath_stub = ""
         erc20_stub = ""
+        erc20_in = ""
         erc20_cls = []
         if args.stub_safemath:
             safemath_stub = create_stub_safemath(loop_info)
@@ -236,23 +255,26 @@ def parse_sif_output(cname, output, args):
         if args.stub_erc20:
             erc20_stubs = create_stub_erc20(loop_info)
             for cls, stub in erc20_stubs.items():
-                erc20_stub += erc20_skeleton.format(contract=cls, body=stub)
-                erc20_cls.append(cls)
-            
+                if cls == "C":
+                    erc20_in += stub
+                else:
+                    erc20_stub += erc20_skeleton.format(contract=cls, body=stub)
+                    erc20_cls.append(cls)
+                    
         # Add any user-defined contracts as necessary
         added_contracts = ""
         for var_type in all_var_types:
-            if not var_type in classic_types+loop_info.structs_used+erc20_cls:
+            if not var_type in classic_types+loop_info.structs_used+erc20_cls+["C"]:
                 added_contracts += extra_contract.format(var_type)
 
         # Create global variable declarations
         all_vars = set([(typ, var) for (var, typ) in loop_info.type_table.items()])
-        should_create_glob = lambda v: not v[1] in loop_info.decd and not (v[1] == loop_info.it and loop_info.loop_dec)
+        should_create_glob = lambda v: not v[1] in loop_info.decd and not (v[1] == loop_info.it and loop_info.loop_dec) and v[1] != "this" and v[1] != "super"
         vars_to_create = filter(should_create_glob, all_vars)
         global_vars = "\n".join(map(lambda y: "{0} {1};".format(y[0],y[1]), vars_to_create))
         
         # Plug the pieces into the contract
-        extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it, structs=loop_info.structs_source(), safemath=safemath_stub, erc20=erc20_stub)
+        extracted_contract = new_contract.format(global_vars=global_vars, loop=loop_info.source, imports=imports, using=using, loop_vars=loop_info.it, structs=loop_info.structs_source(), safemath=safemath_stub, erc20=erc20_stub, erc20_in=erc20_in)
         extracted_contract += added_contracts
 
         # Add new loop contract to contracts, sorting by loop size
@@ -377,7 +399,7 @@ def extract_loops_from_folder(folder, args):
 
 class LoopInfo:
 
-    def __init__(self, used, decd, funcs, structs_used,
+    def __init__(self, used, decd, funcs, events, structs_used,
                  it, size, loop_dec, source, structs_src):
         self.type_table = {}
         for entry in used:
@@ -385,16 +407,25 @@ class LoopInfo:
             var = tup[0][0]
             typ = tup[0][1]
             self.type_table[var] = typ
+        # Add this and super to type table, giving current contract as type
+        self.type_table["this"] = "C"
+        self.type_table["super"] = "C"
+
         self.used = self.type_table.keys()        
         self.decd = decd
         self.funcs = funcs
+        self.events = events
         self.structs_used = structs_used
         self.it = it if it != "" else "i" # Default iterator is i if none found
         self.size = size
         self.loop_dec = bool(loop_dec)
         self.source = source
-        self.structs_src = structs_src
+        self.structs_src = list(set(map(lambda s: s.replace("\n", ""), structs_src)))
 
+        # Replace events with no-ops
+        for event in events:
+            self.source = self.source.replace(event, "");
+        
     def structs_source(self):
         return "".join(self.structs_src)
 

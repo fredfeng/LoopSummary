@@ -21,7 +21,6 @@ namespace Sif {
   static std::map<std::string, std::string> struct_table;
   
   std::string function_call_source_code(FunctionCallNode* fn) {
-
     std::string result = fn->get_callee()->source_code(empty) + "(";
     for (int i = 0; i < fn->num_arguments(); i++ ) {
       result += fn->get_argument(i)->source_code(empty);
@@ -116,7 +115,7 @@ namespace Sif {
       	  node->get_node_type() == NodeTypeDoWhileStatement ||
       	  node->get_node_type() == NodeTypeWhileStatement ||
       	  node->get_node_type() == NodeTypeForStatement ||
-      	  node->get_node_type() == NodeTypeEmitStatement ||
+      	  // node->get_node_type() == NodeTypeEmitStatement ||
       	  node->get_node_type() == NodeTypeVariableDeclarationStatement ||
       	  node->get_node_type() == NodeTypeExpressionStatement) {
 	((current_loops.top())->size)++;
@@ -227,7 +226,7 @@ namespace Sif {
     // Process variable declarations in loop
     if (node->get_node_type() == NodeTypeVariableDeclaration) {
       // Fetch variable name
-      std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();      
+      std::string var_name = ((VariableDeclarationNode*) node)->get_variable_name();
       // Fetch variable type
       ASTNode* var_type = (((VariableDeclarationNode*) node)->get_type()).get();
       // Add to type table
@@ -235,7 +234,7 @@ namespace Sif {
       
       // If we declare a var in header, we assume this is the loop iterator
       if (in_header) {
-	loop->iterator_decd_in_loop = true;
+    	loop->iterator_decd_in_loop = true;
     	loop->iterator = var_name;
       } else {
     	(loop->variables_declared).push_back(var_name);
@@ -248,9 +247,17 @@ namespace Sif {
       std::string var_name = ((AssignmentNode *) node)->get_left_hand_operand()->source_code(empty);
       loop->iterator = var_name;
     }
+
     // Fetch all used variables
     if (node->get_node_type() == NodeTypeIdentifier) {
       std::string var_name = ((IdentifierNode*) node)->get_name();
+
+      // ignore any non-declared variable (could be function call name, constructor name,
+      //   or even "this"
+      if (type_table.find(var_name) == type_table.end()) {
+	return;
+      }
+      
       ASTNode* type = type_table[var_name];
       std::string var_type = type->source_code(empty);
 
@@ -274,6 +281,12 @@ namespace Sif {
       // Fetch and add function name
       std::string func_name = function_call_source_code(((FunctionCallNode*) node));
       (loop->functions_called).push_back(func_name);
+    }
+
+    // Fetch all emit statements
+    if (node->get_node_type() == NodeTypeEmitStatement) {
+      std::string event_stmt = ((EmitStatementNode*) node)->source_code(empty);
+      (loop->event_stmts).push_back(event_stmt);
     }
 
     return;

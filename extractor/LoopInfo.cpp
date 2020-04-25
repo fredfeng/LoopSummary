@@ -14,6 +14,7 @@ public:
   vector<string> variables_declared;
   vector<string> functions_called;
   vector<string> structs_used;
+  vector<string> event_stmts;
   bool is_while = false;
   bool iterator_decd_in_loop = false;
 
@@ -21,7 +22,8 @@ public:
   string variables_declared_str();
   string functions_called_str();
   string structs_used_str();
-  string structs_source_str(map<string, string>);  
+  string structs_source_str(map<string, string>);
+  string event_stmts_str();
   string to_str(map<string,string>);
   string source();
   string print_vector(vector<string>, string, string);
@@ -47,13 +49,17 @@ string LoopInfo::variables_declared_str() {
 }
   
 string LoopInfo::functions_called_str() {
-  return print_vector(this->functions_called, "FUNCTIONS: ", ",");  
+  return print_vector(this->functions_called, "FUNCTIONS: ", "$$");  
 }
   
 string LoopInfo::structs_used_str() {
   return print_vector(this->structs_used, "STRUCTS: ", ",");  
 }
   
+string LoopInfo::event_stmts_str() {
+  return print_vector(this->event_stmts, "EVENTS: ", "$$");
+}
+
 string LoopInfo::structs_source_str(map<string, string> struct_table) {
   vector<string> vec;
   vector<string>::iterator it=this->structs_used.begin();
@@ -70,8 +76,9 @@ string LoopInfo::to_str(map<string,string> struct_table) {
   string funcs_called = this->functions_called_str();
   string structs_used = this->structs_used_str();
   string structs_source = this->structs_source_str(struct_table);
+  string events = this->event_stmts_str();
   string sep = "==============\n";
-  string str = sep + src + sep + "\n" + vars_used + vars_decd + funcs_called + structs_used;
+  string str = sep + src + sep + "\n" + vars_used + vars_decd + funcs_called + structs_used + events;
   str += "ITERATOR: " + this->iterator + "\n";
   str += "SIZE: " + to_string(this->size) + "\n";
   str += "LOOP DEC: " + to_string(this->iterator_decd_in_loop) + "\n";  
