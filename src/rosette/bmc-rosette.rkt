@@ -36,6 +36,8 @@
 
     (define output1 (hash-ref regs-out-1 out-reg1))
 
+    (printf "\n")
+
     (for ([cur-inst insts-2])
         (pretty-display cur-inst)
         (define inst-code (vector-ref (parse-code cur-inst) 0))
@@ -49,6 +51,8 @@
     (printf "output1 = ~a,  output2 = ~a eq? = ~a \n" output1 output2 ok)
     ;;; (printf "Register ~a = ~a ~a \n" out-reg output ok)
     (if ok "NEQ" "EQ")
+    ;;; debugging
+    ;;; (display (solve (assert (not (equal? output1 output2)))))
 )
 
 (define (interpret-inst inst env)
