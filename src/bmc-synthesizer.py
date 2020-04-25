@@ -624,8 +624,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         print(loop_body)
 
         inst_list = [] 
-        inst =  '{}: {} = {}'.format(hex(self.pc), self.iterator, start_idx)
-        # inst =  '{}: {} = {{GuardStart}}'.format(hex(self.pc), self.iterator)
+        inst =  '{}: {} = {{GuardStart}}'.format(hex(self.pc), self.iterator)
         inst_list.append(inst)
         self.pc = self.pc + 1
         inst =  "{}: {} = ARRAYACCESS {} {}".format(hex(self.pc), 'REF_0', arr, self.iterator)
@@ -810,16 +809,26 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return new_loop, None 
         
     def eval_summarize(self, node, args):
-        # start = args[1]
-        # end = args[2]
+        try:
+            # FIXME: only support integer expression
+            start = int(args[1])
+        except ValueError:
+            start = -1
+        end = args[2]
         # body, _ = args[0]
         # body = body.format(GuardStart="={0}".format(start), GuardEnd=end)
         # actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
 
         # print(actual_contract)
-        
         # return actual_contract
-        return args[0]
+
+        # instantiate {GuardStart} and {GuardEnd}
+        new_body = (
+            [inst.format(GuardStart=start, GuardEnd=end) for inst in args[0][0]],
+            args[0][1]
+        )
+        return new_body
+        # return args[0]
 
     def eval_summarize_nost(self, node, args):
         end = args[1]
