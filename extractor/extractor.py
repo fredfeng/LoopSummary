@@ -29,9 +29,6 @@ contract C {{
 
   {erc20_in}
 
-  function _msgSender() public returns (address) {{
-    return msg.sender;
-  }}
 }}
 
 //#LOOPVARS: {loop_vars}
@@ -128,7 +125,7 @@ def update_safemath(loop_info, uses_safemath):
     for i, func_call in enumerate(funcs_called):
         for safe_func, repl in safemath_funcs.items():
             new_call = ""
-            if not uses_safemath:
+            if func_call.startswith("SafeMath."):
                 matches = re.findall(r"SafeMath.{0}\((.*), (.*)\)".format(safe_func),
                                      func_call)
                 if matches:
@@ -166,8 +163,17 @@ def get_func_names(func_call):
 
 def get_func_caller_pairs(func_call):
     matches = re.findall(r"([^(]*)\.([^(]*)\(", func_call)
+    # If there are no matches, check if it's a standalone function
+    if matches == []:
+        matches = get_standalone_func_name(func_call)
+        matches = list(map(lambda x: ("", x), matches))
+        
     return matches
-    
+
+def get_standalone_func_name(func_call):
+    matches = re.findall(r"([^(]*)\(", func_call)
+    return matches
+
 def create_stub_safemath(loop_info):
     stubs = []
 
@@ -193,8 +199,12 @@ def create_stub_erc20(loop_info):
         func_caller_pairs += get_func_caller_pairs(func)
         
     for caller, func in func_caller_pairs:
-        if func in erc20 and caller in loop_info.type_table:
-            typ = loop_info.type_table[caller]
+        if func in erc20 and (caller in loop_info.type_table or caller == ""):
+            # Instance with standalone function, set typ to C for current contract
+            if caller == "":
+                typ = "C"
+            else:
+                typ = loop_info.type_table[caller]
             stubs[typ].add(erc20[func])
             glob_vars[typ] = set(list(glob_vars[typ]) + erc20_vars[func])
 

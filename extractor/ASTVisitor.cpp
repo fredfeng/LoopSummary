@@ -121,7 +121,7 @@ namespace Sif {
       	  node->get_node_type() == NodeTypeDoWhileStatement ||
       	  node->get_node_type() == NodeTypeWhileStatement ||
       	  node->get_node_type() == NodeTypeForStatement ||
-      	  // node->get_node_type() == NodeTypeEmitStatement ||
+      	  node->get_node_type() == NodeTypeEmitStatement ||
       	  node->get_node_type() == NodeTypeVariableDeclarationStatement ||
       	  node->get_node_type() == NodeTypeExpressionStatement) {
 	((current_loops.top())->size)++;
