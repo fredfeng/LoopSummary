@@ -48,16 +48,19 @@ namespace Sif {
     in_header = true;
     
     // Build loop initialization string
-    std::string init_str = "; ";
     if (fs->get_init() != nullptr) {
       loop->init = fs->get_init()->source_code(empty) + " ";
+    } else {
+      loop->init = "; ";
     }
       
     // Build loop condition string
-    std::string condition_str = "; ";
+    
     if (fs->get_condition() != nullptr) {
       loop->condition = fs->get_condition()->source_code(empty) + "; ";
-    }   
+    } else {
+      loop->condition = "; ";
+    }
     
     // Build loop increment string
     std::string increment_str = "";
