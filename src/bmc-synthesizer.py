@@ -621,9 +621,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 {tgtAcc} {lamVal};
             }}}}
         """.format(tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
-        print(loop_body)
+        print("loop body: \n{}".format(loop_body))
 
         inst_list = [] 
+        # inst = '{}: {} = {}'.format(hex(self.pc), )
         inst =  '{}: {} = {{GuardStart}}'.format(hex(self.pc), self.iterator)
         inst_list.append(inst)
         self.pc = self.pc + 1
@@ -808,12 +809,23 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         return new_loop, None 
         
+    def detect_exp(self, estr):
+        # helper function for eval_summarize for parsing args[1]
+        # FIXME: only support `x (+/- y/const.)` now
+        op_dict = {"+": "ADD", "-": "SUB"}
+        for eop in op_dict.keys():
+            elist = [p.strip() for p in estr.split(eop)]
+            if len(elist)==1:
+                continue
+            elif len(elist)==2:
+                return "{} {} {}".format(op_dict[eop], elist[0], elist[1])
+            else:
+                raise NotImplementedError("Unsupported loop init expression: {}".format(estr))
+        # if you reach here, no supported operator is found, just return the original str
+        return estr
+
     def eval_summarize(self, node, args):
-        try:
-            # FIXME: only support integer expression
-            start = int(args[1])
-        except ValueError:
-            start = -1
+        start = self.detect_exp(args[1])
         end = args[2]
         # body, _ = args[0]
         # body = body.format(GuardStart="={0}".format(start), GuardEnd=end)

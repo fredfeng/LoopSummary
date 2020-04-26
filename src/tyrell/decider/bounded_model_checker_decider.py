@@ -43,7 +43,7 @@ class BoundedModelCheckerDecider(Decider):
         # print(candidate_prog)
         # print("target program:", self._example) 
         # print("verifyer: ", self._equal_output)
-        print(candidate_prog)
+        # print("candidate program: {}".format(candidate_prog))
         if not self._org_contract:
             print('source contract is empty')
             inst_list, write = self.extract_ir_from_source(self._example)

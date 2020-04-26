@@ -2,8 +2,20 @@
 
 (require json rosette/query/debug racket/sandbox "solidity-parser.rkt" "inst.rkt")
 
+;;; n is the length of the symbolic vector
+(define (get-sym-vec name n)
+  (list->vector
+    (for/list ([i (range n)])
+      (constant
+        (string->symbol (format "~a@~a" name i)) integer?))))
+
 ;;; Uninterpreted function to model array access
-(define-symbolic array-app (~> integer? integer? integer?))
+;;; (define-symbolic array-app (~> integer? integer? integer?))
+;;; Racket function to model array access
+(define (sym-array-access base offset)
+    (assert (not (negative? offset)))
+    (assert (< offset (vector-length base)))
+    (vector-ref base offset) )
 
 (define parser (new solidity-parser%))
 
@@ -14,6 +26,17 @@
 
 (define (gen-var-by-name name regs-out)
     (define var (constant name integer?))
+    (if (hash-has-key? regs-out name)
+        (hash-ref regs-out name)
+        (begin
+            (hash-set! regs-out name var)
+            var))
+)
+
+;;; FIXME: change to larger constant later
+(define fixed-vector-length 10)
+(define (gen-vec-by-name name regs-out)
+    (define var (get-sym-vec name fixed-vector-length))
     (if (hash-has-key? regs-out name)
         (hash-ref regs-out name)
         (begin
@@ -52,7 +75,7 @@
     ;;; (printf "Register ~a = ~a ~a \n" out-reg output ok)
     (if ok "NEQ" "EQ")
     ;;; debugging
-    ;;; (display (solve (assert (not (equal? output1 output2)))))
+    ; (display (solve (assert (not (equal? output1 output2)))))
 )
 
 (define (interpret-inst inst env)
@@ -78,9 +101,11 @@
         (define d (vector-ref args 1))
         (define base (vector-ref args 2))
         (define offset (vector-ref args 3))
-        (define base-val (gen-var-by-name base env))
+        ;;; use gen-vec-by-name instead
+        ;;; (define base-val (gen-var-by-name base env))
+        (define base-val (gen-vec-by-name base env))
         (define offset-val (gen-var-by-name offset env))
-        (define val (array-app base-val offset-val))
+        (define val (sym-array-access base-val offset-val))
         (hash-set! env d val)
     )
 
@@ -103,10 +128,31 @@
         (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
+    (define (sub#)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a1-val (gen-var-by-name a1 env))
+        (define val (- a1-val (string->number a2))) ;; reg const 
+        (printf "debug ri: val=~a \n" val)
+        (hash-set! env d val))
+
+    (define (sub)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a1-val (gen-var-by-name a1 env))
+        (define a2-val (gen-var-by-name a2 env))
+        (define val (- a1-val a2-val)) ;; reg const 
+        (printf "debug ri: val=~a \n" val)
+        (hash-set! env d val))
+
     (cond
          [(equal? op-name "nop")   (void)]
          [(equal? op-name "add")   (add)]
          [(equal? op-name "add#")   (add#)]
+         [(equal? op-name "sub")   (sub)]
+         [(equal? op-name "sub#")   (sub#)]
          [(equal? op-name "eq#") (assign#)]
          [(equal? op-name "eq") (assign)]
          [(equal? op-name "lt") (void)]

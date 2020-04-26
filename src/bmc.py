@@ -20,9 +20,19 @@ def check_eq(file1, file2):
     json_out_str = json.dumps(json_out)
     print(json_out_str)
 
-    output = subprocess.check_output([rosette_path, json_out_str])
-    print('output from Rosette: ', output)
-    print(rosette_path)
-    assert False
+    output = subprocess.check_output([rosette_path, json_out_str]).decode('utf-8')
+    # print('output from Rosette: ', output)
+    # print('Rosette path: ', rosette_path)
+    # assert False
 
-    return True
+    # return True
+
+    eq_ret = None
+    if "eq? = #t" in output:
+        eq_ret = False
+    elif "eq? = #f" in output:
+        eq_ret = True
+    else:
+        raise NotImplementedError("Can't find valid output from Rosette, the original output is shown:\n{}".format(output))
+
+    return eq_ret
