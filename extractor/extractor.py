@@ -114,6 +114,19 @@ def extract_loop_info(sif_output):
     return LoopInfo(used, decd, funcs, events, structs_used, it,
                     size, loop_dec, source, structs_src)
 
+def is_int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+# def create_format_str(v, label):
+#     if is_int(v):
+#         return "{0}".format(label)
+
+#     return "({0})".format(label)
+    
 def update_safemath(loop_info, uses_safemath):
     safemath_funcs = {"add": "+", "mul": "*", "div": "/", "sub": "-", "mod": "%"}
 
@@ -130,7 +143,11 @@ def update_safemath(loop_info, uses_safemath):
                                      func_call)
                 if matches:
                     lhs = matches[0][0]
-                    rhs = matches[0][1]                    
+                    rhs = matches[0][1]
+                    # lhs_str = create_format_str(lhs, "{0}")
+                    # rhs_str = create_format_str(rhs, "{2}")
+                    # new_call_temp = "({0} {1} {2})".format(lhs_str, "{1}", rhs_str)
+                    # new_call = new_call_temp.format(lhs,safemath_funcs[safe_func], rhs)
                     new_call = "(({0}) {1} ({2}))".format(lhs,safemath_funcs[safe_func], rhs)
                     safemath_calls.append((lhs, safe_func, rhs, func_call))                    
             else:
@@ -140,12 +157,14 @@ def update_safemath(loop_info, uses_safemath):
                     split = func_call.split(splitter)
                     callee = split[0]
                     args = split[1][:-1]
+                    # args_str = create_format_str(args, "{2}")
                     safemath_calls.append((callee, safe_func, args, func_call))
+                    # new_call_temp = "({0} {1} {2})".format("({0})", "{1}", args_str)
                     # Also, go forward through the functions called, and replace this
                     #   in place, as when we go to split in future iterations, this will
                     #   complicate things
                     new_call = "(({0}) {1} ({2}))".format(callee,safemath_funcs[safe_func],
-                                                        args)
+                                                    args)
             if new_call != "":
                 for j in range(i+1, len(funcs_called)):
                     funcs_called[j] = funcs_called[j].replace(func_call, new_call)
@@ -154,6 +173,10 @@ def update_safemath(loop_info, uses_safemath):
     # Do safemath adjustments if flags set and safemath functions used in loop
     if any(map(lambda x: x[1] in safemath_funcs, safemath_calls)):
         for (callee, func, args, old_call) in safemath_calls:
+            # lhs_str = create_format_str(callee, "{0}")
+            # rhs_str = create_format_str(args, "{2}")
+            # new_call_temp = "({0} {1} {2})".format(lhs_str, "{1}", rhs_str)
+            # new_call = new_call_temp.format(callee, safemath_funcs[func], args)
             new_call = "(({0}) {1} ({2}))".format(callee, safemath_funcs[func], args)
             loop_info.source = loop_info.source.replace(old_call, new_call)
 
@@ -434,10 +457,13 @@ class LoopInfo:
         self.loop_dec = bool(loop_dec)
         self.source = source
         self.structs_src = list(set(map(lambda s: s.replace("\n", ""), structs_src)))
-
+        
         # Replace events with no-ops
         for event in events:
             self.source = self.source.replace(event, "");
+
+        # Remove structs used for which analysis found no body
+        self.structs_used = list(filter(lambda x: any(map(lambda y: x in y, self.structs_src)), self.structs_used))
         
     def structs_source(self):
         return "".join(self.structs_src)
