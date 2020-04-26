@@ -555,22 +555,28 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return args[0]
     
     def eval_addc(self, node, args):
-        return args[0] + '+' + args[1]
+        return "ADD {} {}".format(args[0], args[1])
+        # return args[0] + '+' + args[1]
 
     def eval_addc_st(self, node, args):
-        return args[0] + '+' + args[1]
+        return "ADD {} {}".format(args[0], args[1])
+        # return args[0] + '+' + args[1]
 
     def eval_addc_end(self, node, args):
-        return args[0] + '+' + args[1]
+        return "ADD {} {}".format(args[0], args[1])
+        # return args[0] + '+' + args[1]
 
     def eval_subc(self, node, args):
-        return args[0] + '-' + args[1]
+        return "SUB {} {}".format(args[0], args[1])
+        # return args[0] + '-' + args[1]
 
     def eval_subc_st(self, node, args):
-        return args[0] + '-' + args[1]
+        return "SUB {} {}".format(args[0], args[1])
+        # return args[0] + '-' + args[1]
 
     def eval_subc_end(self, node, args):
-        return args[0] + '-' + args[1]
+        return "SUB {} {}".format(args[0], args[1])
+        # return args[0] + '-' + args[1]
 
     #########################################
     # Lambda operators
@@ -601,11 +607,14 @@ class SymDiffInterpreter(PostOrderInterpreter):
     # DSL
     #########################################
     def build_sum(self, node, args, l):
+        print("sum args: {}".format(args))
+        print("sum l: {}".format(l))
         acc = args[0]
         arr = args[1]
 
         val = "{srcArr}[{it}]".format(srcArr=arr, it=self.iterator)
         
+        # FIXME: lam is not used in constructing inst_list
         if l == False:
             lam = "+= {0}".format(val)
         else:
@@ -624,15 +633,16 @@ class SymDiffInterpreter(PostOrderInterpreter):
         print("loop body: \n{}".format(loop_body))
 
         inst_list = [] 
-        # inst = '{}: {} = {}'.format(hex(self.pc), )
+        # FIXME: missing initialization expression outside the loop body
         inst =  '{}: {} = {{GuardStart}}'.format(hex(self.pc), self.iterator)
         inst_list.append(inst)
-        self.pc = self.pc + 1
+        self.pc += 1
         inst =  "{}: {} = ARRAYACCESS {} {}".format(hex(self.pc), 'REF_0', arr, self.iterator)
         inst_list.append(inst)
-        self.pc = self.pc + 1
+        self.pc += 1
         inst = '{}: {} = {} {} {}'.format(hex(self.pc), acc, 'ADD', acc, 'REF_0')
         inst_list.append(inst)
+        self.pc += 1
 
         return inst_list, acc
 
@@ -724,7 +734,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_UPDATERANGE_L(self, node, args):
         return self.build_updaterange(node, args, True)
 
-    def build_map(self, node, args, l):        
+    def build_map(self, node, args, l):     
+        print("map args: {}".format(args))
+        print("map l: {}".format(l))   
         tgt = args[0]
         lam = args[1]
 
@@ -738,8 +750,24 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 {tgtArr}[{it}] = {lamVal};
             }}}}
         """.format(tgtArr=tgt, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
+        print("loop body: \n{}".format(loop_body))
 
-        return loop_body, val
+        inst_list = []
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+        inst = "{}: {} = ARRAYACCESS {} {}".format(hex(self.pc), 'REF_0', tgt, self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+        inst = "{}: {} = {}".format(hex(self.pc), 'REF_1', lam)
+        inst_list.append(inst)
+        self.pc += 1
+        inst = "{}: {} = {}".format(hex(self.pc), 'REF_0', 'REF_1')
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, tgt
+        # return loop_body, val
 
     def eval_MAP(self, node, args):
         return self.build_map(node, args, False)
@@ -809,23 +837,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         return new_loop, None 
         
-    def detect_exp(self, estr):
-        # helper function for eval_summarize for parsing args[1]
-        # FIXME: only support `x (+/- y/const.)` now
-        op_dict = {"+": "ADD", "-": "SUB"}
-        for eop in op_dict.keys():
-            elist = [p.strip() for p in estr.split(eop)]
-            if len(elist)==1:
-                continue
-            elif len(elist)==2:
-                return "{} {} {}".format(op_dict[eop], elist[0], elist[1])
-            else:
-                raise NotImplementedError("Unsupported loop init expression: {}".format(estr))
-        # if you reach here, no supported operator is found, just return the original str
-        return estr
-
     def eval_summarize(self, node, args):
-        start = self.detect_exp(args[1])
+        start = args[1]
         end = args[2]
         # body, _ = args[0]
         # body = body.format(GuardStart="={0}".format(start), GuardEnd=end)
@@ -858,8 +871,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # return loop, None
 
     def eval_nonintFunc(self, node, args):
-        loop, _ = args[0]
-        return loop, None
+        # loop, _ = args[0]
+        return args[0]
+        # return loop, None
 
     def build_seq(self, node, args):
         loop0, _ = args[0]

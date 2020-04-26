@@ -21,6 +21,9 @@ class BoundedModelCheckerDecider(Decider):
         self._example = example
         self._equal_output = equal_output
 
+        # (debug) see what is the source contract first
+        _ = self.extract_ir_from_source(self._example)
+
     @property
     def interpreter(self):
         return self._interpreter
@@ -71,6 +74,7 @@ class BoundedModelCheckerDecider(Decider):
         address = 0
 
         for node in function.nodes:
+
             if node.irs:
                 for ir in node.irs:
                     if isinstance(ir, Assignment):
@@ -100,5 +104,7 @@ class BoundedModelCheckerDecider(Decider):
 
                     else:
                         pass
-
+        
+        print("# Constructed source contract: ")
+        print(inst_list)
         return inst_list, write
