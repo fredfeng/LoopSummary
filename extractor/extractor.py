@@ -192,7 +192,7 @@ def create_stub_erc20(loop_info):
     for func in loop_info.funcs:
         func_caller_pairs += get_func_caller_pairs(func)
         
-    for caller, func in func_caller_pairs:            
+    for caller, func in func_caller_pairs:
         if func in erc20 and caller in loop_info.type_table:
             typ = loop_info.type_table[caller]
             stubs[typ].add(erc20[func])
@@ -237,7 +237,10 @@ def parse_sif_output(cname, output, args):
         
         # Extract types from mappings/arrays to add to all types
         all_var_types = get_var_types(loop_info.type_table.values())
-        classic_types = ["uint", "uint8", "uint16", "uint32", "uint64", "uint128", "uint256", "bool", "address", "bytes", "bytes8", "bytes16", "bytes32", "bytes64", "bytes128", "bytes256"]
+        uint_types = [uint+str(i*8) for i,uint in enumerate(["uint"]*33)]
+        int_types = [intt+str(i*8) for i,intt in enumerate(["int"]*33)]        
+        bytes_types = [byte+str(i) for i,byte in enumerate(["bytes"]*33)]
+        classic_types = ["uint", "int", "byte", "bytes", "bool", "address"] + uint_types + int_types + bytes_types
 
         # Replace safemath if necessary
         if args.replace_safemath:
@@ -414,7 +417,7 @@ class LoopInfo:
         self.used = self.type_table.keys()        
         self.decd = decd
         self.funcs = funcs
-        self.events = events
+        self.events = events.sort(reverse=True)
         self.structs_used = structs_used
         self.it = it if it != "" else "i" # Default iterator is i if none found
         self.size = size

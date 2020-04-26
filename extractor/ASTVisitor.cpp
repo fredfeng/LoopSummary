@@ -19,9 +19,11 @@ namespace Sif {
   static std::map<std::string, ASTNode*> type_table;
   static bool uses_safemath = false;
   static std::map<std::string, std::string> struct_table;
+  static std::vector<std::string> events;
   
-  std::string function_call_source_code(FunctionCallNode* fn) {
-    std::string result = fn->get_callee()->source_code(empty) + "(";
+  std::string function_call_source_code(FunctionCallNode* fn, LoopInfo* loop) {
+    std::string fname = fn->get_callee()->source_code(empty);
+    std::string result = fname + "(";
     for (int i = 0; i < fn->num_arguments(); i++ ) {
       result += fn->get_argument(i)->source_code(empty);
       if (i != fn->num_arguments()-1) {
@@ -29,6 +31,10 @@ namespace Sif {
       }
     }
     result += ")";
+    if (std::count(events.begin(), events.end(), fname) != 0) {
+      (loop->event_stmts).push_back(result+";");
+      (loop->size)--;
+    }    
     return result;
   }
 
@@ -139,6 +145,13 @@ namespace Sif {
     }
     
   }
+
+  void concatenate_vectors(vector<string> v1, vector<string>* v2) {
+      vector<string>::iterator it = v1.begin();
+      for(; it != v1.end(); ++it) {
+	v2->push_back(*it);
+      }
+  }
   
   void process_loop(ASTNode*node, bool is_while) {
     // Add loop to set of visited loops
@@ -161,10 +174,17 @@ namespace Sif {
     current_loops.pop();
     all_loops.push_back(loop);
 
-    // Update outer loop's size accordingly if this loop was nested
-    if (current_loops.size() > 0)
+    // Update outer loop's fields accordingly if this loop was nested
+    if (current_loops.size() > 0) {
+      // Update size
       current_loops.top()->size += loop.size;
-    
+      // Update vectors
+      concatenate_vectors(loop.variables_used, &current_loops.top()->variables_used);
+      concatenate_vectors(loop.variables_declared, &current_loops.top()->variables_declared);
+      concatenate_vectors(loop.functions_called, &current_loops.top()->functions_called);
+      concatenate_vectors(loop.structs_used, &current_loops.top()->structs_used);
+      concatenate_vectors(loop.event_stmts, &current_loops.top()->event_stmts);
+    }
   }
   
   void visit(ASTNode* node) {
@@ -214,6 +234,11 @@ namespace Sif {
       if (lib == "SafeMath") {
     	uses_safemath = true;
       }
+    }
+
+    // Keep track of Event definitions so we now when a function call is an event
+    if (node->get_node_type() == NodeTypeEventDefinition) {
+      events.push_back(((EventDefinitionNode*) node)->get_name());
     }
     
     // The rest of the actions should only occur when in a loop,
@@ -279,8 +304,8 @@ namespace Sif {
     // Fetch all function calls
     if (node->get_node_type() == NodeTypeFunctionCall) {
       // Fetch and add function name
-      std::string func_name = function_call_source_code(((FunctionCallNode*) node));
-      (loop->functions_called).push_back(func_name);
+      std::string func_call = function_call_source_code(((FunctionCallNode*) node), loop);
+      (loop->functions_called).push_back(func_call);
     }
 
     // Fetch all emit statements
