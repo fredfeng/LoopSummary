@@ -526,6 +526,18 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # TODO: HANDLE NESTED LOOPS
         self.iterator = global_vars[0]
 
+        self._ref_counter = -1 # reference variable counter
+        self._tmp_counter = -1 # temporary variable counter
+
+    def get_fresh_ref_name(self):
+        self._ref_counter += 1
+        return "REF_{}".format(self._ref_counter)
+
+    def get_fresh_tmp_name(self):
+        self._tmp_counter += 1
+        # use "DMP" because "TMP" is originally used in Slither IR
+        return "DMP_{}".format(self._tmp_counter)
+
     #########################################
     # Conditional Operators
     #########################################
@@ -632,15 +644,20 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
         print("loop body: \n{}".format(loop_body))
 
-        inst_list = [] 
+        # start instruction assembling
         # FIXME: missing initialization expression outside the loop body
+        inst_list = [] 
+        
         inst =  '{}: {} = {{GuardStart}}'.format(hex(self.pc), self.iterator)
         inst_list.append(inst)
         self.pc += 1
-        inst =  "{}: {} = ARRAYACCESS {} {}".format(hex(self.pc), 'REF_0', arr, self.iterator)
+
+        ref_0 = self.get_fresh_ref_name()
+        inst =  "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_0, arr, self.iterator)
         inst_list.append(inst)
         self.pc += 1
-        inst = '{}: {} = {} {} {}'.format(hex(self.pc), acc, 'ADD', acc, 'REF_0')
+
+        inst = '{}: {} = {} {} {}'.format(hex(self.pc), acc, 'ADD', acc, ref_0)
         inst_list.append(inst)
         self.pc += 1
 
@@ -752,17 +769,20 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(tgtArr=tgt, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
         print("loop body: \n{}".format(loop_body))
 
+        # start instruction assembling
         inst_list = []
+
         inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
         inst_list.append(inst)
         self.pc += 1
-        inst = "{}: {} = ARRAYACCESS {} {}".format(hex(self.pc), 'REF_0', tgt, self.iterator)
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = {}".format(hex(self.pc), ref_0, lam)
         inst_list.append(inst)
         self.pc += 1
-        inst = "{}: {} = {}".format(hex(self.pc), 'REF_1', lam)
-        inst_list.append(inst)
-        self.pc += 1
-        inst = "{}: {} = {}".format(hex(self.pc), 'REF_0', 'REF_1')
+
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_0)
         inst_list.append(inst)
         self.pc += 1
 

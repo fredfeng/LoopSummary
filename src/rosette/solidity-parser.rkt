@@ -21,7 +21,7 @@
     (define-tokens a (VAR WORD NUM REG)) ;; add more tokens
     (define-empty-tokens b (EOF EQ HOLE BLOCKHASH EQCMP COMMA CREATE THROW THROWI NOP LOG BALANCE ISZERO SGT GT SLT LT SHA3 DELEGATECALL CALLCODE CALL NOT OR
                             SELFDESTRUCT MSIZE NUMBER CALLDATACOPY CODECOPY SUB TIMESTAMP EXP DIV RETURNDATACOPY MUL AND ADD REVERT RETURNDATASIZE
-                            CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAYACCESS
+                            CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAYREAD ARRAYWRITE
                             RETURN COLON ORIGIN CALLVALUE JUMP EXTCODESIZE JUMPI SLP LC RC LP RP ADDRESS CALLDATASIZE CALLDATALOAD)) ;; add more tokens
 
     (define-lex-abbrevs
@@ -80,7 +80,8 @@
        ("THROWI"     (token-THROWI))
        ("THROW"     (token-THROW))
        ("SHA3"     (token-SHA3))
-       ("ARRAYACCESS" (token-ARRAYACCESS))
+       ("ARRAYREAD" (token-ARRAYREAD))
+       ("ARRAYWRITE" (token-ARRAYWRITE))
        ("ISZERO"    (token-ISZERO))
        ("RETURN"    (token-RETURN))
        ("NOP"    (token-NOP))
@@ -148,7 +149,9 @@
 
           ((NUM COLON REG EQ NUM) (inst "eq#" (vector $1 $3 $5)))
           ((NUM COLON REG EQ REG) (inst "eq" (vector $1 $3 $5)))
-          ((NUM COLON REG EQ ARRAYACCESS REG REG) (inst "arrayaccess" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG EQ ARRAYREAD REG REG) (inst "arrayread" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG EQ ARRAYWRITE REG REG REG) (inst "arraywrite" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG EQ ARRAYWRITE REG REG NUM) (inst "arraywrite#" (vector $1 $3 $6 $7 $8)))
           ;;; ((NUM COLON NOP)        (inst "nop" (vector $1))) 
           ;;; ((NUM COLON JUMPI arg REG) (inst "jumpi" (vector $1 $4 $5)))
           ;;; ((NUM COLON JUMP arg) (inst "jump" (vector $1 $4)))

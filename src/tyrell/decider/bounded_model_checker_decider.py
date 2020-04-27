@@ -3,9 +3,17 @@ from tyrell.decider.decider import Decider
 from tyrell.interpreter import Interpreter
 from tyrell.decider.result import ok, bad
 from slither import Slither
+
+# node types
 from slither.slithir.operations.assignment import Assignment
 from slither.slithir.operations.binary import Binary
 from slither.slithir.operations.index import Index
+from slither.slithir.operations.condition import Condition
+
+from slither.slithir.variables.reference import ReferenceVariable
+from slither.solc_parsing.variables.state_variable import StateVariableSolc
+from slither.solc_parsing.variables.local_variable import LocalVariableSolc
+from slither.slithir.variables.temporary import TemporaryVariable
 
 class BoundedModelCheckerDecider(Decider):
     _interpreter: Interpreter
@@ -20,9 +28,11 @@ class BoundedModelCheckerDecider(Decider):
         self._interpreter = interpreter
         self._example = example
         self._equal_output = equal_output
+        self._tmp_counter = -1 # temporary variable counter
 
         # (debug) see what is the source contract first
         _ = self.extract_ir_from_source(self._example)
+        # input("DOUBLE-CHECK")
 
     @property
     def interpreter(self):
@@ -35,6 +45,11 @@ class BoundedModelCheckerDecider(Decider):
     @property
     def equal_output(self):
         return self._equal_output
+
+    def get_fresh_tmp_name(self):
+        self._tmp_counter += 1
+        # use "DMP" because "TMP" is originally used in Slither IR
+        return "DMP_{}".format(self._tmp_counter)
 
     def is_equivalent(self, prog):
         '''
@@ -64,6 +79,82 @@ class BoundedModelCheckerDecider(Decider):
         else:
             return bad()
 
+    def assemble_assignment(self, curr_addr, raw_irs):
+        # (Assignment,)
+        inst_list = []
+        ir = raw_irs[0]
+        inst = "{}: {} = {}".format(hex(curr_addr), ir.lvalue, ir.rvalue)
+        inst_list.append(inst)
+        return (curr_addr+1, inst_list)
+
+    def assemble_binary(self, curr_addr, raw_irs):
+        # (Binary,)
+        inst_list = []
+        ir = raw_irs[0]
+        code_type = ir.type_str
+        code_dict = {"+":"ADD", "-":"SUB", "<":"LT"}
+        if code_type in code_dict.keys():
+            opcode = code_dict[code_type]
+        else:
+            raise NotImplementedError("Unsupported code type: {}".format(code_type))
+        inst = "{}: {} = {} {} {}".format(hex(curr_addr), ir.lvalue, opcode, ir.variable_left, ir.variable_right)
+        inst_list.append(inst)
+        return (curr_addr+1, inst_list)
+
+    def assemble_arrayread(self, curr_addr, raw_irs):
+        # (Index,)
+        inst_list = []
+        ir = raw_irs[0]
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(curr_addr), ir.lvalue, ir.variable_left, ir.variable_right)
+        inst_list.append(inst)
+        return (curr_addr+1, inst_list)
+
+    def assemble_arraywrite(self, curr_addr, raw_irs):
+        # (Index, Assignment)
+        inst_list = []
+        ir0 = raw_irs[0]
+        ir1 = raw_irs[1]
+        tmp0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(curr_addr), tmp0, ir0.variable_left, ir0.variable_right, ir1.rvalue)
+        inst_list.append(inst)
+        return (curr_addr+1, inst_list)
+
+    def get_inst_list_by_irs(self, curr_addr, raw_irs):
+        seq_irs = tuple([type(p) for p in raw_irs])
+        # (notice) currently skipping conditions
+        if Condition in seq_irs:
+            return curr_addr, []
+
+        if seq_irs==(Assignment,):
+            next_addr, inst_list = self.assemble_assignment(curr_addr, raw_irs)
+            return next_addr, inst_list
+        elif seq_irs==(Binary,):
+            next_addr, inst_list = self.assemble_binary(curr_addr, raw_irs)
+            return next_addr, inst_list
+        elif seq_irs==(Index, Binary):
+            if raw_irs[0].lvalue==raw_irs[1].lvalue:
+                # first LHS appears in second LHS
+                # FIXME: can be map/update
+                raise NotImplementedError("not implemented")
+            else:
+                # first LHS only appears in second RHS
+                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, raw_irs[:1])
+                next_addr, inst_list1 = self.assemble_binary(next_addr, raw_irs[1:])
+                return next_addr, inst_list0 + inst_list1
+        elif seq_irs==(Index, Assignment):
+            if raw_irs[0].lvalue==raw_irs[1].lvalue:
+                # first LHS appears in second LHS
+                next_addr, inst_list = self.assemble_arraywrite(curr_addr, raw_irs)
+                return next_addr, inst_list
+            else:
+                raise NotImplementedError("not implemented")
+        elif seq_irs==(Assignment, Binary):
+            next_addr, inst_list0 = self.assemble_assignment(curr_addr, raw_irs[:1])
+            next_addr, inst_list1 = self.assemble_binary(next_addr, raw_irs[1:])
+            return next_addr, inst_list0 + inst_list1
+        else:
+            raise NotImplementedError("Unsupported instruction pattern: {}".format(seq_irs))
+
     def extract_ir_from_source(self, target_contract):
         slither = Slither(target_contract)
         contract = slither.contracts[0]
@@ -75,36 +166,10 @@ class BoundedModelCheckerDecider(Decider):
 
         for node in function.nodes:
 
-            if node.irs:
-                for ir in node.irs:
-                    if isinstance(ir, Assignment):
-                        address = address + 1
-                        inst =  '{}: {} = {}'.format(hex(address), ir.lvalue, ir.rvalue)
-                        inst_list.append(inst)
-                    elif isinstance(ir, Index):
-                        address = address + 1
-                        inst =  "{}: {} = ARRAYACCESS {} {}".format(hex(address), ir.lvalue, ir.variable_left, ir.variable_right)
-                        inst_list.append(inst)
-                    elif isinstance(ir, Binary):
-                        address = address + 1
-                        inst = ''
-                        opcode = 'no-op'
-                        code_type = ir.type_str
-                        if code_type == '+':
-                            opcode = 'ADD'
-                        elif code_type == '-':
-                            opcode = 'SUB'
-                        elif code_type == '<':
-                            opcode = 'LT'  
-                        else:
-                            pass                     
+            if len(node.irs)>0:
+                address, tmp_inst_list = self.get_inst_list_by_irs(address, node.irs)
+                inst_list += tmp_inst_list
 
-                        inst = '{}: {} = {} {} {}'.format(hex(address), str(ir.lvalue), opcode, ir.variable_left, ir.variable_right)
-                        inst_list.append(inst)
-
-                    else:
-                        pass
-        
         print("# Constructed source contract: ")
         print(inst_list)
         return inst_list, write
