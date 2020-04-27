@@ -173,9 +173,14 @@ class BoundedModelCheckerDecider(Decider):
             return next_addr, inst_list0 + inst_list1
         elif seq_irs==(Index, Index, Assignment):
             if raw_irs[0].lvalue==raw_irs[2].lvalue:
-                # first LHS appears in third LHS
+                # first LHS appears in third LHS: tgt[i] = src[i], copyrange pattern
                 next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[1]])
                 next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[2]])
+                return next_addr, inst_list0 + inst_list1
+            elif raw_irs[1].lvalue==raw_irs[2].lvalue:
+                # second LHS appears in third LHS: tgt[cont[i]] = val, updateRange pattern
+                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]])
+                next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[1], raw_irs[2]])
                 return next_addr, inst_list0 + inst_list1
             else:
                 raise NotImplementedError("not implemented")

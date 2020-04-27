@@ -777,25 +777,63 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_SHIFTLEFT_L(self, node, args):
         return self.build_shiftleft(node, args, True)
 
-    def build_updaterange(self, node, args, l):        
+    def build_updaterange(self, node, args, l):      
+        print("updaterange args: {}".format(args))
+        print("updaterange l: {}".format(l))     
         cont = args[0]
         tgt = args[1]
         val = args[2]
 
+        # ==== (display zone) ==== #
         if l == False:
             lam = val
         else:
             lam = args[3]
             lam = lam.replace("__x", val)
-
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 {tgtArr}[{contArr}[{it}]] = {lamVal};
             }}}}
         """.format(tgtArr=tgt, contArr=cont, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
+        print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
-                                                             it=self.iterator)
+        # start instruction assembling
+        inst_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # contArr[it]
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_0, cont, self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        if l:
+            # lambda is of val
+            lam_inst = args[3]
+            ref_1 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_1, lam_inst.replace("__x", val))
+            inst_list.append(inst)
+            self.pc += 1
+        else:
+            # lambda is val
+            ref_1 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_1, val)
+            inst_list.append(inst)
+            self.pc += 1
+
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, ref_0, ref_1)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # FIXME: may have to return the selected part of tgt array only
+        return inst_list, tgt
+        # return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
+        #                                                      it=self.iterator)
 
     def eval_UPDATERANGE(self, node, args):
         return self.build_updaterange(node, args, False)
