@@ -535,8 +535,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
     def get_fresh_tmp_name(self):
         self._tmp_counter += 1
-        # use "DMP" because "TMP" is originally used in Slither IR
-        return "DMP_{}".format(self._tmp_counter)
+        return "TMP_{}".format(self._tmp_counter)
 
     #########################################
     # Conditional Operators
@@ -862,29 +861,80 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_MAP_L(self, node, args):
         return self.build_map(node, args, True)
 
-    def build_incrange(self, node, args, l):        
+    def build_incrange(self, node, args, l):  
+        print("incrange args: {}".format(args))
+        print("incrange l: {}".format(l))         
         src = args[0]
         start_src = args[1]
         tgt = args[2]
 
+        # ==== (display zone) ==== #
         val = "{srcArr}[{it}+({srcStart})]".format(srcArr=src,
                                                    it=self.iterator,
                                                    srcStart=start_src)
-        
         if not l:
             lam = val
         else:
             lam = args[3]
             lam = lam.replace("__x", val)
-            
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 {tgtArr}[{it}] += {lamVal};
             }}}}
         """.format(tgtArr=tgt, srcArr=src, srcStart=start_src,
                    i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+        print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        return loop_body, val
+        # start instruction assembling
+        inst_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # it+srcStart
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_0, self.iterator, start_src)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # srcArr[it+srcStart]
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_1, src, ref_0)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # lambda
+        if l:
+            inst_lam = args[3]
+            ref_2 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_2, inst_lam.replace("__x", ref_1))
+            inst_list.append(inst)
+            self.pc += 1
+        else:
+            ref_2 = ref_1
+
+        # tgtObj[it]
+        ref_3 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_3, tgt, self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_3 + ref_2 (must do 3+2, not 2+3, since 3 is always var)
+        ref_4 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_4, ref_3, ref_2)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tgtObj[it] = ref_4
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_4)
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, tgt
+        # return loop_body, val
 
     def eval_INCRANGE(self, node, args):
         return self.build_incrange(node, args, False)

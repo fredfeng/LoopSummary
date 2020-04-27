@@ -29,6 +29,7 @@ class BoundedModelCheckerDecider(Decider):
         self._example = example
         self._equal_output = equal_output
         self._tmp_counter = -1 # temporary variable counter
+        self._ref_counter = -1 # temporary variable counter
 
         # (debug) see what is the source contract first
         _ = self.extract_ir_from_source(self._example)
@@ -45,6 +46,11 @@ class BoundedModelCheckerDecider(Decider):
     @property
     def equal_output(self):
         return self._equal_output
+
+    def get_fresh_ref_name(self):
+        self._ref_counter += 1
+        # use "DEF" because "REF" is originally used in Slither IR
+        return "DEF_{}".format(self._ref_counter)
 
     def get_fresh_tmp_name(self):
         self._tmp_counter += 1
@@ -92,7 +98,7 @@ class BoundedModelCheckerDecider(Decider):
         inst_list = []
         ir = raw_irs[0]
         code_type = ir.type_str
-        code_dict = {"+":"ADD", "-":"SUB", "<":"LT"}
+        code_dict = {"+":"ADD", "-":"SUB", "<":"LT", "-":"SUB", "*":"MUL", "/":"DIV"}
         if code_type in code_dict.keys():
             opcode = code_dict[code_type]
         else:
@@ -110,14 +116,27 @@ class BoundedModelCheckerDecider(Decider):
         return (curr_addr+1, inst_list)
 
     def assemble_arraywrite(self, curr_addr, raw_irs):
-        # (Index, Assignment)
-        inst_list = []
-        ir0 = raw_irs[0]
-        ir1 = raw_irs[1]
-        tmp0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(curr_addr), tmp0, ir0.variable_left, ir0.variable_right, ir1.rvalue)
-        inst_list.append(inst)
-        return (curr_addr+1, inst_list)
+        # (Index, Assignment) / (Index, Binary)
+        if isinstance(raw_irs[1], Assignment):
+            inst_list = []
+            ir0 = raw_irs[0]
+            ir1 = raw_irs[1]
+            tmp0 = self.get_fresh_tmp_name()
+            inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(curr_addr), tmp0, ir0.variable_left, ir0.variable_right, ir1.rvalue)
+            inst_list.append(inst)
+            return (curr_addr+1, inst_list)
+        elif isinstance(raw_irs[1], Binary):
+            # only need to deal with the array-write part
+            inst_list = []
+            ir0 = raw_irs[0]
+            ir1 = raw_irs[1]
+            tmp0 = self.get_fresh_tmp_name()
+            # (notice) the last format var is *ir1.lvalue* since it's used here as a state variable
+            inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(curr_addr), tmp0, ir0.variable_left, ir0.variable_right, ir1.lvalue)
+            inst_list.append(inst)
+            return (curr_addr+1, inst_list)
+        else:
+            raise NotImplementedError("Unsupported irs sequence: {}".format(tuple([type(p) for p in raw_irs])))
 
     def get_inst_list_by_irs(self, curr_addr, raw_irs):
         seq_irs = tuple([type(p) for p in raw_irs])
@@ -158,6 +177,17 @@ class BoundedModelCheckerDecider(Decider):
                 next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[1]])
                 next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[2]])
                 return next_addr, inst_list0 + inst_list1
+            else:
+                raise NotImplementedError("not implemented")
+        elif seq_irs==(Index, Index, Binary):
+            if raw_irs[0].lvalue==raw_irs[2].variable_left or raw_irs[0].lvalue==raw_irs[2].variable_right:
+                # MAYBE-FIXME: slightly abusive
+                # first LHS appears in third LHS
+                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]]) # this provides a reference for the Binary
+                next_addr, inst_list1 = self.assemble_arrayread(next_addr, [raw_irs[1]])
+                next_addr, inst_list2 = self.assemble_binary(next_addr, [raw_irs[2]])
+                next_addr, inst_list3 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[2]])
+                return next_addr, inst_list0 + inst_list1 + inst_list2 + inst_list3
             else:
                 raise NotImplementedError("not implemented")
         else:

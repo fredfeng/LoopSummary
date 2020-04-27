@@ -64,18 +64,9 @@
     (define var (get-sym-vec name fixed-vector-length))
     (if (hash-has-key? regs-out name)
         (hash-ref regs-out name)
-        (hash-set! regs-out name var))
-    ; at the same time add all elements in the env for ref tracking
-    ; (for ([i (in-range fixed-vector-length)])
-    ;     (define evar (vector-ref var i))
-    ;     (define ename (constant->string evar))
-    ;     (if (hash-has-key? regs-out ename)
-    ;         (raise-user-error (format "array element ~a already exists, check your implementation\n" ename))
-    ;         (hash-set! regs-out ename evar))
-    ;     )
-    ; return var
-    var
-)
+        (begin
+            (hash-set! regs-out name var)
+            var)))
 
 (define (check-equivalent input-json) 
     ;;; assume there is only one output
@@ -102,12 +93,15 @@
     (define output2 (hash-ref regs-out-2 out-reg2))
 
     (pretty-display regs-out-1)
+    (printf "\n")
     (pretty-display regs-out-2)
+    (printf "\n")
     (print regs-out-1)
     (printf "\n")
     (print regs-out-2)
+    (printf "\n")
     (define ok (sat? (solve (assert (not (equal? output1 output2))))))
-    (printf "output1 = ~a,  output2 = ~a eq? = ~a \n" output1 output2 ok)
+    (printf " output1 = ~a \n output2 = ~a eq? = ~a \n" output1 output2 ok)
     ;;; (printf "Register ~a = ~a ~a \n" out-reg output ok)
     (if ok "NEQ" "EQ")
     ;;; debugging
