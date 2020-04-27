@@ -138,8 +138,8 @@ class BoundedModelCheckerDecider(Decider):
                 raise NotImplementedError("not implemented")
             else:
                 # first LHS only appears in second RHS
-                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, raw_irs[:1])
-                next_addr, inst_list1 = self.assemble_binary(next_addr, raw_irs[1:])
+                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]])
+                next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
                 return next_addr, inst_list0 + inst_list1
         elif seq_irs==(Index, Assignment):
             if raw_irs[0].lvalue==raw_irs[1].lvalue:
@@ -149,9 +149,17 @@ class BoundedModelCheckerDecider(Decider):
             else:
                 raise NotImplementedError("not implemented")
         elif seq_irs==(Assignment, Binary):
-            next_addr, inst_list0 = self.assemble_assignment(curr_addr, raw_irs[:1])
-            next_addr, inst_list1 = self.assemble_binary(next_addr, raw_irs[1:])
+            next_addr, inst_list0 = self.assemble_assignment(curr_addr, [raw_irs[0]])
+            next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
             return next_addr, inst_list0 + inst_list1
+        elif seq_irs==(Index, Index, Assignment):
+            if raw_irs[0].lvalue==raw_irs[2].lvalue:
+                # first LHS appears in third LHS
+                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[1]])
+                next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[2]])
+                return next_addr, inst_list0 + inst_list1
+            else:
+                raise NotImplementedError("not implemented")
         else:
             raise NotImplementedError("Unsupported instruction pattern: {}".format(seq_irs))
 
