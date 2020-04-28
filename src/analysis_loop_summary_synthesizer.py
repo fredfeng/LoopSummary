@@ -5,11 +5,13 @@ import tyrell.spec as S
 from tyrell.interpreter import PostOrderInterpreter
 from tyrell.enumerator.full_dsl_dependency_enumerator import DependencyEnumerator
 from tyrell.enumerator import HoudiniEnumerator
-from tyrell.decider import Example, BoundedModelCheckerDecider
+# from tyrell.decider import Example, BoundedModelCheckerDecider
+from tyrell.decider import Example, SymdiffDecider
 from tyrell.synthesizer import Synthesizer
 from tyrell.logger import get_logger
 from slither.slither import Slither
 from verify import check_eq
+# from bmc import check_eq
 
 import sys
 sys.path.append("../analysis")
@@ -57,7 +59,7 @@ def build_glob_decl(vars_map, iterator_var, i_global):
 
     return glob_decl
 
-def build_type_table(vars_map, all_types, map_types):
+def build_type_table(vars_map, all_types, map_types, other_contracts):
     type_table = defaultdict(list)
     
     # Iterate through all global variables
@@ -92,6 +94,11 @@ def build_type_table(vars_map, all_types, map_types):
 
             # add values of type "k" to the table
             type_table[typ] += q_vars_list.split(",")
+
+            # add in other contract types to "Contract" for transfer
+            #   TODO: I should probably restrict this to things called ERC20
+            if typ in other_contracts:
+                type_table["Contract"] += q_vars_list.split(",")
         else:
             print("IGNORED TYPE: {0}!".format(typ))
 
@@ -209,7 +216,7 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     all_types = base_types + map_types + ["g_int"]
 
     # Maps types to global variables of that type
-    type_table = build_type_table(vars_map, all_types, map_types)
+    type_table = build_type_table(vars_map, all_types, map_types, other_contracts)
 
     # Copy global integers into special separate type "g_int"
     type_table["g_int"] = list(set(type_table["uint"]))
@@ -230,7 +237,9 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     # Add int constants to ints
     type_table["uint"] = list(set(type_table["uint"]+C))
     # Add "true" and "false" as boolean constants
-    type_table["bool"] = list(set(type_table["bool"]+B))    
+    type_table["bool"] = list(set(type_table["bool"]+B))
+    # Add 0 address to addresses
+    type_table["address"] = list(set(type_table["address"]+['"address(0)"']))
 
     # Add in lambdas if present
     if (lambdas):
@@ -444,7 +453,8 @@ value i;
 value i_st;
 value i_end;
 value F;
-value Cond;
+value Cond_uint;
+value Cond_address;
 value Summary;
 value Inv;
 
@@ -460,6 +470,8 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
+func TRANSFER: F -> READ__Contract, READ__mapping(uint => address), READ_mapping(uint => uint);
+func TRANSFER_L: F -> READ__Contract?, READ__mapping(uint => address), READ_mapping(uint => uint), L;
 func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
@@ -469,8 +481,12 @@ func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
 func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
-func FILTER__#A: F -> Write__mapping(uint => #A), IF, Cond;
-func REQUIRE: F -> ReqCond;
+func FILTER__uint: F -> Write__mapping(uint => uint), IF, Cond_uint;
+func FILTER__address: F -> Write__mapping(uint => address), IF, Cond_address;
+func REQUIRE_ASCENDING: F -> mapping(uint => uint);
+func REQUIRE_DESCENDING: F -> mapping(uint => uint);
+func REQUIRE__uint: F -> Cond_uint;
+func REQUIRE__address: F -> Cond_address;
 
 # Arithmetic funcs for lambda
 func lambda: L -> Lambda;
@@ -484,14 +500,17 @@ func addc_end: i_end -> GuardEnd__uint, C;
 func subc_st: i_st -> GuardStart__uint, C;
 func subc_end: i_end -> GuardEnd__uint, C;
 
-# Boolean funcs for conditional lambda
-func lt: Cond -> uint;
-func gt: Cond -> uint;
-func eq: Cond -> uint;
-func lte: Cond -> uint;
-func gte: Cond -> uint;
-func and: Cond -> Cond, Cond;
-func or: Cond -> Cond, Cond;
+# Boolean comps for uint
+func lt: Cond_uint -> mapping(uint => uint), uint;
+func gt: Cond_uint -> mapping(uint => uint), uint;
+func eq: Cond_uint -> mapping(uint => uint), uint;
+func neq: Cond_uint -> mapping(uint => uint), uint;
+func lte: Cond_uint -> mapping(uint => uint), uint;
+func gte: Cond_uint -> mapping(uint => uint), uint;
+
+# Boolean comps for address
+func eq_addr: Cond_uint -> mapping(uint => address), address;
+func neq_addr: Cond_uint -> mapping(uint => address), address;
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
@@ -528,19 +547,36 @@ class SymDiffInterpreter(PostOrderInterpreter):
     #########################################
         
     def eval_lt(self, node, args):
-        return "__y" + "<" + args[0]
+        arr = "{0}[{1}]".format(args[0], self.iterator)
+        return arr + "<" + args[1]
 
     def eval_lte(self, node, args):
-        return "__y" + "<=" + args[0]
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr + "<=" + args[1]
 
     def eval_eq(self, node, args):
-        return "__y" + "==" + args[0]
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr + "==" + args[1]
+    
+    def eval_neq(self, node, args):
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr + "!=" + args[1]
     
     def eval_gt(self, node, args):
-        return "__y" + ">" + args[0]
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr + ">" + args[1]
     
     def eval_gte(self, node, args):
-        return "__y" + ">=" + args[0]
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr + ">=" + args[1]
+    
+    def eval_eq_addr(self, node, args):
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr + "==" + args[1]
+    
+    def eval_neq_addr(self, node, args):
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr + "!=" + args[1]
     
     def eval_and(self, node, args):
         return args[0] + " && " + args[1]
@@ -619,7 +655,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}}}
         """.format(tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
-        return loop_body, val
+        return loop_body
 
     def eval_SUM(self, node, args):
         return self.build_sum(node, args, False)
@@ -647,7 +683,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}}}
         """.format(tgtObj=tgt_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
-        return loop_body, val
+        return loop_body
     
     def eval_COPYRANGE(self, node, args):
         return self.build_copyrange(node, args, False)
@@ -673,7 +709,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}}}
         """.format(arr=src_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
-        return loop_body, val
+        return loop_body
 
     def eval_SHIFTLEFT(self, node, args):
         return self.build_shiftleft(node, args, False)
@@ -698,9 +734,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}}}
         """.format(tgtArr=tgt, contArr=cont, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
-        return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
-                                                             it=self.iterator)
-
+        return loop_body
+    
     def eval_UPDATERANGE(self, node, args):
         return self.build_updaterange(node, args, False)
 
@@ -722,7 +757,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}}}
         """.format(tgtArr=tgt, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
 
-        return loop_body, val
+        return loop_body
 
     def eval_MAP(self, node, args):
         return self.build_map(node, args, False)
@@ -752,7 +787,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         """.format(tgtArr=tgt, srcArr=src, srcStart=start_src,
                    i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
-        return loop_body, val
+        return loop_body
 
     def eval_INCRANGE(self, node, args):
         return self.build_incrange(node, args, False)
@@ -760,6 +795,51 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_INCRANGE_L(self, node, args):
         return self.build_incrange(node, args, True)
 
+    def build_transfer(node, args, l):
+        sender = args[0]
+        receiver = args[1]
+        amount_arr = args[2]
+
+        val = "{amnt_arr}[{it}]".format(amnt_arr=amount_arr, it=self.iterator)
+        
+        if not l:
+            lam = val
+        else:
+            lam = args[3]
+            lam = lam.replace("__x", val)
+            
+        loop_body = """
+            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
+                {sndr}.transfer({rcvr}[{it}], lamVal);
+            }}}}
+        """.format(sndr=sender, rcvr=receiver, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+
+        return loop_body
+    
+    def eval_TRANSFER(self, node, args):
+        return self.build_transfer(node, args, False)
+    
+    def eval_TRANSFER_L(self, node, args):
+        return self.build_transfer(node, args, True)
+
+    def build_require_ordered(self, node, args, isAscending):
+        arr = args[0]
+        op = "<" if isAscending else "<" 
+        
+        loop_body = """
+            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
+                require({arr}[{it}] {op} {arr}[{it}+1]);
+            }}}}
+        """.format(i_typ=self.i_typ, it=self.iterator, req_cond=cond, arr=arr, op=op)
+
+        return loop_body
+    
+    def eval_REQUIRE_ASCENDING(self, node, args):
+        return self.build_require_ordered(node, args, True)
+
+    def eval_REQUIRE_DESCENDING(self, node, args):
+        return self.build_require_ordered(node, args, False)        
+    
     def eval_REQUIRE(self, node, args):
         cond = args[0]
         
@@ -769,12 +849,12 @@ class SymDiffInterpreter(PostOrderInterpreter):
             }}}}
         """.format(i_typ=self.i_typ, it=self.iterator, req_cond=cond)
 
-        return loop_body, None
+        return loop_body
 
     def eval_FILTER(self, node, args):
         tgt = args[0]        
-        loop, cond_arg = args[1]
-        cond = args[2].replace("__y", cond_arg)
+        loop = args[1]
+        cond = args[2]
 
         matches = re.findall(r"(.*)\{.*\n(.*)\n.*\}", loop)
         if matches != []:
@@ -790,12 +870,12 @@ class SymDiffInterpreter(PostOrderInterpreter):
         else:
             raise Exception("No body in:\n {0}".format(loop))
 
-        return new_loop, None 
+        return new_loop 
         
     def eval_summarize(self, node, args):
         start = args[1]
         end = args[2]
-        body, _ = args[0]
+        body = args[0]
         body = body.format(GuardStart="={0}".format(start), GuardEnd=end)
         actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
 
@@ -805,7 +885,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
     def eval_summarize_nost(self, node, args):
         end = args[1]
-        body, _ = args[0]
+        body = args[0]
         body = body.format(GuardStart="", GuardEnd=end)
         actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
 
@@ -814,17 +894,15 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return actual_contract
 
     def eval_intFunc(self, node, args):
-        loop, _ = args[0]
-        return loop, None
+        return args[0]
 
     def eval_nonintFunc(self, node, args):
-        loop, _ = args[0]
-        return loop, None
+        return args[0]
 
     def build_seq(self, node, args):
-        loop0, _ = args[0]
-        loop1, _ = args[1]        
-        return loop0 + "\n\n" + loop1, None;
+        loop0 = args[0]
+        loop1 = args[1]        
+        return loop0 + "\n\n" + loop1
 
     def eval_seqF(self, node, args):
         return self.build_seq(node, args)
@@ -848,8 +926,7 @@ def parse_args():
     parser.add_argument("--prune", help="Activates analysis-based pruning", action="store_true")
     return parser.parse_args()
 
-def main():    
-    args = parse_args()
+def main(args):    
     sol_file = args.file
     seed = None
     # assert False
@@ -857,6 +934,7 @@ def main():
     if args.prune:
         logger.info('Analyzing Input...')
         deps, refs = analyze(sol_file, "C", "foo()")
+        print(deps.dependencies)
         lambdas = analyze_lambdas(sol_file, "C", "foo()")
         req_conds = get_requires_conditions(sol_file)
         logger.info('Analysis Successful!')
@@ -880,8 +958,10 @@ def main():
     synthesizer = Synthesizer(
         enumerator=DependencyEnumerator(
             spec, max_depth=6, seed=seed, analysis=deps.dependencies if args.prune else None, types=types),
-        decider=BoundedModelCheckerDecider(
+        decider=SymdiffDecider(
             interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
+        # decider=BoundedModelCheckerDecider(
+        #     interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
     logger.info('Synthesizing programs...')
 
@@ -897,4 +977,5 @@ def main():
 if __name__ == '__main__':
     logger.setLevel('DEBUG')
     assert len(argv) > 1
-    main()
+    args = parse_args()    
+    main(args)
