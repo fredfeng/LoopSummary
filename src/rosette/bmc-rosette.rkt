@@ -29,14 +29,42 @@
 
 ;;; Racket function to model array read
 (define (sym-array-read base offset)
-    (assert (not (negative? offset)))
+    ;;; (notice) first tell if the variables are symbolic or not before assertion
+    (if (not (or (constant? offset) (term? offset) (expression? offset)))
+        (if (or (< offset 0) (>= offset (vector-length base)))
+            (begin
+                (printf "constant-check@read: eq? = #t\n") ; programs not equal 
+                (printf "~a\n" offset)
+                (exit 0)
+            )
+            (printf "")
+        )
+        (printf "")
+    )
+    ;;; if you pass the above without exitting, 
+    ;;; then it's ok to issue the rosette assertions
+    (assert (>= offset 0)) 
     (assert (< offset (vector-length base)))
     (vector-ref base offset) )
 
 ;;; Racket function to model array write
 ;;; return base[offset] (TMP: won't be used)
 (define (sym-array-write base offset source)
-    (assert (not (negative? offset)))
+    ;;; (notice) first tell if the variables are symbolic or not before assertion
+    (if (not (or (constant? offset) (term? offset) (expression? offset)))
+        (if (or (< offset 0) (>= offset (vector-length base)))
+            (begin
+                (printf "constant-check@write: eq? = #t\n") ; programs not equal 
+                (printf "~a\n" offset)
+                (exit 0)
+            )
+            (printf "")
+        )
+        (printf "")
+    )
+    ;;; if you pass the above without exitting, 
+    ;;; then it's ok to issue the rosette assertions
+    (assert (>= offset 0)) 
     (assert (< offset (vector-length base)))
     (vector-set! base offset source)
     ; return value (no need to return anything)
@@ -173,6 +201,14 @@
         (sym-array-write base-val offset-val source-val)
     )
 
+    (define (add##)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define val (+ (string->number a1) (string->number a2))) ;; reg const 
+        (printf "debug ri: val=~a \n" val)
+        (hash-set! env d val))
+
     (define (add#)
         (define d (vector-ref args 1))
         (define a1 (vector-ref args 2))
@@ -189,6 +225,14 @@
         (define a1-val (gen-var-by-name a1 env))
         (define a2-val (gen-var-by-name a2 env))
         (define val (+ a1-val a2-val)) ;; reg const 
+        (printf "debug ri: val=~a \n" val)
+        (hash-set! env d val))
+
+    (define (sub##)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define val (- (string->number a1) (string->number a2))) ;; reg const 
         (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
@@ -215,8 +259,10 @@
          [(equal? op-name "nop")   (void)]
          [(equal? op-name "add")   (add)]
          [(equal? op-name "add#")   (add#)]
+         [(equal? op-name "add##")   (add##)]
          [(equal? op-name "sub")   (sub)]
          [(equal? op-name "sub#")   (sub#)]
+         [(equal? op-name "sub##")   (sub##)]
          [(equal? op-name "eq#") (assign#)]
          [(equal? op-name "eq") (assign)]
          [(equal? op-name "lt") (void)]

@@ -15,6 +15,10 @@ from slither.solc_parsing.variables.state_variable import StateVariableSolc
 from slither.solc_parsing.variables.local_variable import LocalVariableSolc
 from slither.slithir.variables.temporary import TemporaryVariable
 
+from slither.slithir.variables.constant import Constant
+
+
+
 class BoundedModelCheckerDecider(Decider):
     _interpreter: Interpreter
     _example: None
@@ -31,9 +35,24 @@ class BoundedModelCheckerDecider(Decider):
         self._tmp_counter = -1 # temporary variable counter
         self._ref_counter = -1 # temporary variable counter
 
+        # (notice) apply patch to update Constant method
+        self.patch_ir_boolean_0()
+
         # (debug) see what is the source contract first
         _ = self.extract_ir_from_source(self._example)
         # input("DOUBLE-CHECK")
+
+    def patch_ir_boolean_0(self):
+        # this patch update the str value of a bool constant in Slither IR
+        # where originally it displays "True" but now "true" ("False" but now "false")
+        # which corresponds with the MyIR and synthesizer representation
+        def new_str(self):
+            if isinstance(self.value,bool):
+                return str(self.value).lower()
+            else:
+                return str(self.value)
+
+        Constant.__str__ = new_str
 
     @property
     def interpreter(self):
@@ -145,11 +164,18 @@ class BoundedModelCheckerDecider(Decider):
             return curr_addr, []
 
         if seq_irs==(Assignment,):
+            # e.g., i = strt
             next_addr, inst_list = self.assemble_assignment(curr_addr, raw_irs)
             return next_addr, inst_list
         elif seq_irs==(Binary,):
+            # e.g., i = strt + 1
             next_addr, inst_list = self.assemble_binary(curr_addr, raw_irs)
             return next_addr, inst_list
+        elif seq_irs==(Binary, Assignment):
+            # e.g., i = (i) + (1)
+            next_addr, inst_list0 = self.assemble_binary(curr_addr, [raw_irs[0]])
+            next_addr, inst_list1 = self.assemble_assignment(next_addr, [raw_irs[1]])
+            return next_addr, inst_list0 + inst_list1
         elif seq_irs==(Index, Binary):
             if raw_irs[0].lvalue==raw_irs[1].lvalue:
                 # first LHS appears in second LHS
@@ -157,28 +183,33 @@ class BoundedModelCheckerDecider(Decider):
                 raise NotImplementedError("not implemented")
             else:
                 # first LHS only appears in second RHS
+                # e.g., acc += arr[i] (sum)
                 next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]])
                 next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
                 return next_addr, inst_list0 + inst_list1
         elif seq_irs==(Index, Assignment):
             if raw_irs[0].lvalue==raw_irs[1].lvalue:
                 # first LHS appears in second LHS
+                # e.g., arr[i] = val (map)
                 next_addr, inst_list = self.assemble_arraywrite(curr_addr, raw_irs)
                 return next_addr, inst_list
             else:
                 raise NotImplementedError("not implemented")
         elif seq_irs==(Assignment, Binary):
+            # e.g., i = i + 1
             next_addr, inst_list0 = self.assemble_assignment(curr_addr, [raw_irs[0]])
             next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
             return next_addr, inst_list0 + inst_list1
         elif seq_irs==(Index, Index, Assignment):
             if raw_irs[0].lvalue==raw_irs[2].lvalue:
-                # first LHS appears in third LHS: tgt[i] = src[i], copyrange pattern
+                # first LHS appears in third LHS
+                # e.g., tgt[i] = src[i] (copyrange)
                 next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[1]])
                 next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[2]])
                 return next_addr, inst_list0 + inst_list1
             elif raw_irs[1].lvalue==raw_irs[2].lvalue:
-                # second LHS appears in third LHS: tgt[cont[i]] = val, updateRange pattern
+                # second LHS appears in third LHS
+                # e.g., tgt[cont[i]] = val, (updaterange)
                 next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]])
                 next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[1], raw_irs[2]])
                 return next_addr, inst_list0 + inst_list1
@@ -188,6 +219,7 @@ class BoundedModelCheckerDecider(Decider):
             if raw_irs[0].lvalue==raw_irs[2].variable_left or raw_irs[0].lvalue==raw_irs[2].variable_right:
                 # MAYBE-FIXME: slightly abusive
                 # first LHS appears in third LHS
+                # e.g., tgt_arr[i] += src_arr[i] (incrange)
                 next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]]) # this provides a reference for the Binary
                 next_addr, inst_list1 = self.assemble_arrayread(next_addr, [raw_irs[1]])
                 next_addr, inst_list2 = self.assemble_binary(next_addr, [raw_irs[2]])
@@ -195,8 +227,29 @@ class BoundedModelCheckerDecider(Decider):
                 return next_addr, inst_list0 + inst_list1 + inst_list2 + inst_list3
             else:
                 raise NotImplementedError("not implemented")
+        elif seq_irs==(Index, Binary, Assignment):
+            # (reasoning) if the index is ref, then there's no point to introduce Binary and Assignment, only one Binary is enough
+            # --> so index must be on the RHS of Binary, and LHS of Binary will be assigned to Assignment
+            if raw_irs[0].lvalue==raw_irs[1].variable_left or raw_irs[0].lvalue==raw_irs[1].variable_right:
+                # e.g., acc = acc + arr[i] (sum)  --> different from acc += arr[i]
+                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]]) # this provides a reference for the Binary
+                next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
+                next_addr, inst_list2 = self.assemble_assignment(next_addr, [raw_irs[2]])
+                return next_addr, inst_list0 + inst_list1 + inst_list2
+            else:
+                raise NotImplementedError("not implemented")
+        elif seq_irs==(Index, Binary, Index, Assignment):
+            if raw_irs[0].lvalue==raw_irs[3].lvalue and raw_irs[0].lvalue!=raw_irs[1].lvalue:
+                # e.g., owners[j] = owners[j+1]
+                next_addr, inst_list0 = self.assemble_binary(curr_addr, [raw_irs[1]])
+                next_addr, inst_list1 = self.assemble_arrayread(next_addr, [raw_irs[2]])
+                next_addr, inst_list2 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[3]])
+                return next_addr, inst_list0 + inst_list1 + inst_list2
+            else:
+                raise NotImplementedError("not implemented")
         else:
             raise NotImplementedError("Unsupported instruction pattern: {}".format(seq_irs))
+
 
     def extract_ir_from_source(self, target_contract):
         slither = Slither(target_contract)
