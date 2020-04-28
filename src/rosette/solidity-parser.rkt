@@ -21,7 +21,7 @@
     (define-tokens a (VAR WORD NUM REG)) ;; add more tokens
     (define-empty-tokens b (EOF EQ HOLE BLOCKHASH EQCMP COMMA CREATE THROW THROWI NOP LOG BALANCE ISZERO SGT GT SLT LT SHA3 DELEGATECALL CALLCODE CALL NOT OR
                             SELFDESTRUCT MSIZE NUMBER CALLDATACOPY CODECOPY SUB TIMESTAMP EXP DIV RETURNDATACOPY MUL AND ADD REVERT RETURNDATASIZE
-                            CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAYACCESS
+                            CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAYREAD ARRAYWRITE
                             RETURN COLON ORIGIN CALLVALUE JUMP EXTCODESIZE JUMPI SLP LC RC LP RP ADDRESS CALLDATASIZE CALLDATALOAD)) ;; add more tokens
 
     (define-lex-abbrevs
@@ -80,7 +80,8 @@
        ("THROWI"     (token-THROWI))
        ("THROW"     (token-THROW))
        ("SHA3"     (token-SHA3))
-       ("ARRAYACCESS" (token-ARRAYACCESS))
+       ("ARRAYREAD" (token-ARRAYREAD))
+       ("ARRAYWRITE" (token-ARRAYWRITE))
        ("ISZERO"    (token-ISZERO))
        ("RETURN"    (token-RETURN))
        ("NOP"    (token-NOP))
@@ -128,8 +129,10 @@
           ;;; ((NUM COLON REG EQ GT REG REG) (inst "gt" (vector $1 $3 $6 $7)))
           ((NUM COLON REG EQ SUB REG REG) (inst "sub" (vector $1 $3 $6 $7)))
           ((NUM COLON REG EQ SUB REG NUM) (inst "sub#" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG EQ SUB NUM NUM) (inst "sub##" (vector $1 $3 $6 $7)))
           ((NUM COLON REG EQ ADD REG REG) (inst "add" (vector $1 $3 $6 $7)))
           ((NUM COLON REG EQ ADD REG NUM) (inst "add#" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG EQ ADD NUM NUM) (inst "add##" (vector $1 $3 $6 $7)))
           ;;; ((NUM COLON REG EQ XOR REG REG) (inst "xor" (vector $1 $3 $6 $7)))
           ;;; ((NUM COLON REG EQ MOD REG REG) (inst "mod" (vector $1 $3 $6 $7)))
           ;;; ((NUM COLON REG EQ DIV REG REG) (inst "div" (vector $1 $3 $6 $7)))
@@ -148,7 +151,9 @@
 
           ((NUM COLON REG EQ NUM) (inst "eq#" (vector $1 $3 $5)))
           ((NUM COLON REG EQ REG) (inst "eq" (vector $1 $3 $5)))
-          ((NUM COLON REG EQ ARRAYACCESS REG REG) (inst "arrayaccess" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG EQ ARRAYREAD REG REG) (inst "arrayread" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG EQ ARRAYWRITE REG REG REG) (inst "arraywrite" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG EQ ARRAYWRITE REG REG NUM) (inst "arraywrite#" (vector $1 $3 $6 $7 $8)))
           ;;; ((NUM COLON NOP)        (inst "nop" (vector $1))) 
           ;;; ((NUM COLON JUMPI arg REG) (inst "jumpi" (vector $1 $4 $5)))
           ;;; ((NUM COLON JUMP arg) (inst "jump" (vector $1 $4)))

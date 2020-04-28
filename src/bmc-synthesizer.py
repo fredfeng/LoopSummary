@@ -526,6 +526,17 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # TODO: HANDLE NESTED LOOPS
         self.iterator = global_vars[0]
 
+        self._ref_counter = -1 # reference variable counter
+        self._tmp_counter = -1 # temporary variable counter
+
+    def get_fresh_ref_name(self):
+        self._ref_counter += 1
+        return "REF_{}".format(self._ref_counter)
+
+    def get_fresh_tmp_name(self):
+        self._tmp_counter += 1
+        return "TMP_{}".format(self._tmp_counter)
+
     #########################################
     # Conditional Operators
     #########################################
@@ -591,17 +602,22 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_add(self, node, args):
         # return "__x" + '+' + args[0]
         if args[0] == "-1":
-            return "__x-1"
-        return "__x" + '+' + args[0]
+            # return "__x-1"
+            return "SUB {} {}".format("__x", "1")
+        # return "__x" + '+' + args[0]
+        return "ADD {} {}".format("__x", args[0])
 
     def eval_sub(self, node, args):
-        return "__x" + '-' + args[0]
+        # return "__x" + '-' + args[0]
+        return "SUB {} {}".format("__x", args[0])
 
     def eval_mul(self, node, args):
-        return "__x" + '*' + args[0]
+        # return "__x" + '*' + args[0]
+        return "MUL {} {}".format("__x", args[0])
     
     def eval_div(self, node, args):
-        return "__x" + '/' + args[0]
+        # return "__x" + '/' + args[0]
+        return "DIV {} {}".format("__x", args[0])
 
     #########################################
     # DSL
@@ -612,40 +628,53 @@ class SymDiffInterpreter(PostOrderInterpreter):
         acc = args[0]
         arr = args[1]
 
+        # ==== (display zone) ==== #
         val = "{srcArr}[{it}]".format(srcArr=arr, it=self.iterator)
-        
-        # FIXME: lam is not used in constructing inst_list
-        if l == False:
-            lam = "+= {0}".format(val)
-        else:
+        if l:
             lam = args[2]
             if lam == "-1":
                 lam = "-= 1"
             else:
                 lam = "+= "+lam
             lam = lam.replace("__x", val)
-        
+        else:
+            lam = "+= {0}".format(val)
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; ++{it}) {{{{
                 {tgtAcc} {lamVal};
             }}}}
         """.format(tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
         print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        inst_list = [] 
+        # start instruction assembling
         # FIXME: missing initialization expression outside the loop body
+        inst_list = [] 
+        
         inst =  '{}: {} = {{GuardStart}}'.format(hex(self.pc), self.iterator)
         inst_list.append(inst)
         self.pc += 1
-        inst =  "{}: {} = ARRAYACCESS {} {}".format(hex(self.pc), 'REF_0', arr, self.iterator)
+
+        ref_0 = self.get_fresh_ref_name()
+        inst =  "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_0, arr, self.iterator)
         inst_list.append(inst)
         self.pc += 1
-        inst = '{}: {} = {} {} {}'.format(hex(self.pc), acc, 'ADD', acc, 'REF_0')
+
+        if l:
+            lam_inst = args[2]
+            ref_1 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_1, lam_inst.replace("__x", ref_0))
+            inst_list.append(inst)
+            self.pc += 1
+        else:
+            # no lambda
+            ref_1 = ref_0
+
+        inst = '{}: {} = {} {} {}'.format(hex(self.pc), acc, 'ADD', acc, ref_1)
         inst_list.append(inst)
         self.pc += 1
 
         return inst_list, acc
-
         # return loop_body, val
 
     def eval_SUM(self, node, args):
@@ -654,27 +683,67 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_SUM_L(self, node, args):
         return self.build_sum(node, args, True)
     
-    def build_copyrange(self, node, args, l):        
+    def build_copyrange(self, node, args, l):       
+        print("copyrange args: {}".format(args))
+        print("copyrange l: {}".format(l))    
         src_array = args[0]
         start_src = args[1]
         tgt_array = args[2]
 
+        # ==== (display zone) ==== #
         val = "{srcObj}[{it}+({srcStart})]".format(srcObj=src_array,
                                                    it=self.iterator,
                                                    srcStart=start_src)
-        if l == False:
-            lam = val
-        else:
+        if l:
             lam = args[3]
             lam = lam.replace("__x", val)
-            
+        else:
+            lam = val
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 {tgtObj}[{it}] = {lamVal};
             }}}}
         """.format(tgtObj=tgt_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+        print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        return loop_body, val
+        # start instruction assembling
+        inst_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # it+srcStart
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_0, self.iterator, start_src)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # srcObj[it+srcStart]
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_1, src_array, ref_0)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # lambda
+        if l:
+            inst_lam = args[3]
+            ref_2 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_2, inst_lam.replace("__x", ref_1))
+            inst_list.append(inst)
+            self.pc += 1
+        else:
+            ref_2 = ref_1
+
+        # tgtObj[it] = ref_2
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt_array, self.iterator, ref_2)
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, tgt_array
+        # return loop_body, val
     
     def eval_COPYRANGE(self, node, args):
         return self.build_copyrange(node, args, False)
@@ -708,25 +777,63 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_SHIFTLEFT_L(self, node, args):
         return self.build_shiftleft(node, args, True)
 
-    def build_updaterange(self, node, args, l):        
+    def build_updaterange(self, node, args, l):      
+        print("updaterange args: {}".format(args))
+        print("updaterange l: {}".format(l))     
         cont = args[0]
         tgt = args[1]
         val = args[2]
 
+        # ==== (display zone) ==== #
         if l == False:
             lam = val
         else:
             lam = args[3]
             lam = lam.replace("__x", val)
-
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 {tgtArr}[{contArr}[{it}]] = {lamVal};
             }}}}
         """.format(tgtArr=tgt, contArr=cont, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
+        print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
-                                                             it=self.iterator)
+        # start instruction assembling
+        inst_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # contArr[it]
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_0, cont, self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        if l:
+            # lambda is of val
+            lam_inst = args[3]
+            ref_1 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_1, lam_inst.replace("__x", val))
+            inst_list.append(inst)
+            self.pc += 1
+        else:
+            # lambda is val
+            ref_1 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_1, val)
+            inst_list.append(inst)
+            self.pc += 1
+
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, ref_0, ref_1)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # FIXME: may have to return the selected part of tgt array only
+        return inst_list, tgt
+        # return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
+        #                                                      it=self.iterator)
 
     def eval_UPDATERANGE(self, node, args):
         return self.build_updaterange(node, args, False)
@@ -738,31 +845,48 @@ class SymDiffInterpreter(PostOrderInterpreter):
         print("map args: {}".format(args))
         print("map l: {}".format(l))   
         tgt = args[0]
-        lam = args[1]
+        lam_inst = args[1]
 
+        # ==== (display zone) ==== #
+        lam = args[1]
         val = "{tgtArr}[{it}]".format(tgtArr=tgt, it=self.iterator)
-        
         if l:
             lam = lam.replace("__x", val)
-
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 {tgtArr}[{it}] = {lamVal};
             }}}}
         """.format(tgtArr=tgt, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
         print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
+        # start instruction assembling
         inst_list = []
+
         inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
         inst_list.append(inst)
         self.pc += 1
-        inst = "{}: {} = ARRAYACCESS {} {}".format(hex(self.pc), 'REF_0', tgt, self.iterator)
-        inst_list.append(inst)
-        self.pc += 1
-        inst = "{}: {} = {}".format(hex(self.pc), 'REF_1', lam)
-        inst_list.append(inst)
-        self.pc += 1
-        inst = "{}: {} = {}".format(hex(self.pc), 'REF_0', 'REF_1')
+
+        if l:
+            # has arr[?] involved in lambda, should contain 2 instructions
+            ref_00 = self.get_fresh_ref_name()
+            inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_00, tgt, self.iterator)
+            inst_list.append(inst)
+            self.pc += 1
+
+            ref_0 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_0, lam_inst.replace("__x", ref_00))
+            inst_list.append(inst)
+            self.pc += 1
+        else:
+            # lambda does not have array
+            ref_0 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_0, lam_inst)
+            inst_list.append(inst)
+            self.pc += 1
+
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_0)
         inst_list.append(inst)
         self.pc += 1
 
@@ -775,29 +899,80 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_MAP_L(self, node, args):
         return self.build_map(node, args, True)
 
-    def build_incrange(self, node, args, l):        
+    def build_incrange(self, node, args, l):  
+        print("incrange args: {}".format(args))
+        print("incrange l: {}".format(l))         
         src = args[0]
         start_src = args[1]
         tgt = args[2]
 
+        # ==== (display zone) ==== #
         val = "{srcArr}[{it}+({srcStart})]".format(srcArr=src,
                                                    it=self.iterator,
                                                    srcStart=start_src)
-        
         if not l:
             lam = val
         else:
             lam = args[3]
             lam = lam.replace("__x", val)
-            
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 {tgtArr}[{it}] += {lamVal};
             }}}}
         """.format(tgtArr=tgt, srcArr=src, srcStart=start_src,
                    i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+        print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        return loop_body, val
+        # start instruction assembling
+        inst_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # it+srcStart
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_0, self.iterator, start_src)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # srcArr[it+srcStart]
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_1, src, ref_0)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # lambda
+        if l:
+            inst_lam = args[3]
+            ref_2 = self.get_fresh_ref_name()
+            inst = "{}: {} = {}".format(hex(self.pc), ref_2, inst_lam.replace("__x", ref_1))
+            inst_list.append(inst)
+            self.pc += 1
+        else:
+            ref_2 = ref_1
+
+        # tgtObj[it]
+        ref_3 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_3, tgt, self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_3 + ref_2 (must do 3+2, not 2+3, since 3 is always var)
+        ref_4 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_4, ref_3, ref_2)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tgtObj[it] = ref_4
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_4)
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, tgt
+        # return loop_body, val
 
     def eval_INCRANGE(self, node, args):
         return self.build_incrange(node, args, False)
