@@ -2,23 +2,6 @@
 
 (require json rosette/query/debug racket/sandbox "solidity-parser.rkt" "inst.rkt")
 
-;;; convert a symbolic var to string
-; (define (constant->string x)
-;     (format "~a" x))
-
-; ;;; hash-set! method for when key is a REF_? var
-; (define (ref-hash-set! regs-out rkey rval)
-;     (if (string-prefix? rkey "REF_")
-;         ; if key is a reference variable, do ref-hash-set!
-;         (begin
-;             (define rdkey (constant->string (hash-ref regs-out rkey)))
-;             ; do a sanity check here
-;             (if (hash-has-key? regs-out rdkey)
-;                 (hash-set! regs-out rdkey rval)
-;                 (raise-user-error (format "referred key ~a does not exist in env, check your implementation\n" rdkey))))
-;         ; else: normal hash-set
-;         (hash-set! regs-out rkey rval)))
-
 ;;; n is the length of the symbolic vector
 (define (get-sym-vec name n)
   (list->vector
@@ -66,9 +49,8 @@
     ;;; then it's ok to issue the rosette assertions
     (assert (>= offset 0)) 
     (assert (< offset (vector-length base)))
+    ;;; no return value will be used
     (vector-set! base offset source)
-    ; return value (no need to return anything)
-    ; (vector-ref base offset)
 )
 
 (define parser (new solidity-parser%))
@@ -79,6 +61,16 @@
 
 (define (gen-var-by-name name regs-out)
     (define var (constant name integer?))
+    (if (hash-has-key? regs-out name)
+        (hash-ref regs-out name)
+        (begin
+            (hash-set! regs-out name var)
+            var))
+)
+
+;;; special method for flag variable
+(define (gen-bool-by-name name regs-out)
+    (define var (constant name boolean?))
     (if (hash-has-key? regs-out name)
         (hash-ref regs-out name)
         (begin
@@ -97,9 +89,23 @@
             var)))
 
 (define (check-equivalent input-json) 
-    ;;; assume there is only one output
-    (define out-reg1 (hash-ref input-json `write1))
-    (define out-reg2 (hash-ref input-json `write2))
+    ;;; there could be multiple variables to check/verify
+    ;;; (notice) assume the Python side has done necessary pre-checking
+    ;;; e.g., at least 1 variable for checking
+    ;;; e.g., all variables for checking should match
+    ;;; e.g., they are in order
+    ;;; ------ (important) -------
+    ;;; Python side should preprocess to add program aware prefix
+    ;;; e.g., CKPT_0 --> PROG1_CKPT_0
+    ;;;       CKPT_0 --> PROG2_CKPT_0
+    ;;; because rosette's `define-symbolic` is whatever global and can be defined twice
+    ;;; e.g., (define-symbolic a integer?) refers to the same "a" symbolic variable
+    ;;;       no matter where you define it, and you can do that multiple times without
+    ;;;       triggering any exception
+    (define outs-reg1 (hash-ref input-json `write1))
+    (define outs-reg2 (hash-ref input-json `write2))
+    (printf "--> outs-reg1: ~a \n" outs-reg1)
+    (printf "--> outs-reg2: ~a \n" outs-reg2)
 
     (define insts-1 (hash-ref input-json `insts1))
     (define insts-2 (hash-ref input-json `insts2))
@@ -109,31 +115,49 @@
         (define inst-code (vector-ref (parse-code cur-inst) 0))
         (interpret-inst inst-code regs-out-1))
 
-    (define output1 (hash-ref regs-out-1 out-reg1))
-
-    (printf "\n")
+    ;;; (debug) print out all expressions
+    (for ([i (in-range (length outs-reg1))])
+        (define key-1 (list-ref outs-reg1 i))
+        (printf "--> file1, ~a: \n" key-1)
+        (printf "~a" (hash-ref regs-out-1 key-1))
+        (printf "\n"))
 
     (for ([cur-inst insts-2])
         (pretty-display cur-inst)
         (define inst-code (vector-ref (parse-code cur-inst) 0))
         (interpret-inst inst-code regs-out-2))
 
-    (define output2 (hash-ref regs-out-2 out-reg2))
+    ;;; (debug) print out all expressions
+    (for ([i (in-range (length outs-reg2))])
+        (define key-2 (list-ref outs-reg2 i))
+        (printf "--> file2, ~a: \n" key-2)
+        (printf "~a" (hash-ref regs-out-2 key-2))
+        (printf "\n"))
 
-    (pretty-display regs-out-1)
-    (printf "\n")
-    (pretty-display regs-out-2)
-    (printf "\n")
-    (print regs-out-1)
-    (printf "\n")
-    (print regs-out-2)
-    (printf "\n")
-    (define ok (sat? (solve (assert (not (equal? output1 output2))))))
-    (printf " output1 = ~a \n output2 = ~a eq? = ~a \n" output1 output2 ok)
-    ;;; (printf "Register ~a = ~a ~a \n" out-reg output ok)
+    ;;; (debug)
+    (printf "--> regs1: \n~a \n" regs-out-1)
+    (printf "--> regs2: \n~a \n" regs-out-2)
+    (printf "--> asserts <---\n")
+    (printf "~a \n" (asserts))
+
+
+    ;;; start verification
+    ;;; first construct the ultimate predicate
+    (define upred
+        (for/list ([i (in-range (length outs-reg1))])
+            (equal? 
+                (hash-ref regs-out-1 (list-ref outs-reg1 i)) 
+                (hash-ref regs-out-2 (list-ref outs-reg2 i)) 
+            )
+        )
+    )
+
+    (printf "upred: ~a \n" upred)
+    ;;; super solve with conjunction of all variables being equal
+    (define ok (sat? (solve (assert (not (apply && upred))))))
+    ; (define ok (sat? (solve (assert (not (equal? output1 output2))))))
+    (printf "sat? = ~a \n" ok)
     (if ok "NEQ" "EQ")
-    ;;; debugging
-    ; (display (solve (assert (not (equal? output1 output2)))))
 )
 
 (define (interpret-inst inst env)
@@ -161,8 +185,6 @@
         (define d (vector-ref args 1))
         (define base (vector-ref args 2))
         (define offset (vector-ref args 3))
-        ;;; use gen-vec-by-name instead
-        ;;; (define base-val (gen-var-by-name base env))
         (define base-val (gen-vec-by-name base env))
         (define offset-val (gen-var-by-name offset env))
         (define val (sym-array-read base-val offset-val))
@@ -174,14 +196,10 @@
         (define base (vector-ref args 2))
         (define offset (vector-ref args 3))
         (define source (vector-ref args 4))
-        ;;; use gen-vec-by-name instead
-        ;;; (define base-val (gen-var-by-name base env))
         (define base-val (gen-vec-by-name base env))
         (define offset-val (gen-var-by-name offset env))
         (define source-val (gen-var-by-name source env))
         ;;; d won't be used, so no need to set it
-        ; (hash-set! env d val)
-        ; (define val (sym-array-write base-val offset-val source-val))
         (sym-array-write base-val offset-val source-val)
     )
 
@@ -190,15 +208,35 @@
         (define base (vector-ref args 2))
         (define offset (vector-ref args 3))
         (define source (vector-ref args 4))
-        ;;; use gen-vec-by-name instead
-        ;;; (define base-val (gen-var-by-name base env))
         (define base-val (gen-vec-by-name base env))
         (define offset-val (gen-var-by-name offset env))
-        (define source-val (string->number source)) ;; reg const
+        (define source-val (string->number source)) ; reg const
         ;;; d won't be used, so no need to set it
-        ; (hash-set! env d val)
-        ; (define val (sym-array-write base-val offset-val source-val))
         (sym-array-write base-val offset-val source-val)
+    )
+
+    (define (array-op op)
+        (define d (vector-ref args 1))
+        (define base (vector-ref args 2))
+        (define offset (vector-ref args 3))
+        (define source (vector-ref args 4))
+        (define base-val (gen-vec-by-name base env))
+        (define offset-val (gen-var-by-name offset env))
+        (define source-val (gen-var-by-name source env))
+        (define val (op (sym-array-read base-val offset-val) source-val))
+        (hash-set! env d val)
+    )
+
+    (define (array-op# op)
+        (define d (vector-ref args 1))
+        (define base (vector-ref args 2))
+        (define offset (vector-ref args 3))
+        (define source (vector-ref args 4))
+        (define base-val (gen-vec-by-name base env))
+        (define offset-val (gen-var-by-name offset env))
+        (define source-val (string->number source)) ; reg const
+        (define val (op (sym-array-read base-val offset-val) source-val))
+        (hash-set! env d val)
     )
 
     (define (add##)
@@ -255,20 +293,55 @@
         (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
+    (define (rq)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a1-val (gen-var-by-name a1 env))
+        ;;; special trick for assert verification
+        ;;; define separate d-val for different programs
+        ;;; (important) don't use gen-var, use the special gen-bool
+        ;;; flags must be bool so that they can be correctly process by rosette
+        (define d-val (gen-bool-by-name d env))
+        (if a1-val 
+            ; either one will be captured by rosette assertion store
+            (assert d-val)
+            (assert (not d-val))
+        )
+        (hash-set! env d d-val)
+    )
+
     (cond
-         [(equal? op-name "nop")   (void)]
+         ; [(equal? op-name "nop")   (void)]
+
          [(equal? op-name "add")   (add)]
          [(equal? op-name "add#")   (add#)]
          [(equal? op-name "add##")   (add##)]
          [(equal? op-name "sub")   (sub)]
          [(equal? op-name "sub#")   (sub#)]
          [(equal? op-name "sub##")   (sub##)]
-         [(equal? op-name "eq#") (assign#)]
-         [(equal? op-name "eq") (assign)]
-         [(equal? op-name "lt") (void)]
-         [(equal? op-name "arrayread") (array-read)]
-         [(equal? op-name "arraywrite") (array-write)]
-         [(equal? op-name "arraywrite#") (array-write#)]
+
+         [(equal? op-name "assign#") (assign#)]
+         [(equal? op-name "assign") (assign)]
+
+         [(equal? op-name "array-read") (array-read)]
+         [(equal? op-name "array-write") (array-write)]
+         [(equal? op-name "array-write#") (array-write#)]
+
+         [(equal? op-name "array-lt") (array-op <)]
+         [(equal? op-name "array-lt#") (array-op# <)]
+         [(equal? op-name "array-lte") (array-op <=)]
+         [(equal? op-name "array-lte#") (array-op# <=)]
+         [(equal? op-name "array-gt") (array-op >)]
+         [(equal? op-name "array-gt#") (array-op# >)]
+         [(equal? op-name "array-gte") (array-op >=)]
+         [(equal? op-name "array-gte#") (array-op# >=)]
+         [(equal? op-name "array-eq") (array-op equal?)]
+         [(equal? op-name "array-eq#") (array-op# equal?)]
+         [(equal? op-name "array-neq") (array-op (lambda (x y) (not (equal? x y))))]
+         [(equal? op-name "array-neq#") (array-op# (lambda (x y) (not (equal? x y))))]
+
+         [(equal? op-name "require") (rq)] ; use rq to avoid keyword require
+
          [else (assert #f (format "simulator: undefine instruction ~a" op-name))])
 )
 

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from typing import List, Any
+from tyrell.dsl import Node
 
 from sys import argv
 import tyrell.spec as S
@@ -444,7 +446,8 @@ value i;
 value i_st;
 value i_end;
 value F;
-value Cond;
+value Cond_uint;
+value Cond_address;
 value Summary;
 value Inv;
 
@@ -460,6 +463,8 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
+# func TRANSFER: F -> READ__Contract, READ__mapping(uint => address), READ_mapping(uint => uint);
+# func TRANSFER_L: F -> READ__Contract?, READ__mapping(uint => address), READ_mapping(uint => uint), L;
 func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
@@ -469,8 +474,12 @@ func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
 func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
-func FILTER__#A: F -> Write__mapping(uint => #A), IF, Cond;
-func REQUIRE: F -> ReqCond;
+# func FILTER__uint: F -> Write__mapping(uint => uint), IF, Cond_uint;
+# func FILTER__address: F -> Write__mapping(uint => address), IF, Cond_address;
+# func REQUIRE_ASCENDING: F -> mapping(uint => uint);
+# func REQUIRE_DESCENDING: F -> mapping(uint => uint);
+# func REQUIRE__uint: F -> Cond_uint;
+# func REQUIRE__address: F -> Cond_address;
 
 # Arithmetic funcs for lambda
 func lambda: L -> Lambda;
@@ -484,14 +493,17 @@ func addc_end: i_end -> GuardEnd__uint, C;
 func subc_st: i_st -> GuardStart__uint, C;
 func subc_end: i_end -> GuardEnd__uint, C;
 
-# Boolean funcs for conditional lambda
-func lt: Cond -> uint;
-func gt: Cond -> uint;
-func eq: Cond -> uint;
-func lte: Cond -> uint;
-func gte: Cond -> uint;
-func and: Cond -> Cond, Cond;
-func or: Cond -> Cond, Cond;
+# Boolean comps for uint
+func lt: Cond_uint -> mapping(uint => uint), uint;
+func gt: Cond_uint -> mapping(uint => uint), uint;
+func eq: Cond_uint -> mapping(uint => uint), uint;
+func neq: Cond_uint -> mapping(uint => uint), uint;
+func lte: Cond_uint -> mapping(uint => uint), uint;
+func gte: Cond_uint -> mapping(uint => uint), uint;
+
+# Boolean comps for address
+func eq_addr: Cond_uint -> mapping(uint => address), address;
+func neq_addr: Cond_uint -> mapping(uint => address), address;
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
@@ -528,39 +540,94 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         self._ref_counter = -1 # reference variable counter
         self._tmp_counter = -1 # temporary variable counter
+        self._ckpt_counter = -1 # checkpoint variable counter (for require method)
 
     def get_fresh_ref_name(self):
         self._ref_counter += 1
         return "REF_{}".format(self._ref_counter)
 
     def get_fresh_tmp_name(self):
+        # (notice) fresh tmp name is only for those instructions that
+        # 1) do not need the return values (e.g., array-write)
+        # otherwise, please use other get_fresh methods
         self._tmp_counter += 1
         return "TMP_{}".format(self._tmp_counter)
+
+    def get_fresh_ckpt_name(self):
+        # (notice) fresh checkpoint name for `require` method
+        # in bmc, this variable is added to the verification pool
+        # and two programs should use DIFFERENT symbolic variables to store checkpoints
+        # (important) _ckpt_counter is local to every eval
+        # so it should be reset to -1 before every eval
+        self._ckpt_counter += 1
+        return "CKPT_{}".format(self._ckpt_counter)
+
+    # overridding the eval method by adding one extra call to reset _ckpt_counter
+    def eval(self, prog: Node, inputs: List[Any]) -> Any:
+        self._ckpt_counter = -1 # reset _ckpt_counter
+        return super(SymDiffInterpreter, self).eval(prog, inputs)
 
     #########################################
     # Conditional Operators
     #########################################
         
     def eval_lt(self, node, args):
-        return "__y" + "<" + args[0]
+        # special wrapper lt wrapper
+        return "ARRAY-LT {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)
+        # return arr + "<" + args[1]
 
     def eval_lte(self, node, args):
-        return "__y" + "<=" + args[0]
+        # special array lte wrapper
+        return "ARRAY-LTE {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)        
+        # return arr + "<=" + args[1]
 
     def eval_eq(self, node, args):
-        return "__y" + "==" + args[0]
+        # special array eq wrapper
+        return "ARRAY-EQ {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)        
+        # return arr + "==" + args[1]
+    
+    def eval_neq(self, node, args):
+        # special array neq wrapper
+        return "ARRAY-NEQ {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)        
+        # return arr + "!=" + args[1]
     
     def eval_gt(self, node, args):
-        return "__y" + ">" + args[0]
+        # special array gt wrapper
+        return "ARRAY-GT {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)        
+        # return arr + ">" + args[1]
     
     def eval_gte(self, node, args):
-        return "__y" + ">=" + args[0]
+        # special array gte wrapper
+        return "ARRAY-GTE {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)        
+        # return arr + ">=" + args[1]
+    
+    # FIXME: what's the difference between this one and eval_eq?
+    def eval_eq_addr(self, node, args):
+        # special array eq wrapper
+        return "ARRAY-EQ {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)        
+        # return arr + "==" + args[1]
+    
+    # FIXME: what's the difference between this one and eval_neq?
+    def eval_neq_addr(self, node, args):
+        # special array neq wrapper
+        return "ARRAY-NEQ {} {} {}".format(args[0], self.iterator, args[1])
+        # arr = "{0}[{1}]".format(args[0], self.iterator)        
+        # return arr + "!=" + args[1]
     
     def eval_and(self, node, args):
-        return args[0] + " && " + args[1]
+        return "AND {} {}".format(args[0], args[1])
+        # return args[0] + " && " + args[1]
     
     def eval_or(self, node, args):
-        return args[0] + " || " + args[1]
+        return "OR {} {}".format(args[0], args[1])
+        # return args[0] + " || " + args[1]
 
     def eval_const(self, node, args):
         return args[0]
@@ -593,8 +660,20 @@ class SymDiffInterpreter(PostOrderInterpreter):
     # Lambda operators
     #########################################
 
+    # FIXME: the args look like ['lambda __x: acc+__x'], currently hard-code parse
     def eval_lambda(self, node, args):
-        return args[0].split(":")[1].replace(" ", "")
+        print("lambda args: {}".format(args))
+        # return args[0].split(":")[1].replace(" ", "")
+        expr = args[0].split(":")[1].replace(" ", "")
+        lop = {"+":"ADD", "-":"SUB"}
+        stri = None
+        for lkey in lop.keys():
+            if lkey in expr:
+                ll = expr.split(lkey)
+                stri = "{} {} {}".format(lop[lkey], ll[0], ll[1])
+                return stri
+        # if you reach here, there's no matching
+        raise NotImplementedError("Unsupported lambda: {}".format(args))
         
     def eval_const(self, node, args):
         return args[0]
@@ -656,7 +735,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst =  "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_0, arr, self.iterator)
+        inst =  "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_0, arr, self.iterator)
         inst_list.append(inst)
         self.pc += 1
 
@@ -674,7 +753,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, acc
+        return inst_list, [acc]
         # return loop_body, val
 
     def eval_SUM(self, node, args):
@@ -722,7 +801,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # srcObj[it+srcStart]
         ref_1 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_1, src_array, ref_0)
+        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_1, src_array, ref_0)
         inst_list.append(inst)
         self.pc += 1
 
@@ -738,11 +817,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # tgtObj[it] = ref_2
         tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt_array, self.iterator, ref_2)
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt_array, self.iterator, ref_2)
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, tgt_array
+        return inst_list, [tgt_array]
         # return loop_body, val
     
     def eval_COPYRANGE(self, node, args):
@@ -751,31 +830,31 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_COPYRANGE_L(self, node, args):
         return self.build_copyrange(node, args, True)
 
-    def build_shiftleft(self, node, args, l):        
-        src_array = args[0]
+    # def build_shiftleft(self, node, args, l):        
+    #     src_array = args[0]
 
-        val = "{arr}[{it}+1]".format(arr=src_array, it=self.iterator)
+    #     val = "{arr}[{it}+1]".format(arr=src_array, it=self.iterator)
 
-        if l == False:
-            lam = val
-        else:
-            lam = args[1]
-            lam = lam.replace("__x", val)
+    #     if l == False:
+    #         lam = val
+    #     else:
+    #         lam = args[1]
+    #         lam = lam.replace("__x", val)
 
         
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {arr}[{it}] = {lamVal};
-            }}}}
-        """.format(arr=src_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+    #     loop_body = """
+    #         for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
+    #             {arr}[{it}] = {lamVal};
+    #         }}}}
+    #     """.format(arr=src_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
-        return loop_body, val
+    #     return loop_body, val
 
-    def eval_SHIFTLEFT(self, node, args):
-        return self.build_shiftleft(node, args, False)
+    # def eval_SHIFTLEFT(self, node, args):
+    #     return self.build_shiftleft(node, args, False)
 
-    def eval_SHIFTLEFT_L(self, node, args):
-        return self.build_shiftleft(node, args, True)
+    # def eval_SHIFTLEFT_L(self, node, args):
+    #     return self.build_shiftleft(node, args, True)
 
     def build_updaterange(self, node, args, l):      
         print("updaterange args: {}".format(args))
@@ -807,7 +886,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # contArr[it]
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_0, cont, self.iterator)
+        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_0, cont, self.iterator)
         inst_list.append(inst)
         self.pc += 1
 
@@ -826,12 +905,12 @@ class SymDiffInterpreter(PostOrderInterpreter):
             self.pc += 1
 
         tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, ref_0, ref_1)
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, ref_0, ref_1)
         inst_list.append(inst)
         self.pc += 1
 
         # FIXME: may have to return the selected part of tgt array only
-        return inst_list, tgt
+        return inst_list, [tgt]
         # return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
         #                                                      it=self.iterator)
 
@@ -870,7 +949,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         if l:
             # has arr[?] involved in lambda, should contain 2 instructions
             ref_00 = self.get_fresh_ref_name()
-            inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_00, tgt, self.iterator)
+            inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_00, tgt, self.iterator)
             inst_list.append(inst)
             self.pc += 1
 
@@ -886,11 +965,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
             self.pc += 1
 
         tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_0)
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_0)
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, tgt
+        return inst_list, [tgt]
         # return loop_body, val
 
     def eval_MAP(self, node, args):
@@ -939,7 +1018,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # srcArr[it+srcStart]
         ref_1 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_1, src, ref_0)
+        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_1, src, ref_0)
         inst_list.append(inst)
         self.pc += 1
 
@@ -955,7 +1034,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # tgtObj[it]
         ref_3 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAYREAD {} {}".format(hex(self.pc), ref_3, tgt, self.iterator)
+        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_3, tgt, self.iterator)
         inst_list.append(inst)
         self.pc += 1
 
@@ -967,11 +1046,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # tgtObj[it] = ref_4
         tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAYWRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_4)
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_4)
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, tgt
+        return inst_list, [tgt]
         # return loop_body, val
 
     def eval_INCRANGE(self, node, args):
@@ -980,16 +1059,58 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_INCRANGE_L(self, node, args):
         return self.build_incrange(node, args, True)
 
+    def build_require_ordered(self, node, args, isAscending):
+        arr = args[0]
+        op = "<" if isAscending else "<" 
+        
+        loop_body = """
+            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
+                require({arr}[{it}] {op} {arr}[{it}+1]);
+            }}}}
+        """.format(i_typ=self.i_typ, it=self.iterator, req_cond=cond, arr=arr, op=op)
+
+        return loop_body
+    
+    def eval_REQUIRE_ASCENDING(self, node, args):
+        return self.build_require_ordered(node, args, True)
+
+    def eval_REQUIRE_DESCENDING(self, node, args):
+        return self.build_require_ordered(node, args, False)        
+    
     def eval_REQUIRE(self, node, args):
+        print("require args: {}".format(args))
         cond = args[0]
         
+        # ==== (display zone) ==== #
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 require({req_cond});
             }}}}
         """.format(i_typ=self.i_typ, it=self.iterator, req_cond=cond)
+        print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        return loop_body, None
+        # start instruction assembling
+        inst_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # first store the cond into a new var
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = {}".format(hex(self.pc), ref_0, cond)
+        inst_list.append(inst)
+        self.pc += 1
+
+        ckpt_0 = self.get_fresh_ckpt_name()
+        inst = "{}: {} = REQUIRE {}".format(hex(self.pc), ckpt_0, ref_0)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # (notice) here we generate a new tgt to verify
+        return inst_list, [ckpt_0]
+        # return loop_body
 
     def eval_FILTER(self, node, args):
         tgt = args[0]        
@@ -1013,6 +1134,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return new_loop, None 
         
     def eval_summarize(self, node, args):
+        print("summarize args: {}".format(args))
         start = args[1]
         end = args[2]
         # body, _ = args[0]
@@ -1031,6 +1153,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # return args[0]
 
     def eval_summarize_nost(self, node, args):
+        print("summarize_nost args: {}".format(args))
         end = args[1]
         body, _ = args[0]
         body = body.format(GuardStart="", GuardEnd=end)
@@ -1041,11 +1164,13 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return actual_contract
 
     def eval_intFunc(self, node, args):
+        print("intFunc args: {}".format(args))
         # loop, _ = args[0]
         return args[0]
         # return loop, None
 
     def eval_nonintFunc(self, node, args):
+        print("nonintFunc args: {}".format(args))
         # loop, _ = args[0]
         return args[0]
         # return loop, None
@@ -1056,9 +1181,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return loop0 + "\n\n" + loop1, None;
 
     def eval_seqF(self, node, args):
+        print("seqF args: {}".format(args))
         return self.build_seq(node, args)
 
     def eval_seqIF(self, node, args):
+        print("seqIF args: {}".format(args))
         return self.build_seq(node, args)
     
 def execute(interpreter, prog, args):

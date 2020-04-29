@@ -19,10 +19,12 @@
     (init-field [compress? #f])
     
     (define-tokens a (VAR WORD NUM REG)) ;; add more tokens
-    (define-empty-tokens b (EOF EQ HOLE BLOCKHASH EQCMP COMMA CREATE THROW THROWI NOP LOG BALANCE ISZERO SGT GT SLT LT SHA3 DELEGATECALL CALLCODE CALL NOT OR
-                            SELFDESTRUCT MSIZE NUMBER CALLDATACOPY CODECOPY SUB TIMESTAMP EXP DIV RETURNDATACOPY MUL AND ADD REVERT RETURNDATASIZE
-                            CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAYREAD ARRAYWRITE
-                            RETURN COLON ORIGIN CALLVALUE JUMP EXTCODESIZE JUMPI SLP LC RC LP RP ADDRESS CALLDATASIZE CALLDATALOAD)) ;; add more tokens
+    ; (define-empty-tokens b (EOF EQ HOLE BLOCKHASH EQCMP COMMA CREATE THROW THROWI NOP LOG BALANCE ISZERO SGT GT SLT LT SHA3 DELEGATECALL CALLCODE CALL NOT OR
+    ;                         SELFDESTRUCT MSIZE NUMBER CALLDATACOPY CODECOPY SUB TIMESTAMP EXP DIV RETURNDATACOPY MUL AND ADD REVERT RETURNDATASIZE
+    ;                         CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAY-READ ARRAY-WRITE
+    ;                         RETURN COLON ORIGIN CALLVALUE JUMP EXTCODESIZE JUMPI SLP LC RC LP RP ADDRESS CALLDATASIZE CALLDATALOAD)) ;; add more tokens
+    (define-empty-tokens b (EOF ASSIGN SUB ADD ARRAY-READ ARRAY-WRITE COLON REQUIRE
+                            ARRAY-LT ARRAY-LTE ARRAY-GT ARRAY-GTE ARRAY-EQ ARRAY-NEQ)) ;; add more tokens
 
     (define-lex-abbrevs
       (digit10 (char-range "0" "9"))
@@ -34,8 +36,8 @@
 
 
 
-
-      (identifier-characters (re-or (char-range "A" "Z") (char-range "a" "z") "_"))
+      ;;; FIXME: added "." to model `id.id` as a separate identifier
+      (identifier-characters (re-or (char-range "A" "Z") (char-range "a" "z") "_" ".")) 
       ;;; (identifier-characters-ext (re-* (re-or digit10 identifier-characters "_")))
       ;;; (identifier (re-+ identifier-characters))
       ;;; (identifier (re-+ identifier-characters))
@@ -53,42 +55,25 @@
     (set! asm-lexer
       (lexer-src-pos
        ; ? ;; add more tokens
-       ("M["         (token-LP))
-       ("S["         (token-SLP))
-       ("]"         (token-RP))
-       ("}"         (token-RC))
-       ("{"         (token-LC))
-       ("LT"         (token-LT))
-       ("SLT"         (token-SLT))
-       ("GT"         (token-GT))
-       ("SGT"         (token-SGT))
        (":"         (token-COLON))
+
        ("ADD"       (token-ADD))
-       ("BYTE"       (token-BYTE))
-       ("XOR"       (token-XOR))
-       ("MOD"       (token-MOD))
-       ("NOT"       (token-NOT))
-       ("OR"       (token-OR))
-       ("AND"       (token-AND))
-       ("DIV"       (token-DIV))
-       ("MUL"       (token-MUL))
        ("SUB"       (token-SUB))
-       ("EXP"       (token-EXP))
-       ("JUMPDEST"  (token-NOP))
-       ("JUMPI"     (token-JUMPI))
-       ("JUMP"     (token-JUMP))
-       ("THROWI"     (token-THROWI))
-       ("THROW"     (token-THROW))
-       ("SHA3"     (token-SHA3))
-       ("ARRAYREAD" (token-ARRAYREAD))
-       ("ARRAYWRITE" (token-ARRAYWRITE))
-       ("ISZERO"    (token-ISZERO))
-       ("RETURN"    (token-RETURN))
-       ("NOP"    (token-NOP))
-       ("EQ"         (token-EQCMP))
-       ("="         (token-EQ))
-       ("?"         (token-HOLE))
-       (","         (token-COMMA))
+
+       ("ARRAY-READ" (token-ARRAY-READ))
+       ("ARRAY-WRITE" (token-ARRAY-WRITE))
+
+       ("="         (token-ASSIGN))
+
+       ("ARRAY-LT"  (token-ARRAY-LT))
+       ("ARRAY-LTE"  (token-ARRAY-LTE))
+       ("ARRAY-GT"  (token-ARRAY-GT))
+       ("ARRAY-GTE"  (token-ARRAY-GTE))
+       ("ARRAY-EQ"  (token-ARRAY-EQ))
+       ("ARRAY-NEQ"  (token-ARRAY-NEQ))
+
+       ("REQUIRE"   (token-REQUIRE))
+
        (identifier   (token-REG lexeme))
        (snumber10   (token-NUM lexeme))
        (snumber16   (token-NUM lexeme))
@@ -122,41 +107,40 @@
         ;;;       ((arg COMMA args) (cons $1 $3)))
         (instruction
           ;;; ((NUM COLON WORD args)    (inst $3 (list->vector $4)))
-         ;; when parsing ?, return (inst #f #f) as an unknown instruction
-         ;; (a place holder for synthesis)
-          ((HOLE)         (inst #f #f))
-          ((NUM COLON REG EQ LT REG REG) (inst "lt" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ GT REG REG) (inst "gt" (vector $1 $3 $6 $7)))
-          ((NUM COLON REG EQ SUB REG REG) (inst "sub" (vector $1 $3 $6 $7)))
-          ((NUM COLON REG EQ SUB REG NUM) (inst "sub#" (vector $1 $3 $6 $7)))
-          ((NUM COLON REG EQ SUB NUM NUM) (inst "sub##" (vector $1 $3 $6 $7)))
-          ((NUM COLON REG EQ ADD REG REG) (inst "add" (vector $1 $3 $6 $7)))
-          ((NUM COLON REG EQ ADD REG NUM) (inst "add#" (vector $1 $3 $6 $7)))
-          ((NUM COLON REG EQ ADD NUM NUM) (inst "add##" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ XOR REG REG) (inst "xor" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ MOD REG REG) (inst "mod" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ DIV REG REG) (inst "div" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ MUL REG REG) (inst "mul" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ AND REG REG) (inst "and" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ OR REG REG) (inst "or" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ EQCMP NUM REG) (inst "eqcmp" (vector $1 $3 $6 $7)))
-          ;;; ((NUM COLON REG EQ LP arg RP) (inst "load" (vector $1 $3 $6)))
-          ;;; ((NUM COLON LP REG RP EQ arg) (inst "store" (vector $1 $4 $7)))
-          ;;; ((NUM COLON LP NUM RP EQ arg) (inst "store" (vector $1 $4 $7)))
-          ;;; ((NUM COLON REG EQ SLP arg RP) (inst "sload" (vector $1 $3 $6)))
+          ;;; when parsing ?, return (inst #f #f) as an unknown instruction
+          ;;; (a place holder for synthesis)
+          ;;; ((HOLE)         (inst #f #f))
 
-          ;;; ((NUM COLON SLP arg RP EQ arg) (inst "sstore" (vector $1 $4 $7)))
-          ;;; ((NUM COLON LP arg RP EQ LC arg COMMA arg RC) (inst "nop" (vector $1)))
-          ;;; ((NUM COLON LP NUM RP EQ LC args RC) (inst "store-set" (vector $1 $4 (list->vector $8))))
 
-          ((NUM COLON REG EQ NUM) (inst "eq#" (vector $1 $3 $5)))
-          ((NUM COLON REG EQ REG) (inst "eq" (vector $1 $3 $5)))
-          ((NUM COLON REG EQ ARRAYREAD REG REG) (inst "arrayread" (vector $1 $3 $6 $7)))
-          ((NUM COLON REG EQ ARRAYWRITE REG REG REG) (inst "arraywrite" (vector $1 $3 $6 $7 $8)))
-          ((NUM COLON REG EQ ARRAYWRITE REG REG NUM) (inst "arraywrite#" (vector $1 $3 $6 $7 $8)))
-          ;;; ((NUM COLON NOP)        (inst "nop" (vector $1))) 
-          ;;; ((NUM COLON JUMPI arg REG) (inst "jumpi" (vector $1 $4 $5)))
-          ;;; ((NUM COLON JUMP arg) (inst "jump" (vector $1 $4)))
+          ((NUM COLON REG ASSIGN SUB REG REG) (inst "sub" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG ASSIGN SUB REG NUM) (inst "sub#" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG ASSIGN SUB NUM NUM) (inst "sub##" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG ASSIGN ADD REG REG) (inst "add" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG ASSIGN ADD REG NUM) (inst "add#" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG ASSIGN ADD NUM NUM) (inst "add##" (vector $1 $3 $6 $7)))
+
+          ((NUM COLON REG ASSIGN NUM) (inst "assign#" (vector $1 $3 $5)))
+          ((NUM COLON REG ASSIGN REG) (inst "assign" (vector $1 $3 $5)))
+
+          ((NUM COLON REG ASSIGN ARRAY-READ REG REG) (inst "array-read" (vector $1 $3 $6 $7)))
+          ((NUM COLON REG ASSIGN ARRAY-WRITE REG REG REG) (inst "array-write" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-WRITE REG REG NUM) (inst "array-write#" (vector $1 $3 $6 $7 $8)))
+
+          ((NUM COLON REG ASSIGN ARRAY-LT REG REG REG) (inst "array-lt" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-LT REG REG NUM) (inst "array-lt#" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-LTE REG REG REG) (inst "array-lte" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-LTE REG REG NUM) (inst "array-lte#" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-GT REG REG REG) (inst "array-gt" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-GT REG REG NUM) (inst "array-gt#" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-GTE REG REG REG) (inst "array-gte" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-GTE REG REG NUM) (inst "array-gte#" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-EQ REG REG REG) (inst "array-eq" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-EQ REG REG NUM) (inst "array-eq#" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-NEQ REG REG REG) (inst "array-neq" (vector $1 $3 $6 $7 $8)))
+          ((NUM COLON REG ASSIGN ARRAY-NEQ REG REG NUM) (inst "array-neq#" (vector $1 $3 $6 $7 $8)))
+
+          ((NUM COLON REG ASSIGN REQUIRE REG) (inst "require" (vector $1 $3 $6)))
+
          ) 
         
         (code   
