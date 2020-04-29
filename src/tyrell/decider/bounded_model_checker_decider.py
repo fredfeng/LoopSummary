@@ -340,7 +340,13 @@ class BoundedModelCheckerDecider(Decider):
                 inst_list += tmp_inst_list
                 ckpt_list += tmp_ckpt_list
 
-        ckpt_list = list(set(ckpt_list+write)) 
+        # print("------ original ckpt_list: {}".format(ckpt_list))
+        # print("------ original write: {}".format(write))
+        # input("PAUSE")
+
+        # ckpt_list = list(set(ckpt_list+write)) 
+        # FIXME: here we remove loop var `i` since it's included in `write` for bmrk AlphaconCrowdsale_4
+        ckpt_list = list(set(ckpt_list+write)-{"i"})
 
         # print("# Source Contract: ")
         # print(inst_list)

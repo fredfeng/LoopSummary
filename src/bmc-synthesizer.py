@@ -1216,9 +1216,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # return loop, None
 
     def build_seq(self, node, args):
-        loop0, _ = args[0]
-        loop1, _ = args[1]        
-        return loop0 + "\n\n" + loop1, None;
+        loop0, vlist0 = args[0]
+        loop1, vlist1 = args[1]        
+        # return loop0 + "\n\n" + loop1, None;
+        return loop0+loop1, vlist0+vlist1
 
     def eval_seqF(self, node, args):
         print("seqF args: {}".format(args))
