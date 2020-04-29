@@ -476,9 +476,9 @@ func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => ui
 func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
 # func FILTER__uint: F -> Write__mapping(uint => uint), IF, Cond_uint;
 # func FILTER__address: F -> Write__mapping(uint => address), IF, Cond_address;
-# func REQUIRE_ASCENDING: F -> mapping(uint => uint);
-# func REQUIRE_DESCENDING: F -> mapping(uint => uint);
-# func REQUIRE__uint: F -> Cond_uint;
+func REQUIRE_ASCENDING: F -> mapping(uint => uint);
+func REQUIRE_DESCENDING: F -> mapping(uint => uint);
+func REQUIRE__uint: F -> Cond_uint;
 # func REQUIRE__address: F -> Cond_address;
 
 # Arithmetic funcs for lambda
@@ -1060,16 +1060,56 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return self.build_incrange(node, args, True)
 
     def build_require_ordered(self, node, args, isAscending):
+        print("require_ordered args: {}".format(args))
+        print("require_ordered isAscending: {}".format(isAscending))
         arr = args[0]
-        op = "<" if isAscending else "<" 
+        # op = "<" if isAscending else "<" 
+        # (notice) here LT and GT are different from ARRAY-LT and ARRAY-GT
+        op = "LT" if isAscending else "GT" 
         
+        # ==== (display zone) ==== #
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 require({arr}[{it}] {op} {arr}[{it}+1]);
             }}}}
-        """.format(i_typ=self.i_typ, it=self.iterator, req_cond=cond, arr=arr, op=op)
+        """.format(i_typ=self.i_typ, it=self.iterator, arr=arr, op=op)
+        print("loop body: \n{}".format(loop_body))
+        # ==== (display zone) ==== #
 
-        return loop_body
+        # start instruction assembling
+        inst_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_0, arr, self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} 1".format(hex(self.pc), ref_1, self.iterator)
+        inst_list.append(inst)
+        self.pc += 1
+
+        ref_2 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_2, arr, ref_1)
+        inst_list.append(inst)
+        self.pc += 1
+
+        ref_3 = self.get_fresh_ref_name()
+        inst = "{}: {} = {} {} {}".format(hex(self.pc), ref_3, op, ref_0, ref_2)
+        inst_list.append(inst)
+        self.pc += 1
+
+        ckpt_0 = self.get_fresh_ckpt_name()
+        inst = "{}: {} = REQUIRE {}".format(hex(self.pc), ckpt_0, ref_3)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # return loop_body
+        return inst_list, [ckpt_0]
     
     def eval_REQUIRE_ASCENDING(self, node, args):
         return self.build_require_ordered(node, args, True)

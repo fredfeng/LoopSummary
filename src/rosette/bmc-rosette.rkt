@@ -169,7 +169,6 @@
         (define d (vector-ref args 1))
         (define a (vector-ref args 2))
         (define val (gen-var-by-name a env))
-        (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
         ; (ref-hash-set! env d val))
 
@@ -177,7 +176,6 @@
         (define d (vector-ref args 1))
         (define a (vector-ref args 2))
         (define val (string->number a)) ;; reg const 
-        (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
         ; (ref-hash-set! env d val))
 
@@ -244,7 +242,6 @@
         (define a1 (vector-ref args 2))
         (define a2 (vector-ref args 3))
         (define val (+ (string->number a1) (string->number a2))) ;; reg const 
-        (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
     (define (add#)
@@ -253,7 +250,6 @@
         (define a2 (vector-ref args 3))
         (define a1-val (gen-var-by-name a1 env))
         (define val (+ a1-val (string->number a2))) ;; reg const 
-        (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
     (define (add)
@@ -263,7 +259,6 @@
         (define a1-val (gen-var-by-name a1 env))
         (define a2-val (gen-var-by-name a2 env))
         (define val (+ a1-val a2-val)) ;; reg const 
-        (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
     (define (sub##)
@@ -271,7 +266,6 @@
         (define a1 (vector-ref args 2))
         (define a2 (vector-ref args 3))
         (define val (- (string->number a1) (string->number a2))) ;; reg const 
-        (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
     (define (sub#)
@@ -280,7 +274,6 @@
         (define a2 (vector-ref args 3))
         (define a1-val (gen-var-by-name a1 env))
         (define val (- a1-val (string->number a2))) ;; reg const 
-        (printf "debug ri: val=~a \n" val)
         (hash-set! env d val))
 
     (define (sub)
@@ -290,7 +283,24 @@
         (define a1-val (gen-var-by-name a1 env))
         (define a2-val (gen-var-by-name a2 env))
         (define val (- a1-val a2-val)) ;; reg const 
-        (printf "debug ri: val=~a \n" val)
+        (hash-set! env d val))
+
+    (define (lt)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a1-val (gen-var-by-name a1 env))
+        (define a2-val (gen-var-by-name a2 env))
+        (define val (< a1-val a2-val)) ;; reg const 
+        (hash-set! env d val))
+
+    (define (gt)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a1-val (gen-var-by-name a1 env))
+        (define a2-val (gen-var-by-name a2 env))
+        (define val (> a1-val a2-val)) ;; reg const 
         (hash-set! env d val))
 
     (define (rq)
@@ -322,6 +332,8 @@
 
          [(equal? op-name "assign#") (assign#)]
          [(equal? op-name "assign") (assign)]
+         [(equal? op-name "lt") (lt)]
+         [(equal? op-name "gt") (gt)]
 
          [(equal? op-name "array-read") (array-read)]
          [(equal? op-name "array-write") (array-write)]

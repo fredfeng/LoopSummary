@@ -23,7 +23,7 @@
     ;                         SELFDESTRUCT MSIZE NUMBER CALLDATACOPY CODECOPY SUB TIMESTAMP EXP DIV RETURNDATACOPY MUL AND ADD REVERT RETURNDATASIZE
     ;                         CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAY-READ ARRAY-WRITE
     ;                         RETURN COLON ORIGIN CALLVALUE JUMP EXTCODESIZE JUMPI SLP LC RC LP RP ADDRESS CALLDATASIZE CALLDATALOAD)) ;; add more tokens
-    (define-empty-tokens b (EOF ASSIGN SUB ADD ARRAY-READ ARRAY-WRITE COLON REQUIRE
+    (define-empty-tokens b (EOF ASSIGN LT GT SUB ADD ARRAY-READ ARRAY-WRITE COLON REQUIRE
                             ARRAY-LT ARRAY-LTE ARRAY-GT ARRAY-GTE ARRAY-EQ ARRAY-NEQ)) ;; add more tokens
 
     (define-lex-abbrevs
@@ -64,6 +64,8 @@
        ("ARRAY-WRITE" (token-ARRAY-WRITE))
 
        ("="         (token-ASSIGN))
+       ("LT"         (token-LT))
+       ("GT"          (token-GT))
 
        ("ARRAY-LT"  (token-ARRAY-LT))
        ("ARRAY-LTE"  (token-ARRAY-LTE))
@@ -121,6 +123,8 @@
 
           ((NUM COLON REG ASSIGN NUM) (inst "assign#" (vector $1 $3 $5)))
           ((NUM COLON REG ASSIGN REG) (inst "assign" (vector $1 $3 $5)))
+          ((NUM COLON REG ASSIGN LT REG REG) (inst "lt" (vector $1 $3 $6 $7))) ; specifically for require(arr[i]<arr[i+1])
+          ((NUM COLON REG ASSIGN GT REG REG) (inst "gt" (vector $1 $3 $6 $7))) ; same
 
           ((NUM COLON REG ASSIGN ARRAY-READ REG REG) (inst "array-read" (vector $1 $3 $6 $7)))
           ((NUM COLON REG ASSIGN ARRAY-WRITE REG REG REG) (inst "array-write" (vector $1 $3 $6 $7 $8)))

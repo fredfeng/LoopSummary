@@ -41,7 +41,8 @@ class BoundedModelCheckerDecider(Decider):
         self.patch_ir_boolean_0()
 
         # (debug) see what is the source contract first
-        # _ = self.extract_ir_from_source(self._example)
+        # tmp = self.extract_ir_from_source(self._example)
+        # print(tmp)
         # input("DOUBLE-CHECK")
 
     def patch_ir_boolean_0(self):
@@ -305,6 +306,18 @@ class BoundedModelCheckerDecider(Decider):
                     raise NotImplementedError("not implemented")
             else:
                 raise NotImplementedError("Unsupported function: {}".format(raw_irs[2].function.full_name))
+        elif seq_irs==(Index, Binary, Index, Binary, SolidityCall):
+            if "require" in raw_irs[4].function.full_name:
+                # e.g., require(arr[i]>arr[i+1])
+                # FIXME: for the benchmarks, should force arr[i] op arr[op i] so that this pattern is fixed
+                if raw_irs[0].lvalue==raw_irs[3].variable_left and raw_irs[2].lvalue==raw_irs[3].variable_right:
+                    next_addr, inst_list0 = self.assemble_binary(curr_addr, [raw_irs[1]])
+                    next_addr, inst_list1 = self.assemble_arrayread(next_addr, [raw_irs[2]])
+                    next_addr, inst_list2 = self.assemble_arrayop(next_addr, [raw_irs[0], raw_irs[3]])
+                    next_addr, inst_list3, ckpt_list = self.assemble_require(next_addr, [raw_irs[4]])
+                    return next_addr, inst_list0 + inst_list1 + inst_list2 + inst_list3, ckpt_list
+                else:
+                    raise NotImplementedError("not implemented")
         else:
             raise NotImplementedError("Unsupported instruction pattern: {}".format(seq_irs))
 
