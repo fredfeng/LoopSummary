@@ -470,8 +470,10 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-func TRANSFER: F -> READ__Contract, READ__mapping(uint => address), READ_mapping(uint => uint);
-func TRANSFER_L: F -> READ__Contract?, READ__mapping(uint => address), READ_mapping(uint => uint), L;
+func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+func TRANSFER_L: F -> READ__mapping(uint => address), READ__mapping(uint => uint), L;
+func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+func REQUIRE_TRANSFER_L: F -> READ__mapping(uint => address), READ__mapping(uint => uint), L;
 func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
@@ -521,26 +523,40 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         contract C {{
             
+            {structs}
+
             {_decl}
+
+            {other_decs}
 
             function foo() public {{
 
                 {_body}
 
             }}
-        }}"""
+
+            {other_funcs}
+        }}
+
+        {other_contracts}
+
+    """
 
     extra_contract = """
     contract {0} {{{{ }}}}
     """
 
-    def __init__(self, decl="", contracts=[], i_global=False, global_vars=["i"]):
-        for contract in contracts:
-            self.contract_prog += self.extra_contract.format(contract)
+    def __init__(self, decl="", contracts=[], i_global=False, global_vars=["i"], structs=""):
+        # for contract in contracts:
+        #     self.contract_prog += self.extra_contract.format(contract)
+        self.other_contracts = contracts
         self.program_decl = decl
         self.i_typ = "" if i_global else "uint"
         # TODO: HANDLE NESTED LOOPS
         self.iterator = global_vars[0]
+        self.structs = structs
+        self.other_funcs = set()
+        self.other_decs = set()
 
     #########################################
     # Conditional Operators
@@ -795,32 +811,64 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_INCRANGE_L(self, node, args):
         return self.build_incrange(node, args, True)
 
-    def build_transfer(node, args, l):
-        sender = args[0]
-        receiver = args[1]
-        amount_arr = args[2]
+    def build_transfer(self, node, args, l, isReq):
+        receiver = args[0]
+        amount_arr = args[1]
 
         val = "{amnt_arr}[{it}]".format(amnt_arr=amount_arr, it=self.iterator)
         
         if not l:
             lam = val
         else:
-            lam = args[3]
+            lam = args[2]
             lam = lam.replace("__x", val)
-            
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {sndr}.transfer({rcvr}[{it}], lamVal);
-            }}}}
-        """.format(sndr=sender, rcvr=receiver, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
+        if not isReq:
+            loop_body = """
+                for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
+                    transfer({rcvr}[{it}], {lamVal});
+                }}}}
+            """.format(rcvr=receiver, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+        else:
+            loop_body = """
+                for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
+                    require(transfer({rcvr}[{it}], {lamVal}));
+                }}}}
+            """.format(rcvr=receiver, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+            
+
+        self.other_funcs.add('''
+  function transfer(address recipient, uint256 amount) public returns (bool) {
+    _transfer(msg.sender, recipient, amount);
+    return true;
+  }
+
+  function _transfer(address sender, address recipient, uint256 amount) internal {
+    require(sender != address(0));
+    require(recipient != address(0));
+    
+    _balances[sender] = _balances[sender] - amount;
+    _balances[recipient] = _balances[recipient] + amount;
+  }     
+''')
+
+        self.other_decs.add('''
+  mapping (address => uint256) _balances;
+''')
+        
         return loop_body
     
     def eval_TRANSFER(self, node, args):
-        return self.build_transfer(node, args, False)
+        return self.build_transfer(node, args, False, False)
     
     def eval_TRANSFER_L(self, node, args):
-        return self.build_transfer(node, args, True)
+        return self.build_transfer(node, args, True, False)
+
+    def eval_REQUIRE_TRANSFER(self, node, args):
+        return self.build_transfer(node, args, False, True)
+    
+    def eval_REQUIRE_TRANSFER_L(self, node, args):
+        return self.build_transfer(node, args, True, True)
 
     def build_require_ordered(self, node, args, isAscending):
         arr = args[0]
@@ -830,7 +878,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
                 require({arr}[{it}] {op} {arr}[{it}+1]);
             }}}}
-        """.format(i_typ=self.i_typ, it=self.iterator, req_cond=cond, arr=arr, op=op)
+        """.format(i_typ=self.i_typ, it=self.iterator, arr=arr, op=op)
 
         return loop_body
     
@@ -877,7 +925,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end = args[2]
         body = args[0]
         body = body.format(GuardStart="={0}".format(start), GuardEnd=end)
-        actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
+        actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl, structs=self.structs, other_contracts=self.other_contracts, other_funcs = "\n".join(self.other_funcs), other_decs = "\n".join(self.other_decs))
 
         print(actual_contract)
         
@@ -887,7 +935,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         end = args[1]
         body = args[0]
         body = body.format(GuardStart="", GuardEnd=end)
-        actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
+        actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl, structs=self.structs, other_contracts=self.other_contracts, other_funcs = "\n".join(self.other_funcs), other_decs = "\n".join(self.other_decs))
 
         print(actual_contract)
         
@@ -926,11 +974,38 @@ def parse_args():
     parser.add_argument("--prune", help="Activates analysis-based pruning", action="store_true")
     return parser.parse_args()
 
+
+def extract_contracts(sol_file):
+    contracts = ""
+    afterLoopVars = False
+    with open(sol_file, "r") as f:
+        for line in f:
+            if afterLoopVars:
+                contracts += line
+            if "LOOPVARS" in line:
+                afterLoopVars = True
+
+    return contracts
+
+def extract_structs(sol_file):
+    structs = ""
+    with open(sol_file, "r") as f:
+        for line in f:
+            if "struct " in line:
+                structs += line
+
+    return structs
+
 def main(args):    
     sol_file = args.file
     seed = None
     # assert False
 
+    # Get all structs declared
+    structs = extract_structs(sol_file)
+    # Get all contracts declared
+    other_contracts = extract_contracts(sol_file)
+    
     if args.prune:
         logger.info('Analyzing Input...')
         deps, refs = analyze(sol_file, "C", "foo()")
@@ -950,16 +1025,16 @@ def main(args):
     spec = S.parse(actual_spec)
     logger.info('Parsing succeeded')
 
-    # Fetch other contract names
-    slither = Slither(sol_file)
-    other_contracts = list(filter(lambda x: x != 'C', map(str, slither.contracts)))
+    # # Fetch other contract names
+    # slither = Slither(sol_file)
+    # other_contracts = list(filter(lambda x: x != 'C', map(str, slither.contracts)))
     
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
         enumerator=DependencyEnumerator(
             spec, max_depth=6, seed=seed, analysis=deps.dependencies if args.prune else None, types=types),
         decider=SymdiffDecider(
-            interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
+            interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs), example=sol_file, equal_output=check_eq)
         # decider=BoundedModelCheckerDecider(
         #     interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
     )
