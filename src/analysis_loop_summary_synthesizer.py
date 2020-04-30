@@ -470,25 +470,30 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
-func TRANSFER_L: F -> READ__mapping(uint => address), READ__mapping(uint => uint), L;
-func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
-func REQUIRE_TRANSFER_L: F -> READ__mapping(uint => address), READ__mapping(uint => uint), L;
 func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
+func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
+func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
-func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
+func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
+func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
 func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
 func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
+func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
+func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
 func FILTER__uint: F -> Write__mapping(uint => uint), IF, Cond_uint;
 func FILTER__address: F -> Write__mapping(uint => address), IF, Cond_address;
 func REQUIRE_ASCENDING: F -> mapping(uint => uint);
 func REQUIRE_DESCENDING: F -> mapping(uint => uint);
 func REQUIRE__uint: F -> Cond_uint;
-func REQUIRE__address: F -> Cond_address;
+func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
+func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
+func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
 
 # Arithmetic funcs for lambda
 func lambda: L -> Lambda;
@@ -509,10 +514,25 @@ func eq: Cond_uint -> mapping(uint => uint), uint;
 func neq: Cond_uint -> mapping(uint => uint), uint;
 func lte: Cond_uint -> mapping(uint => uint), uint;
 func gte: Cond_uint -> mapping(uint => uint), uint;
+func bool_arrT: Cond_uint -> mapping(uint => bool);
+func bool_arrF: Cond_uint -> mapping(uint => bool);
+
+# Boolean compus for uint w/ nested array access
+func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func gt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func eq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
+func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
 func eq_addr: Cond_uint -> mapping(uint => address), address;
 func neq_addr: Cond_uint -> mapping(uint => address), address;
+'''
+
+tmp='''
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
@@ -561,7 +581,44 @@ class SymDiffInterpreter(PostOrderInterpreter):
     #########################################
     # Conditional Operators
     #########################################
-        
+
+    def get_nested_access(self, args):
+        return "{0}[{1}[{2}]]".format(args[1], args[0], self.iterator)
+
+    def eval_lt2(self, node, args):
+        arr = self.get_nested_access(args)
+        return arr + "<" + args[2]
+
+    def eval_lte2(self, node, args):
+        arr = self.get_nested_access(args)
+        return arr + "<=" + args[2]
+
+    def eval_eq2(self, node, args):
+        arr = self.get_nested_access(args)        
+        return arr + "==" + args[2]
+     
+    def eval_neq2(self, node, args):
+        arr = self.get_nested_access(args)                
+        return arr + "!=" + args[2]
+    
+    def eval_gt2(self, node, args):
+        arr = self.get_nested_access(args)                
+        return arr + ">" + args[2]
+    
+    def eval_gte2(self, node, args):
+        arr = self.get_nested_access(args)                
+        return arr + ">=" + args[2]
+
+    def eval_bool_arrT2(self, node, args):
+        arr = self.get_nested_access(args)                
+        return arr
+    
+    def eval_bool_arrF2(self, node, args):
+        arr = self.get_nested_access(args)                
+        return "!" + arr
+    
+    ###
+    
     def eval_lt(self, node, args):
         arr = "{0}[{1}]".format(args[0], self.iterator)
         return arr + "<" + args[1]
@@ -573,7 +630,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_eq(self, node, args):
         arr = "{0}[{1}]".format(args[0], self.iterator)        
         return arr + "==" + args[1]
-    
+     
     def eval_neq(self, node, args):
         arr = "{0}[{1}]".format(args[0], self.iterator)        
         return arr + "!=" + args[1]
@@ -585,6 +642,14 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_gte(self, node, args):
         arr = "{0}[{1}]".format(args[0], self.iterator)        
         return arr + ">=" + args[1]
+
+    def eval_bool_arrT(self, node, args):
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return arr
+    
+    def eval_bool_arrF(self, node, args):
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        return "!" + arr
     
     def eval_eq_addr(self, node, args):
         arr = "{0}[{1}]".format(args[0], self.iterator)        
@@ -649,12 +714,17 @@ class SymDiffInterpreter(PostOrderInterpreter):
     #########################################
     # DSL
     #########################################
-    def build_sum(self, node, args, l):
+    def build_sum(self, node, args, l, nested):
         acc = args[0]
         arr = args[1]
 
-        val = "{srcArr}[{it}]".format(srcArr=arr, it=self.iterator)
-        
+        if not nested:
+            val = "{srcArr}[{it}]".format(srcArr=arr, it=self.iterator)            
+        else:
+            index_arr = args[3] if l else args[2]
+            val = "{srcArr}[{index_arr}[{it}]]".format(srcArr=arr, it=self.iterator,
+                                                       index_arr=index_arr)
+            
         if l == False:
             lam = "+= {0}".format(val)
         else:
@@ -674,12 +744,18 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return loop_body
 
     def eval_SUM(self, node, args):
-        return self.build_sum(node, args, False)
+        return self.build_sum(node, args, False, False)
 
     def eval_SUM_L(self, node, args):
-        return self.build_sum(node, args, True)
+        return self.build_sum(node, args, True, False)
     
-    def build_copyrange(self, node, args, l):        
+    def eval_NESTED_SUM(self, node, args):
+        return self.build_sum(node, args, False, True)
+
+    def eval_NESTED_SUM_L(self, node, args):
+        return self.build_sum(node, args, True, True)
+    
+    def build_copyrange(self, node, args, l, nested):        
         src_array = args[0]
         start_src = args[1]
         tgt_array = args[2]
@@ -687,6 +763,14 @@ class SymDiffInterpreter(PostOrderInterpreter):
         val = "{srcObj}[{it}+({srcStart})]".format(srcObj=src_array,
                                                    it=self.iterator,
                                                    srcStart=start_src)
+        
+        if not nested:
+            lhs = "{tgtObj}[{it}]".format(tgtObj=tgt_array, it = self.iterator)
+        else:
+            index_arr = args[4] if l else args[3]
+            lhs = "{tgtObj}[{index_arr}[{it}]]".format(tgtObj=tgt_array, it=self.iterator,
+                                                       index_arr=index_arr)
+            
         if l == False:
             lam = val
         else:
@@ -695,17 +779,23 @@ class SymDiffInterpreter(PostOrderInterpreter):
             
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {tgtObj}[{it}] = {lamVal};
+                {lhs} = {lamVal};
             }}}}
-        """.format(tgtObj=tgt_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+        """.format(lhs=lhs, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
         return loop_body
     
     def eval_COPYRANGE(self, node, args):
-        return self.build_copyrange(node, args, False)
+        return self.build_copyrange(node, args, False, False)
 
     def eval_COPYRANGE_L(self, node, args):
-        return self.build_copyrange(node, args, True)
+        return self.build_copyrange(node, args, True, False)
+
+    def eval_NESTED_COPYRANGE(self, node, args):
+        return self.build_copyrange(node, args, False, True)
+
+    def eval_NESTED_COPYRANGE_L(self, node, args):
+        return self.build_copyrange(node, args, True, True)
 
     def build_shiftleft(self, node, args, l):        
         src_array = args[0]
@@ -781,11 +871,18 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_MAP_L(self, node, args):
         return self.build_map(node, args, True)
 
-    def build_incrange(self, node, args, l):        
+    def build_incrange(self, node, args, l, nested):        
         src = args[0]
         start_src = args[1]
         tgt = args[2]
 
+        if not nested:
+            lhs = "{tgtArr}[{it}]".format(tgtArr=tgt, it=self.iterator)
+        else:
+            index_arr = args[4] if l else args[3]
+            lhs = "{tgtArr}[{index_arr}[{it}]]".format(tgtArr=tgt, it=self.iterator,
+                                                     index_arr=index_arr)
+            
         val = "{srcArr}[{it}+({srcStart})]".format(srcArr=src,
                                                    it=self.iterator,
                                                    srcStart=start_src)
@@ -798,18 +895,23 @@ class SymDiffInterpreter(PostOrderInterpreter):
             
         loop_body = """
             for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {tgtArr}[{it}] += {lamVal};
+                {lhs} += {lamVal};
             }}}}
-        """.format(tgtArr=tgt, srcArr=src, srcStart=start_src,
-                   i_typ=self.i_typ, it=self.iterator, lamVal=lam)
+        """.format(lhs=lhs, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
 
         return loop_body
 
     def eval_INCRANGE(self, node, args):
-        return self.build_incrange(node, args, False)
+        return self.build_incrange(node, args, False, False)
 
     def eval_INCRANGE_L(self, node, args):
-        return self.build_incrange(node, args, True)
+        return self.build_incrange(node, args, True, False)
+
+    def eval_NESTED_INCRANGE(self, node, args):
+        return self.build_incrange(node, args, False, True)
+
+    def eval_NESTED_INCRANGE_L(self, node, args):
+        return self.build_incrange(node, args, True, True)
 
     def build_transfer(self, node, args, l, isReq):
         receiver = args[0]
