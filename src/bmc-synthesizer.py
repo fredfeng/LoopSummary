@@ -464,9 +464,9 @@ func nonintFunc: Inv -> F;
 # func REQUIRE_DESCENDING: F -> mapping(uint => uint);
 # func REQUIRE__uint: F -> Cond_uint;
 # func REQUIRE__address: F -> Cond_address;
-func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+# func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
-# func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
 
@@ -1347,6 +1347,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         return inst_list, [ckpt_1]
 
+    # (notice) currently isReq flag is not used here
+    # since we treat `require(transfer())` as `transfer()` in verification
     def build_transfer(self, node, args, l, isReq):
         # print("build_transfer args: {}".format(args))
         # print("build_transfer l: {}".format(l))  

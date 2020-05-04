@@ -26,14 +26,19 @@ def check_eq(pfile1, pfile2, verbose=False):
     file2 = (file2[0], sorted(file2[1]))
 
     # program aware checkpoint naming
+    # (notice)
+    # CKPT is binary checkpoint that needs explicit if-else branch to assert
+    # TNSF is integer checkpoint that needs uninterpreted function to evaluate
+    # basically TNSF can be implemented in original bmc framework, but since it needs naming for alignment
+    # I just pull it out as a new series
     for i in range(len(file1[0])):
-        file1[0][i] = file1[0][i].replace("CKPT_","PROG1_CKPT_")
+        file1[0][i] = file1[0][i].replace("CKPT_","PROG1_CKPT_").replace("TNSF_","PROG1_TNSF_")
     for i in range(len(file1[1])):
-        file1[1][i] = file1[1][i].replace("CKPT_","PROG1_CKPT_")
+        file1[1][i] = file1[1][i].replace("CKPT_","PROG1_CKPT_").replace("TNSF_","PROG1_TNSF_")
     for i in range(len(file2[0])):
-        file2[0][i] = file2[0][i].replace("CKPT_","PROG2_CKPT_")
+        file2[0][i] = file2[0][i].replace("CKPT_","PROG2_CKPT_").replace("TNSF_","PROG2_TNSF_")
     for i in range(len(file2[1])):
-        file2[1][i] = file2[1][i].replace("CKPT_","PROG2_CKPT_")
+        file2[1][i] = file2[1][i].replace("CKPT_","PROG2_CKPT_").replace("TNSF_","PROG2_TNSF_")
 
     # res = True
     inst_list1 = file1[0]
