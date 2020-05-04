@@ -446,29 +446,29 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-# func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
-# func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
-# func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
-# func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
-# func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
-# func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
-# func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
-# func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
-# func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
-# func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
-# func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
-# func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
-# func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
-# func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
-# func REQUIRE_ASCENDING: F -> mapping(uint => uint);
-# func REQUIRE_DESCENDING: F -> mapping(uint => uint);
-# func REQUIRE__uint: F -> Cond_uint;
-# func REQUIRE__address: F -> Cond_address;
-# func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
-# func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
+func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
+func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
+func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
+func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
+func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
+func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
+func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
+func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
+func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
+func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
+func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
+func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
+func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
+func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
+func REQUIRE_ASCENDING: F -> mapping(uint => uint);
+func REQUIRE_DESCENDING: F -> mapping(uint => uint);
+func REQUIRE__uint: F -> Cond_uint;
+func REQUIRE__address: F -> Cond_address;
+func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
-# func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
-# func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
+func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
+func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
 
 # Arithmetic funcs for lambda
 func lambda: L -> Lambda;
@@ -483,28 +483,28 @@ func subc_st: i_st -> GuardStart__uint, C;
 func subc_end: i_end -> GuardEnd__uint, C;
 
 # Boolean comps for uint
-# func lt: Cond_uint -> mapping(uint => uint), uint;
-# func gt: Cond_uint -> mapping(uint => uint), uint;
-# func eq: Cond_uint -> mapping(uint => uint), uint;
-# func neq: Cond_uint -> mapping(uint => uint), uint;
-# func lte: Cond_uint -> mapping(uint => uint), uint;
-# func gte: Cond_uint -> mapping(uint => uint), uint;
-# func bool_arrT: Cond_uint -> mapping(uint => bool);
-# func bool_arrF: Cond_uint -> mapping(uint => bool);
+func lt: Cond_uint -> mapping(uint => uint), uint;
+func gt: Cond_uint -> mapping(uint => uint), uint;
+func eq: Cond_uint -> mapping(uint => uint), uint;
+func neq: Cond_uint -> mapping(uint => uint), uint;
+func lte: Cond_uint -> mapping(uint => uint), uint;
+func gte: Cond_uint -> mapping(uint => uint), uint;
+func bool_arrT: Cond_uint -> mapping(uint => bool);
+func bool_arrF: Cond_uint -> mapping(uint => bool);
 
 # Boolean compus for uint w/ nested array access
-# func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-# func gt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-# func eq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-# func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-# func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-# func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-# func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
-# func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
+func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func gt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func eq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
+func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
-# func eq_addr: Cond_address -> mapping(uint => address), address;
-# func neq_addr: Cond_address -> mapping(uint => address), address;
+func eq_addr: Cond_address -> mapping(uint => address), address;
+func neq_addr: Cond_address -> mapping(uint => address), address;
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
