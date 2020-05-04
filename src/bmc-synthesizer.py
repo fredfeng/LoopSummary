@@ -222,7 +222,7 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     type_table["g_int"] = list(set(type_table["uint"]))
 
     # Fetch integer constant values
-    C = fetch_int_constants(analysis[5]) if prune else []        
+    C = fetch_int_constants(analysis[5]) #if prune else []        
     # Add 0 and 1 and remove duplicates
     C = list(set(C+['"0"', '"1"']))
     # Non-zero constants
@@ -446,7 +446,7 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-# func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
+func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 # func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
@@ -1378,18 +1378,17 @@ def main(args):
     # Get all contracts declared
     other_contracts = extract_contracts(sol_file)
     
-    if args.prune:
-        logger.info('Analyzing Input...')
-        deps, refs = analyze(sol_file, "C", "foo()")
-        print(deps.dependencies)
-        lambdas = analyze_lambdas(sol_file, "C", "foo()")
-        req_conds = get_requires_conditions(sol_file)
-        logger.info('Analysis Successful!')
+    # Run analysis (still use constant extraction when in no-prune mode)
+    logger.info('Analyzing Input...')
+    deps, refs = analyze(sol_file, "C", "foo()")
+    lambdas = analyze_lambdas(sol_file, "C", "foo()")
+    req_conds = get_requires_conditions(sol_file)
+    logger.info('Analysis Successful!')
 
     if args.prune:
         actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas, req_conds, True)
     else:
-        actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, None, None, None, False)
+        actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, None, None, False)
         
     print(actual_spec)
     # input("SEE THE SPEC ABOVE")
