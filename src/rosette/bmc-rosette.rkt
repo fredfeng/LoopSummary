@@ -10,6 +10,9 @@
         (format "~a@~a" name i) integer?))))
         ; (string->symbol (format "~a@~a" name i)) integer?))))
 
+;;; Racket uninterpreted function to model transfer operation
+(define-symbolic sym-transfer (~> integer? integer? integer?))
+
 ;;; Racket function to model array read
 (define (sym-array-read base offset)
     ;;; (notice) first tell if the variables are symbolic or not before assertion
@@ -259,6 +262,7 @@
         ;;; define separate d-val for different programs
         ;;; (important) don't use gen-var, use the special gen-bool
         ;;; flags must be bool so that they can be correctly process by rosette
+        ;;; (notice) the names of d are made different in the Python side already
         (define d-val (gen-bool-by-name d env))
         (if a1-val 
             ; either one will be captured by rosette assertion store
@@ -266,6 +270,44 @@
             (assert (not d-val))
         )
         (hash-set! env d d-val)
+    )
+
+    ;;; transfer series
+    ;;; the names of d should be kept the same and put into
+    (define (transfer#rr)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a1-val (gen-var-by-name a1 env))
+        (define a2-val (gen-var-by-name a2 env))
+        (define val (sym-transfer a1-val a2-val))
+        (hash-set! env d val)
+    )
+
+    (define (transfer#rn)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a1-val (gen-var-by-name a1 env))
+        (define val (sym-transfer a1-val (string->number a2)))
+        (hash-set! env d val)
+    )
+
+    (define (transfer#nr)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a2-val (gen-var-by-name a2 env))
+        (define val (sym-transfer (string->number a1) a2-val))
+        (hash-set! env d val)
+    )
+
+    (define (transfer#nn)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define val (sym-transfer (string->number a1) (string->number a2)))
+        (hash-set! env d val)
     )
 
     (cond
@@ -313,6 +355,11 @@
 
          [(equal? op-name "require") (rq)] ; use rq to avoid keyword require
          [(equal? op-name "not") (unary-op (lambda (x) (not x)))] ; use lnot to avoid keyword not
+
+         [(equal? op-name "transfer#rr") (transfer#rr)]
+         [(equal? op-name "transfer#rn") (transfer#rn)]
+         [(equal? op-name "transfer#nr") (transfer#nr)]
+         [(equal? op-name "transfer#nn") (transfer#nn)]
 
          [else (assert #f (format "simulator: undefine instruction ~a" op-name))])
 )

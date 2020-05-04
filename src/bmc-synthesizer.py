@@ -257,10 +257,10 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
         actual_spec = remove_refinement(actual_spec)
         # Add in arithmetic lambda funcs
         actual_spec += '''
-# func add: L -> uint;
+func add: L -> uint;
 func mul: L -> nonzero_uint;
-# func sub: L -> uint;
-# func div: L -> nonzero_uint;
+func sub: L -> uint;
+func div: L -> nonzero_uint;
         '''
         # Use filter conditional for require as well as filter
         actual_spec = actual_spec.replace("ReqCond", "Cond")        
@@ -448,7 +448,7 @@ func nonintFunc: Inv -> F;
 # DSL Functions (with lambda versions when appropriate)
 # func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 # func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
-func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
+# func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 # func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
@@ -464,7 +464,7 @@ func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_
 # func REQUIRE_DESCENDING: F -> mapping(uint => uint);
 # func REQUIRE__uint: F -> Cond_uint;
 # func REQUIRE__address: F -> Cond_address;
-# func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
@@ -556,6 +556,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self._ref_counter = -1 # reference variable counter
         self._tmp_counter = -1 # temporary variable counter
         self._ckpt_counter = -1 # checkpoint variable counter (for require method)
+        self._tnsf_counter = -1 # transfer result counter (for transfer method)
 
     def get_fresh_ref_name(self):
         self._ref_counter += 1
@@ -578,9 +579,16 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self._ckpt_counter += 1
         return "CKPT_{}".format(self._ckpt_counter)
 
+    def get_fresh_tnsf_name(self):
+        self._tnsf_counter += 1
+        return "TNSF_{}".format(self._tnsf_counter)
+
     # overridding the eval method by adding one extra call to reset _ckpt_counter
+    # (important) since ckpt checking in rosette side is order sensitive
+    # and decider is relying on exact matching of ckpt names
     def eval(self, prog: Node, inputs: List[Any]) -> Any:
         self._ckpt_counter = -1 # reset _ckpt_counter
+        self._tnsf_counter = -1 # reset _tnsf_counter
         return super(SymDiffInterpreter, self).eval(prog, inputs)
 
     #########################################
@@ -1338,6 +1346,70 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         return inst_list, [ckpt_1]
+
+    def build_transfer(self, node, args, l, isReq):
+        # print("build_transfer args: {}".format(args))
+        # print("build_transfer l: {}".format(l))  
+        # print("build_transfer isReq: {}".format(isReq))  
+        toAddr = args[0]
+        fromArr = args[1]
+        Lam = args[2] if l else None
+        it = self.iterator
+        # build_transfer is doing:
+        # 1 (req+lambda)  require( transfer( toAddr[it], Lam( fromArr[it] ) ) )
+        # 2 (req only)    require( transfer( toAddr[it], fromArr[it] ) )
+        # 3 (lambda only) transfer( toAddr[it], Lam( fromArr[it] ) )
+        # 4 ()            transfer( toAddr[it], fromArr[it] )
+
+        inst_list = []
+
+        # e.g., self.iterator = {{GuardStart}}
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), it)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_0 = fromArr[it]
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, fromArr, it )
+        inst_list.append(inst)
+        self.pc += 1
+
+        ref_1 = self.get_fresh_ref_name()
+        if l:
+            # ref_1 = Lam(ref_0)
+            inst = "{}: {} = {}".format( hex(self.pc), ref_1, Lam.replace("__x", ref_0) )
+        else:
+            # ref_1 = ref_0
+            inst = "{}: {} = {}".format( hex(self.pc), ref_1, ref_0 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_2 = toAddr[it]
+        ref_2 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_2, toAddr, it )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tnsf_3 = transfer( ref_2, ref_1 )
+        tnsf_3 = self.get_fresh_tnsf_name()
+        inst = "{}: {} = TRANSFER {} {}".format( hex(self.pc), tnsf_3, ref_2, ref_1 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # do not have to deal with require here
+        return inst_list, [tnsf_3]
+
+    def eval_TRANSFER(self, node, args):
+        return self.build_transfer(node, args, False, False)
+    
+    def eval_TRANSFER_L(self, node, args):
+        return self.build_transfer(node, args, True, False)
+
+    def eval_REQUIRE_TRANSFER(self, node, args):
+        return self.build_transfer(node, args, False, True)
+    
+    def eval_REQUIRE_TRANSFER_L(self, node, args):
+        return self.build_transfer(node, args, True, True)
 
     def eval_summarize(self, node, args):
         start = args[1]

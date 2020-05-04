@@ -30,9 +30,9 @@
 | `nestedRequireBoolTest.sol` | ✅           | ✅           |
 | `requireAddressTest.sol`    | ✅           | ✅           |
 | `requireOrderedTest.sol`    | ✅           | ✅           |
-| `transferTest.sol`          |             |             |
-| `requireTransferTest.sol`   |             |             |
-| others                      | (working)   | (working)   |
+| `transferTest.sol`          | ✅           | ✅           |
+| `requireTransferTest.sol`   | ✅           | ✅           |
+|                             |             |             |
 
 ### Getting Started
 
