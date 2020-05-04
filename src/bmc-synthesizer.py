@@ -257,10 +257,10 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
         actual_spec = remove_refinement(actual_spec)
         # Add in arithmetic lambda funcs
         actual_spec += '''
-func add: L -> uint;
+# func add: L -> uint;
 func mul: L -> nonzero_uint;
-func sub: L -> uint;
-func div: L -> nonzero_uint;
+# func sub: L -> uint;
+# func div: L -> nonzero_uint;
         '''
         # Use filter conditional for require as well as filter
         actual_spec = actual_spec.replace("ReqCond", "Cond")        
@@ -446,9 +446,9 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
+# func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 # func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
-# func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
+func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 # func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
@@ -462,7 +462,7 @@ func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
 # func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
 # func REQUIRE_ASCENDING: F -> mapping(uint => uint);
 # func REQUIRE_DESCENDING: F -> mapping(uint => uint);
-func REQUIRE__uint: F -> Cond_uint;
+# func REQUIRE__uint: F -> Cond_uint;
 # func REQUIRE__address: F -> Cond_address;
 # func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
@@ -499,7 +499,7 @@ func subc_end: i_end -> GuardEnd__uint, C;
 # func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
+# func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 # func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
@@ -1241,7 +1241,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         srcVal = args[2]
         it = self.iterator
         # build_updaterange is doing: 
-        # 1 (). tgtArr[it] = srcVal
+        # 1 (). tgtArr[indexArr[it]] = srcVal
 
         inst_list = []
 
@@ -1266,6 +1266,59 @@ class SymDiffInterpreter(PostOrderInterpreter):
     
     def eval_UPDATERANGE(self, node, args):
         return self.build_updaterange(node, args)
+
+    def build_require_ordered(self, node, args, isAscending):
+        # print("build_require_ordered args: {}".format(args))
+        # print("build_require_ordered isAscending: {}".format(isAscending))    
+        srcArr = args[0]
+        op = "LT" if isAscending else "GT" 
+        it = self.iterator
+        # build_require_ordered is doing:
+        # 1 (). require(srcArr[it] op srcArr[it+1])
+
+        inst_list = []
+
+        # e.g., self.iterator = {{GuardStart}}
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), it)
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_0 = srcArr[it]
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, it )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_1 = it + 1
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} 1".format( hex(self.pc), ref_1, it )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_2 = srcArr[ref_1]
+        ref_2 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_2, srcArr, ref_1 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_3 = ref_0 op ref_2
+        ref_3 = self.get_fresh_ref_name()
+        inst = "{}: {} = {} {} {}".format( hex(self.pc), ref_3, op, ref_0, ref_2 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        ckpt_4 = self.get_fresh_ckpt_name()
+        inst = "{}: {} = REQUIRE {}".format( hex(self.pc), ckpt_4, ref_3 )
+        inst_list.append(inst)
+        self.pc += 1
+        
+        return inst_list, [ckpt_4]
+    
+    def eval_REQUIRE_ASCENDING(self, node, args):
+        return self.build_require_ordered(node, args, True)
+
+    def eval_REQUIRE_DESCENDING(self, node, args):
+        return self.build_require_ordered(node, args, False) 
 
     def eval_REQUIRE(self, node, args):
         # print("eval_REQUIRE args: {}".format(args))
