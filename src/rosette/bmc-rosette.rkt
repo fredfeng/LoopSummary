@@ -175,7 +175,7 @@
     (define (assign#)
         (define d (vector-ref args 1))
         (define a (vector-ref args 2))
-        (define val (string->number a)) ;; reg const 
+        (define val (string->number a))
         (hash-set! env d val))
         ; (ref-hash-set! env d val))
 
@@ -208,7 +208,7 @@
         (define source (vector-ref args 4))
         (define base-val (gen-vec-by-name base env))
         (define offset-val (gen-var-by-name offset env))
-        (define source-val (string->number source)) ; reg const
+        (define source-val (string->number source))
         ;;; d won't be used, so no need to set it
         (sym-array-write base-val offset-val source-val)
     )
@@ -219,7 +219,7 @@
         (define a2 (vector-ref args 3))
         (define a1-val (gen-var-by-name a1 env))
         (define a2-val (gen-var-by-name a2 env))
-        (define val (op a1-val a2-val)) ;; reg const 
+        (define val (op a1-val a2-val))
         (hash-set! env d val))
 
     (define (binary-op# op)
@@ -227,14 +227,27 @@
         (define a1 (vector-ref args 2))
         (define a2 (vector-ref args 3))
         (define a1-val (gen-var-by-name a1 env))
-        (define val (op a1-val (string->number a2))) ;; reg const 
+        (define val (op a1-val (string->number a2)))
         (hash-set! env d val))
 
     (define (binary-op## op)
         (define d (vector-ref args 1))
         (define a1 (vector-ref args 2))
         (define a2 (vector-ref args 3))
-        (define val (op (string->number a1) (string->number a2))) ;; reg const 
+        (define val (op (string->number a1) (string->number a2)))
+        (hash-set! env d val))
+
+    (define (unary-op op)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a1-val (gen-var-by-name a1 env))
+        (define val (op a1-val))
+        (hash-set! env d val))
+
+    (define (unary-op# op)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define val (op (string->number a1)))
         (hash-set! env d val))
 
     ;;; require
@@ -299,6 +312,7 @@
          [(equal? op-name "array-write#") (array-write#)]
 
          [(equal? op-name "require") (rq)] ; use rq to avoid keyword require
+         [(equal? op-name "not") (unary-op (lambda (x) (not x)))] ; use lnot to avoid keyword not
 
          [else (assert #f (format "simulator: undefine instruction ~a" op-name))])
 )

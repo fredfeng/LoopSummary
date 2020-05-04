@@ -7,6 +7,7 @@
 3. The `TRANSFER` prod disappears after the dsl instantiation (even in `no pruning` mode).
 4. Using `--prune` while testing `nestedSumTest.sol` will call `eval_lambda`, which is not suggested to be used by Ben.
 5. I don't get the design of `requireSumTest.sol` and `nestedRequireSumTest.sol`.
+6. When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.
 
 ### Recent Logs
 
@@ -28,11 +29,12 @@
 | `mapLTest.sol`                    | (known issue 1) | (known issue 1) |
 | `updateRangeTest.sol`             | ✅               | ✅               |
 | `requireTest.sol`                 | ✅               | ✅               |
-| `nestedRequireTest.sol`           |                 |                 |
-| `requireBoolTest.sol`             |                 |                 |
-| `nestedRequireBoolTest.sol`       |                 |                 |
-| `requireSumTest.sol`🔮(why?)       |                 |                 |
-| `nestedRequireSumTest.sol`🔮(why?) |                 |                 |
+| `nestedRequireTest.sol`           | ✅               | ✅               |
+| `requireBoolTest.sol`             | ✅               | ✅               |
+| `nestedRequireBoolTest.sol`       | ✅               | ✅               |
+| `requireSumTest.sol`🔮(why?)       | 🔮               | 🔮               |
+| `nestedRequireSumTest.sol`🔮(why?) | 🔮               | 🔮               |
+| `requireAddressTest.sol`          | ✅               | ✅               |
 | others                            | (working)       | (working)       |
 
 ### Getting Started

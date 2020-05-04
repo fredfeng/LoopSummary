@@ -463,6 +463,7 @@ func nonintFunc: Inv -> F;
 # func REQUIRE_ASCENDING: F -> mapping(uint => uint);
 # func REQUIRE_DESCENDING: F -> mapping(uint => uint);
 func REQUIRE__uint: F -> Cond_uint;
+# func REQUIRE__address: F -> Cond_address;
 # func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
@@ -482,28 +483,28 @@ func subc_st: i_st -> GuardStart__uint, C;
 func subc_end: i_end -> GuardEnd__uint, C;
 
 # Boolean comps for uint
-func lt: Cond_uint -> mapping(uint => uint), uint;
-func gt: Cond_uint -> mapping(uint => uint), uint;
-func eq: Cond_uint -> mapping(uint => uint), uint;
-func neq: Cond_uint -> mapping(uint => uint), uint;
-func lte: Cond_uint -> mapping(uint => uint), uint;
-func gte: Cond_uint -> mapping(uint => uint), uint;
-func bool_arrT: Cond_uint -> mapping(uint => bool);
-func bool_arrF: Cond_uint -> mapping(uint => bool);
+# func lt: Cond_uint -> mapping(uint => uint), uint;
+# func gt: Cond_uint -> mapping(uint => uint), uint;
+# func eq: Cond_uint -> mapping(uint => uint), uint;
+# func neq: Cond_uint -> mapping(uint => uint), uint;
+# func lte: Cond_uint -> mapping(uint => uint), uint;
+# func gte: Cond_uint -> mapping(uint => uint), uint;
+# func bool_arrT: Cond_uint -> mapping(uint => bool);
+# func bool_arrF: Cond_uint -> mapping(uint => bool);
 
 # Boolean compus for uint w/ nested array access
-func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-func gt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-func eq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
-func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+# func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+# func gt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+# func eq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+# func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+# func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+# func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
-func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
+# func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
-func eq_addr: Cond_address -> mapping(uint => address), address;
-func neq_addr: Cond_address -> mapping(uint => address), address;
+# func eq_addr: Cond_address -> mapping(uint => address), address;
+# func neq_addr: Cond_address -> mapping(uint => address), address;
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
@@ -587,39 +588,110 @@ class SymDiffInterpreter(PostOrderInterpreter):
     #########################################
 
     def get_nested_access(self, args):
-        return "{0}[{1}[{2}]]".format(args[1], args[0], self.iterator)
+        # srcArr[indexArr[it]] op srcVal
+        # srcArr = args[0]
+        # indexArr = args[1]
+        # (notice) somewhat the indexArr is args[0] and srcArr is args[1] though
+        indexArr = args[0]
+        srcArr = args[1]
+        it = self.iterator
+        meta_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        meta_list.append(inst)
+        self.pc += 1
+
+        # ref_0 = indexArr[it]
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, indexArr, it )
+        meta_list.append(inst)
+        self.pc += 1
+
+        # ref_1 = srcArr[ref_0]
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_1, srcArr, ref_0 )
+        meta_list.append(inst)
+        self.pc += 1
+
+        return meta_list, ref_1
 
     def eval_lt2(self, node, args):
-        arr = self.get_nested_access(args)
-        raise NotImplementedError( arr + "<" + args[2] )
+        srcVal = args[2]
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] < srcVal
+        prev_list = [] + meta_list
+
+        # ref_1 < srcVal
+        expr = "LT {} {}".format( ref_1, srcVal )
+        return prev_list, expr
 
     def eval_lte2(self, node, args):
-        arr = self.get_nested_access(args)
-        raise NotImplementedError( arr + "<=" + args[2] )
+        srcVal = args[2]
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] <= srcVal
+        prev_list = [] + meta_list
+
+        # ref_1 <= srcVal
+        expr = "LTE {} {}".format( ref_1, srcVal )
+        return prev_list, expr
 
     def eval_eq2(self, node, args):
-        arr = self.get_nested_access(args)        
-        raise NotImplementedError( arr + "==" + args[2] )
+        srcVal = args[2]
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] == srcVal
+        prev_list = [] + meta_list
+
+        # ref_1 == srcVal
+        expr = "EQ {} {}".format( ref_1, srcVal )
+        return prev_list, expr
      
     def eval_neq2(self, node, args):
-        arr = self.get_nested_access(args)                
-        raise NotImplementedError( arr + "!=" + args[2] )
+        srcVal = args[2]
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] != srcVal
+        prev_list = [] + meta_list
+
+        # ref_1 != srcVal
+        expr = "NEQ {} {}".format( ref_1, srcVal )
+        return prev_list, expr
     
     def eval_gt2(self, node, args):
-        arr = self.get_nested_access(args)                
-        raise NotImplementedError( arr + ">" + args[2] )
+        srcVal = args[2]
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] > srcVal
+        prev_list = [] + meta_list
+
+        # ref_1 > srcVal
+        expr = "GT {} {}".format( ref_1, srcVal )
+        return prev_list, expr
     
     def eval_gte2(self, node, args):
-        arr = self.get_nested_access(args)                
-        raise NotImplementedError( arr + ">=" + args[2] )
+        srcVal = args[2]
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] >= srcVal
+        prev_list = [] + meta_list
+
+        # ref_1 >= srcVal
+        expr = "GTE {} {}".format( ref_1, srcVal )
+        return prev_list, expr
 
     def eval_bool_arrT2(self, node, args):
-        arr = self.get_nested_access(args)                
-        raise NotImplementedError( arr )
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] == true
+        prev_list = [] + meta_list
+
+        # ref_1 
+        expr = "{}".format( ref_1 )
+        return prev_list, expr
     
     def eval_bool_arrF2(self, node, args):
-        arr = self.get_nested_access(args)                
-        raise NotImplementedError( "!" + arr )
+        meta_list, ref_1 = self.get_nested_access(args)
+        # srcArr[indexArr[it]] == false
+        prev_list = [] + meta_list
+
+        # NOT ref_1 
+        expr = "NOT {}".format( ref_1 )
+        return prev_list, expr
 
     ### (important)
     ### Cond_uint only appears in REQUIRE (both eval_op and eval_op2 series)
@@ -637,7 +709,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, self.iterator )
         prev_list.append(inst)
         self.pc += 1
 
@@ -656,11 +728,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, self.iterator )
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "LTE {} {}".format( ref_0, args[1])
+        expr = "LTE {} {}".format( ref_0, srcVal)
         return prev_list, expr
 
     def eval_eq(self, node, args):
@@ -675,11 +747,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, self.iterator )
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "EQ {} {}".format( ref_0, args[1])
+        expr = "EQ {} {}".format( ref_0, srcVal)
         return prev_list, expr
     
     def eval_neq(self, node, args):
@@ -694,11 +766,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, self.iterator )
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "NEQ {} {}".format( ref_0, args[1])
+        expr = "NEQ {} {}".format( ref_0, srcVal)
         return prev_list, expr
     
     def eval_gt(self, node, args):
@@ -713,11 +785,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, self.iterator )
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "GT {} {}".format( ref_0, args[1])
+        expr = "GT {} {}".format( ref_0, srcVal)
         return prev_list, expr
     
     def eval_gte(self, node, args):
@@ -732,11 +804,11 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, self.iterator )
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "GTE {} {}".format( ref_0, args[1])
+        expr = "GTE {} {}".format( ref_0, srcVal)
         return prev_list, expr
 
     def eval_bool_arrT(self, node, args):
@@ -778,12 +850,46 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return prev_list, expr
 
     def eval_eq_addr(self, node, args):
-        arr = "{0}[{1}]".format(args[0], self.iterator)        
-        raise NotImplementedError( arr + "==" + args[1] )
+        # srcArr[it] == srcAddr
+        srcArr = args[0]
+        addrStr = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        # FIXME (including bmc): not an exact method to extract/represent address
+        srcAddr = addrStr.replace("address(","").replace(")","")
+        expr = "EQ {} {}".format( ref_0, srcAddr )
+        return prev_list, expr
     
     def eval_neq_addr(self, node, args):
-        arr = "{0}[{1}]".format(args[0], self.iterator)        
-        raise NotImplementedError( arr + "!=" + args[1] )
+        # srcArr[it] != srcAddr
+        srcArr = args[0]
+        addrStr = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        # FIXME (including bmc): not an exact method to extract/represent address
+        srcAddr = addrStr.replace("address(","").replace(")","")
+        expr = "NEQ {} {}".format( ref_0, srcAddr )
+        return prev_list, expr
 
     def eval_const(self, node, args):
         return args[0]
@@ -1303,7 +1409,7 @@ def main(args):
             interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs), example=sol_file, equal_output=check_eq)
     )
     logger.info('Synthesizing programs...')
-    # input("PRESS TO START")
+    input("PRESS TO START")
 
     prog = synthesizer.synthesize()
     if prog is not None:

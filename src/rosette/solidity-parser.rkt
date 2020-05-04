@@ -23,7 +23,7 @@
     ;                         SELFDESTRUCT MSIZE NUMBER CALLDATACOPY CODECOPY SUB TIMESTAMP EXP DIV RETURNDATACOPY MUL AND ADD REVERT RETURNDATASIZE
     ;                         CODESIZE EXTCODECOPY MOD XOR DIFFICULTY BYTE ARRAY-READ ARRAY-WRITE
     ;                         RETURN COLON ORIGIN CALLVALUE JUMP EXTCODESIZE JUMPI SLP LC RC LP RP ADDRESS CALLDATASIZE CALLDATALOAD)) ;; add more tokens
-    (define-empty-tokens b (EOF ASSIGN LT LTE GT GTE EQ NEQ SUB ADD MUL DIV ARRAY-READ ARRAY-WRITE COLON REQUIRE
+    (define-empty-tokens b (EOF ASSIGN LT LTE GT GTE EQ NEQ SUB ADD MUL DIV ARRAY-READ ARRAY-WRITE COLON REQUIRE NOT
                             )) ;; add more tokens
 
     (define-lex-abbrevs
@@ -74,6 +74,7 @@
        ("NEQ"           (token-NEQ))
 
        ("REQUIRE"   (token-REQUIRE))
+       ("NOT"   (token-NOT))
 
        (identifier   (token-REG lexeme))
        (snumber10   (token-NUM lexeme))
@@ -153,6 +154,7 @@
           ((NUM COLON REG ASSIGN ARRAY-WRITE REG REG NUM) (inst "array-write#" (vector $1 $3 $6 $7 $8)))
 
           ((NUM COLON REG ASSIGN REQUIRE REG) (inst "require" (vector $1 $3 $6)))
+          ((NUM COLON REG ASSIGN NOT REG) (inst "not" (vector $1 $3 $6)))
 
          ) 
         

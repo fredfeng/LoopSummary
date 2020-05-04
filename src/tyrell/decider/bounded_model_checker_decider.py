@@ -177,6 +177,10 @@ class BoundedModelCheckerDecider(Decider):
         inst = "{}: {} = REQUIRE {}".format( hex(curr_addr), ckpt_0, ir.arguments[0] )
         return curr_addr+1, [inst], [ckpt_0]
 
+    def assemble_address(self, curr_addr, ir):
+        inst = "{}: {} = {}".format( hex(curr_addr), ir.lvalue, ir.variable )
+        return curr_addr+1, [inst]
+
     # returns: next_addr, inst_list, checkpoint_list
     # checkpoint variable is additional value to verify (currently from `require`)
     # (notice) the checkpoint variable here is modified to the form "CKPT_?" to match the synthesizer
@@ -231,6 +235,13 @@ class BoundedModelCheckerDecider(Decider):
                     final_ckpt_list += ckpt_list
                 else:
                     raise NotImplementedError("Unsupported solidity call: {}".format(fname))
+            elif seq_irs[i] == TypeConversion:
+                tname = raw_irs[i].type.name
+                if "address" in tname:
+                    next_addr, inst_list = self.assemble_address( next_addr, raw_irs[i] )
+                    final_inst_list += inst_list
+                else:
+                    raise NotImplementedError("Unsupported type conversion: {}".format(tname))
             else:
                 raise NotImplementedError("Unsupported instruction type: {}".format(seq_irs[i]))
 
