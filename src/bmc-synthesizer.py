@@ -460,11 +460,9 @@ func nonintFunc: Inv -> F;
 # func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
 # func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
-# func FILTER__uint: F -> Write__mapping(uint => uint), IF, Cond_uint;
-# func FILTER__address: F -> Write__mapping(uint => address), IF, Cond_address;
 # func REQUIRE_ASCENDING: F -> mapping(uint => uint);
 # func REQUIRE_DESCENDING: F -> mapping(uint => uint);
-# func REQUIRE__uint: F -> Cond_uint;
+func REQUIRE__uint: F -> Cond_uint;
 # func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
@@ -623,73 +621,169 @@ class SymDiffInterpreter(PostOrderInterpreter):
         arr = self.get_nested_access(args)                
         raise NotImplementedError( "!" + arr )
 
-    ###
+    ### (important)
+    ### Cond_uint only appears in REQUIRE (both eval_op and eval_op2 series)
+    ### so it's safe to add "it={{GuardStart}}" inside Cond_uint
         
     def eval_lt(self, node, args):
-        # special wrapper lt wrapper
-        return "ARRAY-LT {} {} {}".format(args[0], self.iterator, args[1])
-        # arr = "{0}[{1}]".format(args[0], self.iterator)
-        # return arr + "<" + args[1]
+        # srcArr[it] < srcVal
+        srcArr = args[0]
+        srcVal = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "LT {} {}".format( ref_0, args[1])
+        return prev_list, expr
 
     def eval_lte(self, node, args):
-        # special array lte wrapper
-        return "ARRAY-LTE {} {} {}".format(args[0], self.iterator, args[1])
-        # arr = "{0}[{1}]".format(args[0], self.iterator)        
-        # return arr + "<=" + args[1]
+        # srcArr[it] <= srcVal
+        srcArr = args[0]
+        srcVal = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "LTE {} {}".format( ref_0, args[1])
+        return prev_list, expr
 
     def eval_eq(self, node, args):
-        # special array eq wrapper
-        return "ARRAY-EQ {} {} {}".format(args[0], self.iterator, args[1])
-        # arr = "{0}[{1}]".format(args[0], self.iterator)        
-        # return arr + "==" + args[1]
+        # srcArr[it] == srcVal
+        srcArr = args[0]
+        srcVal = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "EQ {} {}".format( ref_0, args[1])
+        return prev_list, expr
     
     def eval_neq(self, node, args):
-        # special array neq wrapper
-        return "ARRAY-NEQ {} {} {}".format(args[0], self.iterator, args[1])
-        # arr = "{0}[{1}]".format(args[0], self.iterator)        
-        # return arr + "!=" + args[1]
+        # srcArr[it] != srcVal
+        srcArr = args[0]
+        srcVal = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "NEQ {} {}".format( ref_0, args[1])
+        return prev_list, expr
     
     def eval_gt(self, node, args):
-        # special array gt wrapper
-        return "ARRAY-GT {} {} {}".format(args[0], self.iterator, args[1])
-        # arr = "{0}[{1}]".format(args[0], self.iterator)        
-        # return arr + ">" + args[1]
+        # srcArr[it] > srcVal
+        srcArr = args[0]
+        srcVal = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "GT {} {}".format( ref_0, args[1])
+        return prev_list, expr
     
     def eval_gte(self, node, args):
-        # special array gte wrapper
-        return "ARRAY-GTE {} {} {}".format(args[0], self.iterator, args[1])
-        # arr = "{0}[{1}]".format(args[0], self.iterator)        
-        # return arr + ">=" + args[1]
+        # srcArr[it] >= srcVal
+        srcArr = args[0]
+        srcVal = args[1]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, args[0], self.iterator )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "GTE {} {}".format( ref_0, args[1])
+        return prev_list, expr
 
     def eval_bool_arrT(self, node, args):
-        arr = "{0}[{1}]".format(args[0], self.iterator)        
-        raise NotImplementedError( arr )
+        # ref_0 = srcArr[it]
+        # ref_0
+        srcArr = args[0]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "{}".format( ref_0 )
+        return prev_list, expr
     
     def eval_bool_arrF(self, node, args):
-        arr = "{0}[{1}]".format(args[0], self.iterator)        
-        raise NotImplementedError( "!" + arr )
+        # ref_0 = srcArr[it]
+        # NOT ref_0
+        srcArr = args[0]
+        it = self.iterator
+        prev_list = []
+
+        inst = "{}: {} = {{GuardStart}}".format( hex(self.pc), it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, srcArr, it )
+        prev_list.append(inst)
+        self.pc += 1
+
+        expr = "NOT {}".format( ref_0 )
+        return prev_list, expr
 
     def eval_eq_addr(self, node, args):
-        # special array eq wrapper
-        # for address, strip off the address call wrapper
-        return "ARRAY-EQ {} {} {}".format(args[0], self.iterator, args[1].replace("address(","").replace(")",""))
-        # arr = "{0}[{1}]".format(args[0], self.iterator)        
-        # return arr + "==" + args[1]
-
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        raise NotImplementedError( arr + "==" + args[1] )
+    
     def eval_neq_addr(self, node, args):
-        # special array neq wrapper
-        # for address, strip off the address call wrapper
-        return "ARRAY-NEQ {} {} {}".format(args[0], self.iterator, args[1].replace("address(","").replace(")",""))
-        # arr = "{0}[{1}]".format(args[0], self.iterator)        
-        # return arr + "!=" + args[1]
-    
-    def eval_and(self, node, args):
-        return "AND {} {}".format(args[0], args[1])
-        # return args[0] + " && " + args[1]
-    
-    def eval_or(self, node, args):
-        return "OR {} {}".format(args[0], args[1])
-        # return args[0] + " || " + args[1]
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        raise NotImplementedError( arr + "!=" + args[1] )
 
     def eval_const(self, node, args):
         return args[0]
@@ -1066,6 +1160,25 @@ class SymDiffInterpreter(PostOrderInterpreter):
     
     def eval_UPDATERANGE(self, node, args):
         return self.build_updaterange(node, args)
+
+    def eval_REQUIRE(self, node, args):
+        # print("eval_REQUIRE args: {}".format(args))
+        prev_list = args[0][0]
+        expr = args[0][1]
+
+        inst_list = [] + prev_list
+
+        ref_0 = self.get_fresh_ref_name()
+        inst = "{}: {} = {}".format( hex(self.pc), ref_0, expr )
+        inst_list.append(inst)
+        self.pc += 1
+
+        ckpt_1 = self.get_fresh_ckpt_name()
+        inst = "{}: {} = REQUIRE {}".format( hex(self.pc), ckpt_1, ref_0 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, [ckpt_1]
 
     def eval_summarize(self, node, args):
         start = args[1]

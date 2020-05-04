@@ -172,6 +172,10 @@ class BoundedModelCheckerDecider(Decider):
         inst = "{}: {} = {} {} {}".format( hex(curr_addr), ir.lvalue, opcode, ir.variable_left, ir.variable_right )
         return curr_addr+1, [inst]
 
+    def assemble_require(self, curr_addr, ir):
+        ckpt_0 = self.get_fresh_ckpt_name()
+        inst = "{}: {} = REQUIRE {}".format( hex(curr_addr), ckpt_0, ir.arguments[0] )
+        return curr_addr+1, [inst], [ckpt_0]
 
     # returns: next_addr, inst_list, checkpoint_list
     # checkpoint variable is additional value to verify (currently from `require`)
@@ -219,6 +223,14 @@ class BoundedModelCheckerDecider(Decider):
                     # normal binary
                     next_addr, inst_list = self.assemble_binary( next_addr, raw_irs[i] )
                     final_inst_list += inst_list
+            elif seq_irs[i] == SolidityCall:
+                fname = raw_irs[i].function.full_name
+                if "require" in fname:
+                    next_addr, inst_list, ckpt_list = self.assemble_require( next_addr, raw_irs[i] )
+                    final_inst_list += inst_list
+                    final_ckpt_list += ckpt_list
+                else:
+                    raise NotImplementedError("Unsupported solidity call: {}".format(fname))
             else:
                 raise NotImplementedError("Unsupported instruction type: {}".format(seq_irs[i]))
 

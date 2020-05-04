@@ -6,27 +6,34 @@
 2. The `build_map` method in `analysis_loop_summary_synthesizer.py` needs updates: its `args` interpretation is out-of-sync with other `build` methods.
 3. The `TRANSFER` prod disappears after the dsl instantiation (even in `no pruning` mode).
 4. Using `--prune` while testing `nestedSumTest.sol` will call `eval_lambda`, which is not suggested to be used by Ben.
+5. I don't get the design of `requireSumTest.sol` and `nestedRequireSumTest.sol`.
 
 ### Recent Logs
 
-| test case                  | w/o pruning     | w/ pruning      |
-| -------------------------- | --------------- | --------------- |
-| `sumTestBody.sol`          | ✅               | ✅               |
-| `sumTestLBody.sol`         | (known issue 1) | (known issue 1) |
-| `nestedSumTest.sol`        | ✅               | (exception)     |
-| `nestsedSumLTest.sol`      | (known issue 1) | (known issue 1) |
-| `copyRangeTest.sol`        | ✅               | ✅               |
-| `copyRangeLTest.sol`       | (known issue 1) | (known issue 1) |
-| `nestedCopyRangeTest.sol`  | ✅               | ✅               |
-| `nestedCopyRangeLTest.sol` | (known issue 1) | (known issue 1) |
-| `incRangeTest.sol`         | ✅               | ✅               |
-| `incRangeLTest.sol`        | (known issue 1) | (known issue 1) |
-| `nestedIncRangeTest.sol`   | ✅               | ✅               |
-| `nestedIncRangeLTest.sol`  | (known issue 1) | (known issue 1) |
-| `mapTest.sol`              | ✅               | ✅               |
-| `mapLTest.sol`             | (known issue 1) | (known issue 1) |
-| `updateRangeTest.sol`      | ✅               | ✅               |
-| others                     | (working)       | (working)       |
+| test case                         | w/o pruning     | w/ pruning      |
+| --------------------------------- | --------------- | --------------- |
+| `sumTestBody.sol`                 | ✅               | ✅               |
+| `sumTestLBody.sol`                | (known issue 1) | (known issue 1) |
+| `nestedSumTest.sol`               | ✅               | (exception)     |
+| `nestsedSumLTest.sol`             | (known issue 1) | (known issue 1) |
+| `copyRangeTest.sol`               | ✅               | ✅               |
+| `copyRangeLTest.sol`              | (known issue 1) | (known issue 1) |
+| `nestedCopyRangeTest.sol`         | ✅               | ✅               |
+| `nestedCopyRangeLTest.sol`        | (known issue 1) | (known issue 1) |
+| `incRangeTest.sol`                | ✅               | ✅               |
+| `incRangeLTest.sol`               | (known issue 1) | (known issue 1) |
+| `nestedIncRangeTest.sol`          | ✅               | ✅               |
+| `nestedIncRangeLTest.sol`         | (known issue 1) | (known issue 1) |
+| `mapTest.sol`                     | ✅               | ✅               |
+| `mapLTest.sol`                    | (known issue 1) | (known issue 1) |
+| `updateRangeTest.sol`             | ✅               | ✅               |
+| `requireTest.sol`                 | ✅               | ✅               |
+| `nestedRequireTest.sol`           |                 |                 |
+| `requireBoolTest.sol`             |                 |                 |
+| `nestedRequireBoolTest.sol`       |                 |                 |
+| `requireSumTest.sol`🔮(why?)       |                 |                 |
+| `nestedRequireSumTest.sol`🔮(why?) |                 |                 |
+| others                            | (working)       | (working)       |
 
 ### Getting Started
 
