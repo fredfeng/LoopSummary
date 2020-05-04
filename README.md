@@ -2,37 +2,37 @@
 
 ### Known Issues
 
-1. `sumLTestBody.sol`: the token `5` is not recognized as in `enum uint`, which fails the test. I suspect this <u>will happen to all the test with lambdas</u>.
-2. The `build_map` method in `analysis_loop_summary_synthesizer.py` needs updates: its `args` interpretation is out-of-sync with other `build` methods.
-3. The `TRANSFER` prod disappears after the dsl instantiation (even in `no pruning` mode).
-4. Using `--prune` while testing `nestedSumTest.sol` will call `eval_lambda`, which is not suggested to be used by Ben.
-5. When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.
+1. When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.
+2. (minor) `op = "<" if isAscending else "<" ` in Ln977 `analysis_loop_summary_synthesizer.py`.
 
 ### Recent Logs
 
-| test case                   | w/o pruning     | w/ pruning      |
-| --------------------------- | --------------- | --------------- |
-| `sumTestBody.sol`           | ✅               | ✅               |
-| `sumTestLBody.sol`          | (known issue 1) | (known issue 1) |
-| `nestedSumTest.sol`         | ✅               | (exception)     |
-| `nestsedSumLTest.sol`       | (known issue 1) | (known issue 1) |
-| `copyRangeTest.sol`         | ✅               | ✅               |
-| `copyRangeLTest.sol`        | (known issue 1) | (known issue 1) |
-| `nestedCopyRangeTest.sol`   | ✅               | ✅               |
-| `nestedCopyRangeLTest.sol`  | (known issue 1) | (known issue 1) |
-| `incRangeTest.sol`          | ✅               | ✅               |
-| `incRangeLTest.sol`         | (known issue 1) | (known issue 1) |
-| `nestedIncRangeTest.sol`    | ✅               | ✅               |
-| `nestedIncRangeLTest.sol`   | (known issue 1) | (known issue 1) |
-| `mapTest.sol`               | ✅               | ✅               |
-| `mapLTest.sol`              | (known issue 1) | (known issue 1) |
-| `updateRangeTest.sol`       | ✅               | ✅               |
-| `requireTest.sol`           | ✅               | ✅               |
-| `nestedRequireTest.sol`     | ✅               | ✅               |
-| `requireBoolTest.sol`       | ✅               | ✅               |
-| `nestedRequireBoolTest.sol` | ✅               | ✅               |
-| `requireAddressTest.sol`    | ✅               | ✅               |
-| others                      | (working)       | (working)       |
+| test case                   | w/o pruning | w/ pruning  |
+| --------------------------- | ----------- | ----------- |
+| `sumTestBody.sol`           | ✅           | ✅           |
+| `sumTestLBody.sol`          | ✅           |             |
+| `nestedSumTest.sol`         | ✅           | (exception) |
+| `nestsedSumLTest.sol`       |             |             |
+| `copyRangeTest.sol`         | ✅           | ✅           |
+| `copyRangeLTest.sol`        |             |             |
+| `nestedCopyRangeTest.sol`   | ✅           | ✅           |
+| `nestedCopyRangeLTest.sol`  |             |             |
+| `incRangeTest.sol`          | ✅           | ✅           |
+| `incRangeLTest.sol`         |             |             |
+| `nestedIncRangeTest.sol`    | ✅           | ✅           |
+| `nestedIncRangeLTest.sol`   |             |             |
+| `mapTest.sol`               | ✅           | ✅           |
+| `mapLTest.sol`              |             |             |
+| `updateRangeTest.sol`       | ✅           | ✅           |
+| `requireTest.sol`           | ✅           | ✅           |
+| `nestedRequireTest.sol`     | ✅           | ✅           |
+| `requireBoolTest.sol`       | ✅           | ✅           |
+| `nestedRequireBoolTest.sol` | ✅           | ✅           |
+| `requireAddressTest.sol`    | ✅           | ✅           |
+| `requireOrderedTest.sol`    | ✅           | ✅           |
+| `transferTest.sol`          |             |             |
+| `requireTransferTest.sol`   |             |             |
+| others                      | (working)   | (working)   |
 
 ### Getting Started
 
@@ -51,7 +51,7 @@ raco exe ./bmc-rosette.rkt
 > Notice: You may need to comment/uncomment some prods in `dsl_skeleton` to speed up / debug some benchmark solving.
 
 ```bash
-python ./bmc-synthesizer.py --file <your_benchmark> --prune
+python ./bmc-synthesizer.py --file <your_benchmark> [--prune] [--verbose]
 ```
 
 ### Bounded Model Checker
