@@ -4,11 +4,13 @@ contract C {
   
   uint256 strt;
   uint256 end;
-  mapping(uint256 => uint256) arr;
+  address[] addrs;
+  mapping(uint256 => uint256) src_arr;
+  mapping(address => uint256) tgt_arr;  
   
   function foo() public {
     for (uint i = strt; i < end; i++) {
-      arr[i] = arr[i+1];
+      tgt_arr[addrs[i]] = src_arr[i]+4;
     }
   }
 }

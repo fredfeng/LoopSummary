@@ -13,7 +13,7 @@ contract C {
   
   function foo() public {
     for (uint i = strt; i < end; ++i) {
-      require(arr[i]<arr[i+1]);
+      acc += arr[i] * 5;
     }
   }
 }

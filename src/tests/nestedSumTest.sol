@@ -10,7 +10,7 @@ contract C {
   
   function foo() public {
     for (uint i = strt; i < end; i++) {
-      acc += src_arr[addrs[i]]*5;
+      acc += src_arr[addrs[i]];
     }
   }
 }

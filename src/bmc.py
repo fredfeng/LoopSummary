@@ -47,7 +47,8 @@ def check_eq(pfile1, pfile2):
     print("#### assembled json ####")
     print(json_out_str)
 
-    # input("DOUBLE CHECK BEFORE SENDING TO ROSETTE")
+    # if len(file1[1])>1:
+    #     input("DOUBLE CHECK BEFORE SENDING TO ROSETTE")
 
     output = subprocess.check_output([rosette_path, json_out_str]).decode('utf-8')
     # print('output from Rosette: ', output)

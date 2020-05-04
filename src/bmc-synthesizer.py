@@ -59,7 +59,7 @@ def build_glob_decl(vars_map, iterator_var, i_global):
 
     return glob_decl
 
-def build_type_table(vars_map, all_types, map_types):
+def build_type_table(vars_map, all_types, map_types, other_contracts):
     type_table = defaultdict(list)
     
     # Iterate through all global variables
@@ -94,6 +94,11 @@ def build_type_table(vars_map, all_types, map_types):
 
             # add values of type "k" to the table
             type_table[typ] += q_vars_list.split(",")
+
+            # add in other contract types to "Contract" for transfer
+            #   TODO: I should probably restrict this to things called ERC20
+            if typ in other_contracts:
+                type_table["Contract"] += q_vars_list.split(",")
         else:
             print("IGNORED TYPE: {0}!".format(typ))
 
@@ -211,7 +216,7 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     all_types = base_types + map_types + ["g_int"]
 
     # Maps types to global variables of that type
-    type_table = build_type_table(vars_map, all_types, map_types)
+    type_table = build_type_table(vars_map, all_types, map_types, other_contracts)
 
     # Copy global integers into special separate type "g_int"
     type_table["g_int"] = list(set(type_table["uint"]))
@@ -232,7 +237,9 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     # Add int constants to ints
     type_table["uint"] = list(set(type_table["uint"]+C))
     # Add "true" and "false" as boolean constants
-    type_table["bool"] = list(set(type_table["bool"]+B))    
+    type_table["bool"] = list(set(type_table["bool"]+B))
+    # Add 0 address to addresses
+    type_table["address"] = list(set(type_table["address"]+['"address(0)"']))
 
     # Add in lambdas if present
     if (lambdas):
@@ -413,30 +420,6 @@ def expand_dsl(dsl, type_table, base_types, all_types):
 
     return "\n".join(other_lines + function_lines)
 
-min_dsl = '''
-
-{types}
-
-value L;
-value IF;
-value i;
-value F;
-value Cond;
-value Inv;
-
-program SolidityLoops() -> Inv;
-
-# DSL Functions (with lambda versions when appropriate)
-func SUM: IF -> g_int, mapping(uint => uint), i, i;
-
-func seq: Inv -> Inv, Inv;
-
-func intFunc: Inv -> IF;
-
-# Add constant for global integers
-func addc: i -> g_int, C;
-'''
-
 dsl_skeleton ='''
 {types}
 
@@ -463,23 +446,30 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-# func TRANSFER: F -> READ__Contract, READ__mapping(uint => address), READ_mapping(uint => uint);
-# func TRANSFER_L: F -> READ__Contract?, READ__mapping(uint => address), READ_mapping(uint => uint), L;
-func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
-func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
-func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
-func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
-func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
-func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
-func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
-func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
-func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
+# func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
+# func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
+# func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
+# func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
+# func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
+# func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
+# func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
+# func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
+# func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
+# func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
+# func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
+# func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
+# func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
+# func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
 # func FILTER__uint: F -> Write__mapping(uint => uint), IF, Cond_uint;
 # func FILTER__address: F -> Write__mapping(uint => address), IF, Cond_address;
-func REQUIRE_ASCENDING: F -> mapping(uint => uint);
-func REQUIRE_DESCENDING: F -> mapping(uint => uint);
-func REQUIRE__uint: F -> Cond_uint;
-# func REQUIRE__address: F -> Cond_address;
+# func REQUIRE_ASCENDING: F -> mapping(uint => uint);
+# func REQUIRE_DESCENDING: F -> mapping(uint => uint);
+# func REQUIRE__uint: F -> Cond_uint;
+# func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+# func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
+# func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+# func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
+# func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
 
 # Arithmetic funcs for lambda
 func lambda: L -> Lambda;
@@ -500,43 +490,69 @@ func eq: Cond_uint -> mapping(uint => uint), uint;
 func neq: Cond_uint -> mapping(uint => uint), uint;
 func lte: Cond_uint -> mapping(uint => uint), uint;
 func gte: Cond_uint -> mapping(uint => uint), uint;
+func bool_arrT: Cond_uint -> mapping(uint => bool);
+func bool_arrF: Cond_uint -> mapping(uint => bool);
+
+# Boolean compus for uint w/ nested array access
+func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func gt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func eq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
+func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
-func eq_addr: Cond_uint -> mapping(uint => address), address;
-func neq_addr: Cond_uint -> mapping(uint => address), address;
+func eq_addr: Cond_address -> mapping(uint => address), address;
+func neq_addr: Cond_address -> mapping(uint => address), address;
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
 
     program_decl = ""
 
-    # pc counter
-    pc = 0
-
     contract_prog = """pragma solidity ^0.5.10;
 
         contract C {{
             
+            {structs}
+
             {_decl}
+
+            {other_decs}
 
             function foo() public {{
 
                 {_body}
 
             }}
-        }}"""
+
+            {other_funcs}
+        }}
+
+        {other_contracts}
+
+    """
 
     extra_contract = """
     contract {0} {{{{ }}}}
     """
 
-    def __init__(self, decl="", contracts=[], i_global=False, global_vars=["i"]):
-        for contract in contracts:
-            self.contract_prog += self.extra_contract.format(contract)
+    # pc counter, self.pc
+    pc = 0
+
+    def __init__(self, decl="", contracts=[], i_global=False, global_vars=["i"], structs=""):
+        # for contract in contracts:
+        #     self.contract_prog += self.extra_contract.format(contract)
+        self.other_contracts = contracts
         self.program_decl = decl
         self.i_typ = "" if i_global else "uint"
         # TODO: HANDLE NESTED LOOPS
         self.iterator = global_vars[0]
+        self.structs = structs
+        self.other_funcs = set()
+        self.other_decs = set()
 
         self._ref_counter = -1 # reference variable counter
         self._tmp_counter = -1 # temporary variable counter
@@ -549,6 +565,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def get_fresh_tmp_name(self):
         # (notice) fresh tmp name is only for those instructions that
         # 1) do not need the return values (e.g., array-write)
+        # 2) do not care about the target value (e.g., int i; in for where i has no initial value)
         # otherwise, please use other get_fresh methods
         self._tmp_counter += 1
         return "TMP_{}".format(self._tmp_counter)
@@ -570,6 +587,43 @@ class SymDiffInterpreter(PostOrderInterpreter):
     #########################################
     # Conditional Operators
     #########################################
+
+    def get_nested_access(self, args):
+        return "{0}[{1}[{2}]]".format(args[1], args[0], self.iterator)
+
+    def eval_lt2(self, node, args):
+        arr = self.get_nested_access(args)
+        raise NotImplementedError( arr + "<" + args[2] )
+
+    def eval_lte2(self, node, args):
+        arr = self.get_nested_access(args)
+        raise NotImplementedError( arr + "<=" + args[2] )
+
+    def eval_eq2(self, node, args):
+        arr = self.get_nested_access(args)        
+        raise NotImplementedError( arr + "==" + args[2] )
+     
+    def eval_neq2(self, node, args):
+        arr = self.get_nested_access(args)                
+        raise NotImplementedError( arr + "!=" + args[2] )
+    
+    def eval_gt2(self, node, args):
+        arr = self.get_nested_access(args)                
+        raise NotImplementedError( arr + ">" + args[2] )
+    
+    def eval_gte2(self, node, args):
+        arr = self.get_nested_access(args)                
+        raise NotImplementedError( arr + ">=" + args[2] )
+
+    def eval_bool_arrT2(self, node, args):
+        arr = self.get_nested_access(args)                
+        raise NotImplementedError( arr )
+    
+    def eval_bool_arrF2(self, node, args):
+        arr = self.get_nested_access(args)                
+        raise NotImplementedError( "!" + arr )
+
+    ###
         
     def eval_lt(self, node, args):
         # special wrapper lt wrapper
@@ -606,18 +660,26 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return "ARRAY-GTE {} {} {}".format(args[0], self.iterator, args[1])
         # arr = "{0}[{1}]".format(args[0], self.iterator)        
         # return arr + ">=" + args[1]
+
+    def eval_bool_arrT(self, node, args):
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        raise NotImplementedError( arr )
     
-    # FIXME: what's the difference between this one and eval_eq?
+    def eval_bool_arrF(self, node, args):
+        arr = "{0}[{1}]".format(args[0], self.iterator)        
+        raise NotImplementedError( "!" + arr )
+
     def eval_eq_addr(self, node, args):
         # special array eq wrapper
-        return "ARRAY-EQ {} {} {}".format(args[0], self.iterator, args[1])
+        # for address, strip off the address call wrapper
+        return "ARRAY-EQ {} {} {}".format(args[0], self.iterator, args[1].replace("address(","").replace(")",""))
         # arr = "{0}[{1}]".format(args[0], self.iterator)        
         # return arr + "==" + args[1]
-    
-    # FIXME: what's the difference between this one and eval_neq?
+
     def eval_neq_addr(self, node, args):
         # special array neq wrapper
-        return "ARRAY-NEQ {} {} {}".format(args[0], self.iterator, args[1])
+        # for address, strip off the address call wrapper
+        return "ARRAY-NEQ {} {} {}".format(args[0], self.iterator, args[1].replace("address(","").replace(")",""))
         # arr = "{0}[{1}]".format(args[0], self.iterator)        
         # return arr + "!=" + args[1]
     
@@ -660,20 +722,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
     # Lambda operators
     #########################################
 
-    # FIXME: the args look like ['lambda __x: acc+__x'], currently hard-code parse
-    def eval_lambda(self, node, args):
-        print("lambda args: {}".format(args))
-        # return args[0].split(":")[1].replace(" ", "")
-        expr = args[0].split(":")[1].replace(" ", "")
-        lop = {"+":"ADD", "-":"SUB"}
-        stri = None
-        for lkey in lop.keys():
-            if lkey in expr:
-                ll = expr.split(lkey)
-                stri = "{} {} {}".format(lop[lkey], ll[0], ll[1])
-                return stri
-        # if you reach here, there's no matching
-        raise NotImplementedError("Unsupported lambda: {}".format(args))
+    # Ben says don't use this one
+    # def eval_lambda(self, node, args):
+    #     return args[0].split(":")[1].replace(" ", "")
         
     def eval_const(self, node, args):
         return args[0]
@@ -701,276 +752,280 @@ class SymDiffInterpreter(PostOrderInterpreter):
     #########################################
     # DSL
     #########################################
-    def build_sum(self, node, args, l):
-        print("sum args: {}".format(args))
-        print("sum l: {}".format(l))
-        acc = args[0]
-        arr = args[1]
-
-        # ==== (display zone) ==== #
-        val = "{srcArr}[{it}]".format(srcArr=arr, it=self.iterator)
-        if l:
-            lam = args[2]
-            if lam == "-1":
-                lam = "-= 1"
-            else:
-                lam = "+= "+lam
-            lam = lam.replace("__x", val)
+    def build_sum(self, node, args, l, nested):
+        # print("build_sum args: {}".format(args))
+        # print("build_sum l: {}".format(l))
+        # print("build_sum nested: {}".format(nested))
+        tgtAcc = args[0]
+        srcArr = args[1]
+        Lam = args[2] if l else None
+        if nested:
+            indexArr = args[3] if l else args[2]
         else:
-            lam = "+= {0}".format(val)
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; ++{it}) {{{{
-                {tgtAcc} {lamVal};
-            }}}}
-        """.format(tgtAcc=acc, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
-        print("loop body: \n{}".format(loop_body))
-        # ==== (display zone) ==== #
+            indexArr = None
+        it = self.iterator
+        # build_sum is doing: 
+        # 1 (nested+lambda). tgtAcc += Lam( srcArr[indexArr[it]] )
+        # 2 (nested only).   tgtAcc += srcArr[indexArr[it]]
+        # 3 (lambda only).   tgtAcc += Lam( srcArr[it] )
+        # 4 ().              tgtAcc += srcArr[it]
 
-        # start instruction assembling
         # FIXME: missing initialization expression outside the loop body
-        inst_list = [] 
-        
-        inst =  '{}: {} = {{GuardStart}}'.format(hex(self.pc), self.iterator)
+        inst_list = []
+
+        # e.g., self.iterator = {{GuardStart}}
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), it)
         inst_list.append(inst)
         self.pc += 1
 
         ref_0 = self.get_fresh_ref_name()
-        inst =  "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_0, arr, self.iterator)
-        inst_list.append(inst)
-        self.pc += 1
-
-        if l:
-            lam_inst = args[2]
-            ref_1 = self.get_fresh_ref_name()
-            inst = "{}: {} = {}".format(hex(self.pc), ref_1, lam_inst.replace("__x", ref_0))
-            inst_list.append(inst)
-            self.pc += 1
+        if nested:
+            # ref_0 = indexArr[it]
+            inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, indexArr, it )
         else:
-            # no lambda
-            ref_1 = ref_0
-
-        inst = '{}: {} = {} {} {}'.format(hex(self.pc), acc, 'ADD', acc, ref_1)
+            # ref_0 = it
+            inst = "{}: {} = {}".format( hex(self.pc), ref_0, it )
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [acc]
-        # return loop_body, val
+        # ref_1 = srcArr[ref_0]
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_1, srcArr, ref_0 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        ref_2 = self.get_fresh_ref_name()
+        if l:
+            # ref_2 = Lam(ref_1)
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, Lam.replace("__x", ref_1) )
+        else:
+            # ref_2 = ref_1
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, ref_1 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tgtAcc = tgtAcc + ref_2
+        inst = "{}: {} = ADD {} {}".format( hex(self.pc), tgtAcc, tgtAcc, ref_2 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, [tgtAcc]
 
     def eval_SUM(self, node, args):
-        return self.build_sum(node, args, False)
+        return self.build_sum(node, args, False, False)
 
     def eval_SUM_L(self, node, args):
-        return self.build_sum(node, args, True)
+        return self.build_sum(node, args, True, False)
     
-    def build_copyrange(self, node, args, l):       
-        print("copyrange args: {}".format(args))
-        print("copyrange l: {}".format(l))    
-        src_array = args[0]
-        start_src = args[1]
-        tgt_array = args[2]
+    def eval_NESTED_SUM(self, node, args):
+        return self.build_sum(node, args, False, True)
 
-        # ==== (display zone) ==== #
-        val = "{srcObj}[{it}+({srcStart})]".format(srcObj=src_array,
-                                                   it=self.iterator,
-                                                   srcStart=start_src)
-        if l:
-            lam = args[3]
-            lam = lam.replace("__x", val)
+    def eval_NESTED_SUM_L(self, node, args):
+        return self.build_sum(node, args, True, True)
+
+    def build_copyrange(self, node, args, l, nested):   
+        # print("build_copyrange args: {}".format(args))
+        # print("build_copyrange l: {}".format(l))
+        # print("build_copyrange nested: {}".format(nested))  
+        srcArr = args[0]
+        srcStart = args[1]
+        tgtArr = args[2]
+        Lam = args[3] if l else None
+        if nested:
+            indexArr = args[4] if l else args[3]
         else:
-            lam = val
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {tgtObj}[{it}] = {lamVal};
-            }}}}
-        """.format(tgtObj=tgt_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
-        print("loop body: \n{}".format(loop_body))
-        # ==== (display zone) ==== #
+            indexArr = None
+        it = self.iterator
+        # build_copyrange is doing: 
+        # 1 (nested+lambda). tgtArr[indexArr[it]] = Lam( srcArr[it+srcStart] )
+        # 2 (nested only).   tgtArr[indexArr[it]] = srcArr[it+srcStart]
+        # 3 (lambda only).   tgtArr[it] = Lam( srcArr[it+srcStart] )
+        # 4 ().              tgtArr[it] = srcArr[it+srcStart]
 
-        # start instruction assembling
         inst_list = []
 
-        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        # e.g., self.iterator = {{GuardStart}}
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), it)
         inst_list.append(inst)
         self.pc += 1
 
-        # it+srcStart
+        # ref_0 = it+srcStart
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_0, self.iterator, start_src)
+        inst = "{}: {} = ADD {} {}".format( hex(self.pc), ref_0, it, srcStart )
         inst_list.append(inst)
         self.pc += 1
 
-        # srcObj[it+srcStart]
+        # ref_1 = srcArr[ref_0]
         ref_1 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_1, src_array, ref_0)
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_1, srcArr, ref_0 )
         inst_list.append(inst)
         self.pc += 1
 
-        # lambda
+        ref_2 = self.get_fresh_ref_name()
         if l:
-            inst_lam = args[3]
-            ref_2 = self.get_fresh_ref_name()
-            inst = "{}: {} = {}".format(hex(self.pc), ref_2, inst_lam.replace("__x", ref_1))
-            inst_list.append(inst)
-            self.pc += 1
+            # ref_2 = Lam( ref_1 )
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, Lam.replace("__x", ref_1) )
         else:
-            ref_2 = ref_1
-
-        # tgtObj[it] = ref_2
-        tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt_array, self.iterator, ref_2)
+            # ref_2 = ref_1
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, ref_1 )
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [tgt_array]
-        # return loop_body, val
+        ref_3 = self.get_fresh_ref_name()
+        if nested:
+            # ref_3 = indexArr[it]
+            inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_3, indexArr, it )
+        else:
+            # ref_3 = it
+            inst = "{}: {} = {}".format( hex(self.pc), ref_3, it )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tgtArr[ref_3] = ref_2
+        tmp_4 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_4, tgtArr, ref_3, ref_2 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, [tgtArr]
     
     def eval_COPYRANGE(self, node, args):
-        return self.build_copyrange(node, args, False)
+        return self.build_copyrange(node, args, False, False)
 
     def eval_COPYRANGE_L(self, node, args):
-        return self.build_copyrange(node, args, True)
+        return self.build_copyrange(node, args, True, False)
 
-    # def build_shiftleft(self, node, args, l):        
-    #     src_array = args[0]
+    def eval_NESTED_COPYRANGE(self, node, args):
+        return self.build_copyrange(node, args, False, True)
 
-    #     val = "{arr}[{it}+1]".format(arr=src_array, it=self.iterator)
+    def eval_NESTED_COPYRANGE_L(self, node, args):
+        return self.build_copyrange(node, args, True, True)
 
-    #     if l == False:
-    #         lam = val
-    #     else:
-    #         lam = args[1]
-    #         lam = lam.replace("__x", val)
-
-        
-    #     loop_body = """
-    #         for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-    #             {arr}[{it}] = {lamVal};
-    #         }}}}
-    #     """.format(arr=src_array, i_typ=self.i_typ, it=self.iterator, lamVal=lam)
-
-    #     return loop_body, val
-
-    # def eval_SHIFTLEFT(self, node, args):
-    #     return self.build_shiftleft(node, args, False)
-
-    # def eval_SHIFTLEFT_L(self, node, args):
-    #     return self.build_shiftleft(node, args, True)
-
-    def build_updaterange(self, node, args, l):      
-        print("updaterange args: {}".format(args))
-        print("updaterange l: {}".format(l))     
-        cont = args[0]
-        tgt = args[1]
-        val = args[2]
-
-        # ==== (display zone) ==== #
-        if l == False:
-            lam = val
+    def build_incrange(self, node, args, l, nested):        
+        # print("build_incrange args: {}".format(args))
+        # print("build_incrange l: {}".format(l))
+        # print("build_incrange nested: {}".format(nested))  
+        srcArr = args[0]
+        srcStart = args[1]
+        tgtArr = args[2]
+        Lam = args[3] if l else None
+        if nested:
+            indexArr = args[4] if l else args[3]
         else:
-            lam = args[3]
-            lam = lam.replace("__x", val)
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {tgtArr}[{contArr}[{it}]] = {lamVal};
-            }}}}
-        """.format(tgtArr=tgt, contArr=cont, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
-        print("loop body: \n{}".format(loop_body))
-        # ==== (display zone) ==== #
+            indexArr = None
+        it = self.iterator
+        # build_incrange is doing: 
+        # 1 (nested+lambda). tgtArr[indexArr[it]] += Lam( srcArr[it+srcStart] )
+        # 2 (nested only).   tgtArr[indexArr[it]] += srcArr[it+srcStart]
+        # 3 (lambda only).   tgtArr[it] += Lam( srcArr[it+srcStart] )
+        # 4 ().              tgtArr[it] += srcArr[it+srcStart]
 
-        # start instruction assembling
         inst_list = []
 
-        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        # e.g., self.iterator = {{GuardStart}}
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), it)
         inst_list.append(inst)
         self.pc += 1
 
-        # contArr[it]
+        # ref_0 = it+srcStart
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_0, cont, self.iterator)
+        inst = "{}: {} = ADD {} {}".format( hex(self.pc), ref_0, it, srcStart )
         inst_list.append(inst)
         self.pc += 1
 
+        # ref_1 = srcArr[ref_0]
+        ref_1 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_1, srcArr, ref_0 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        ref_2 = self.get_fresh_ref_name()
         if l:
-            # lambda is of val
-            lam_inst = args[3]
-            ref_1 = self.get_fresh_ref_name()
-            inst = "{}: {} = {}".format(hex(self.pc), ref_1, lam_inst.replace("__x", val))
-            inst_list.append(inst)
-            self.pc += 1
+            # ref_2 = Lam( ref_1 )
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, Lam.replace("__x", ref_1) )
         else:
-            # lambda is val
-            ref_1 = self.get_fresh_ref_name()
-            inst = "{}: {} = {}".format(hex(self.pc), ref_1, val)
-            inst_list.append(inst)
-            self.pc += 1
-
-        tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, ref_0, ref_1)
+            # ref_2 = ref_1
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, ref_1 )
         inst_list.append(inst)
         self.pc += 1
 
-        # FIXME: may have to return the selected part of tgt array only
-        return inst_list, [tgt]
-        # return loop_body, "{tgtArr}[{contArr}[{it}]]".format(tgtArr=tgt, contArr=cont,
-        #                                                      it=self.iterator)
+        ref_3 = self.get_fresh_ref_name()
+        if nested:
+            # ref_3 = indexArr[it]
+            inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_3, indexArr, it )
+        else:
+            # ref_3 = it
+            inst = "{}: {} = {}".format( hex(self.pc), ref_3, it )
+        inst_list.append(inst)
+        self.pc += 1
 
-    def eval_UPDATERANGE(self, node, args):
-        return self.build_updaterange(node, args, False)
+        # ref_4 = tgtArr[ref_3]
+        ref_4 = self.get_fresh_ref_name()
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_4, tgtArr, ref_3 )
+        inst_list.append(inst)
+        self.pc += 1
 
-    def eval_UPDATERANGE_L(self, node, args):
-        return self.build_updaterange(node, args, True)
+        # ref_5 = ref_4 + ref_2
+        ref_5 = self.get_fresh_ref_name()
+        inst = "{}: {} = ADD {} {}".format( hex(self.pc), ref_5, ref_4, ref_2 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tgtArr[ref_3] = ref_5
+        tmp_6 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_6, tgtArr, ref_3, ref_5 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, [tgtArr]
+
+    def eval_INCRANGE(self, node, args):
+        return self.build_incrange(node, args, False, False)
+
+    def eval_INCRANGE_L(self, node, args):
+        return self.build_incrange(node, args, True, False)
+
+    def eval_NESTED_INCRANGE(self, node, args):
+        return self.build_incrange(node, args, False, True)
+
+    def eval_NESTED_INCRANGE_L(self, node, args):
+        return self.build_incrange(node, args, True, True)
 
     def build_map(self, node, args, l):     
-        print("map args: {}".format(args))
-        print("map l: {}".format(l))   
-        tgt = args[0]
-        lam_inst = args[1]
+        # print("build_map args: {}".format(args))
+        # print("build_map l: {}".format(l)) 
+        tgtArr = args[0]
+        srcVal = args[1]
+        Lam = args[2] if l else None
+        it = self.iterator
+        # build_map is doing: 
+        # 1 (lambda). tgtArr[it] = Lam( srcVal )
+        # 2 ().       tgtArr[it] = srcVal
 
-        # ==== (display zone) ==== #
-        lam = args[1]
-        val = "{tgtArr}[{it}]".format(tgtArr=tgt, it=self.iterator)
-        if l:
-            lam = lam.replace("__x", val)
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {tgtArr}[{it}] = {lamVal};
-            }}}}
-        """.format(tgtArr=tgt, lamVal=lam, i_typ=self.i_typ, it=self.iterator)
-        print("loop body: \n{}".format(loop_body))
-        # ==== (display zone) ==== #
-
-        # start instruction assembling
         inst_list = []
 
-        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        # e.g., self.iterator = {{GuardStart}}
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), it)
         inst_list.append(inst)
         self.pc += 1
 
+        ref_0 = self.get_fresh_ref_name()
         if l:
-            # has arr[?] involved in lambda, should contain 2 instructions
-            ref_00 = self.get_fresh_ref_name()
-            inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_00, tgt, self.iterator)
-            inst_list.append(inst)
-            self.pc += 1
-
-            ref_0 = self.get_fresh_ref_name()
-            inst = "{}: {} = {}".format(hex(self.pc), ref_0, lam_inst.replace("__x", ref_00))
-            inst_list.append(inst)
-            self.pc += 1
+            # ref_0 = Lam( srcVal )
+            inst = "{}: {} = {}".format( hex(self.pc), ref_0, Lam.replace("__x", srcVal) )
         else:
-            # lambda does not have array
-            ref_0 = self.get_fresh_ref_name()
-            inst = "{}: {} = {}".format(hex(self.pc), ref_0, lam_inst)
-            inst_list.append(inst)
-            self.pc += 1
-
-        tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_0)
+            # ref_0 = srcVal
+            inst = "{}: {} = {}".format( hex(self.pc), ref_0, srcVal )
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [tgt]
-        # return loop_body, val
+        # tgtArr[it] = ref_0
+        tmp_1 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_1, tgtArr, it, ref_0 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        return inst_list, [tgtArr]
 
     def eval_MAP(self, node, args):
         return self.build_map(node, args, False)
@@ -978,256 +1033,83 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_MAP_L(self, node, args):
         return self.build_map(node, args, True)
 
-    def build_incrange(self, node, args, l):  
-        print("incrange args: {}".format(args))
-        print("incrange l: {}".format(l))         
-        src = args[0]
-        start_src = args[1]
-        tgt = args[2]
+    def build_updaterange(self, node, args):   
+        # print("build_updaterange args: {}".format(args))
+        # print("build_updaterange l: {}".format(l))     
+        indexArr = args[0]
+        tgtArr = args[1]
+        srcVal = args[2]
+        it = self.iterator
+        # build_updaterange is doing: 
+        # 1 (). tgtArr[it] = srcVal
 
-        # ==== (display zone) ==== #
-        val = "{srcArr}[{it}+({srcStart})]".format(srcArr=src,
-                                                   it=self.iterator,
-                                                   srcStart=start_src)
-        if not l:
-            lam = val
-        else:
-            lam = args[3]
-            lam = lam.replace("__x", val)
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                {tgtArr}[{it}] += {lamVal};
-            }}}}
-        """.format(tgtArr=tgt, srcArr=src, srcStart=start_src,
-                   i_typ=self.i_typ, it=self.iterator, lamVal=lam)
-        print("loop body: \n{}".format(loop_body))
-        # ==== (display zone) ==== #
-
-        # start instruction assembling
         inst_list = []
 
-        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
+        # e.g., self.iterator = {{GuardStart}}
+        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), it)
         inst_list.append(inst)
         self.pc += 1
 
-        # it+srcStart
+        # ref_0 = indexArr[it]
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_0, self.iterator, start_src)
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, indexArr, it )
         inst_list.append(inst)
         self.pc += 1
 
-        # srcArr[it+srcStart]
-        ref_1 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_1, src, ref_0)
+        # tgtArr[ref_0] = srcVal
+        tmp_1 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_1, tgtArr, ref_0, srcVal )
         inst_list.append(inst)
         self.pc += 1
 
-        # lambda
-        if l:
-            inst_lam = args[3]
-            ref_2 = self.get_fresh_ref_name()
-            inst = "{}: {} = {}".format(hex(self.pc), ref_2, inst_lam.replace("__x", ref_1))
-            inst_list.append(inst)
-            self.pc += 1
-        else:
-            ref_2 = ref_1
-
-        # tgtObj[it]
-        ref_3 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_3, tgt, self.iterator)
-        inst_list.append(inst)
-        self.pc += 1
-
-        # ref_3 + ref_2 (must do 3+2, not 2+3, since 3 is always var)
-        ref_4 = self.get_fresh_ref_name()
-        inst = "{}: {} = ADD {} {}".format(hex(self.pc), ref_4, ref_3, ref_2)
-        inst_list.append(inst)
-        self.pc += 1
-
-        # tgtObj[it] = ref_4
-        tmp_0 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(self.pc), tmp_0, tgt, self.iterator, ref_4)
-        inst_list.append(inst)
-        self.pc += 1
-
-        return inst_list, [tgt]
-        # return loop_body, val
-
-    def eval_INCRANGE(self, node, args):
-        return self.build_incrange(node, args, False)
-
-    def eval_INCRANGE_L(self, node, args):
-        return self.build_incrange(node, args, True)
-
-    def build_require_ordered(self, node, args, isAscending):
-        print("require_ordered args: {}".format(args))
-        print("require_ordered isAscending: {}".format(isAscending))
-        arr = args[0]
-        # op = "<" if isAscending else "<" 
-        # (notice) here LT and GT are different from ARRAY-LT and ARRAY-GT
-        op = "LT" if isAscending else "GT" 
-        
-        # ==== (display zone) ==== #
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                require({arr}[{it}] {op} {arr}[{it}+1]);
-            }}}}
-        """.format(i_typ=self.i_typ, it=self.iterator, arr=arr, op=op)
-        print("loop body: \n{}".format(loop_body))
-        # ==== (display zone) ==== #
-
-        # start instruction assembling
-        inst_list = []
-
-        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
-        inst_list.append(inst)
-        self.pc += 1
-
-        ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_0, arr, self.iterator)
-        inst_list.append(inst)
-        self.pc += 1
-
-        ref_1 = self.get_fresh_ref_name()
-        inst = "{}: {} = ADD {} 1".format(hex(self.pc), ref_1, self.iterator)
-        inst_list.append(inst)
-        self.pc += 1
-
-        ref_2 = self.get_fresh_ref_name()
-        inst = "{}: {} = ARRAY-READ {} {}".format(hex(self.pc), ref_2, arr, ref_1)
-        inst_list.append(inst)
-        self.pc += 1
-
-        ref_3 = self.get_fresh_ref_name()
-        inst = "{}: {} = {} {} {}".format(hex(self.pc), ref_3, op, ref_0, ref_2)
-        inst_list.append(inst)
-        self.pc += 1
-
-        ckpt_0 = self.get_fresh_ckpt_name()
-        inst = "{}: {} = REQUIRE {}".format(hex(self.pc), ckpt_0, ref_3)
-        inst_list.append(inst)
-        self.pc += 1
-
-        # return loop_body
-        return inst_list, [ckpt_0]
+        return inst_list, [tgtArr]
     
-    def eval_REQUIRE_ASCENDING(self, node, args):
-        return self.build_require_ordered(node, args, True)
+    def eval_UPDATERANGE(self, node, args):
+        return self.build_updaterange(node, args)
 
-    def eval_REQUIRE_DESCENDING(self, node, args):
-        return self.build_require_ordered(node, args, False)        
-    
-    def eval_REQUIRE(self, node, args):
-        print("require args: {}".format(args))
-        cond = args[0]
-        
-        # ==== (display zone) ==== #
-        loop_body = """
-            for ({i_typ} {it} {{GuardStart}}; {it} < {{GuardEnd}}; {it}++) {{{{
-                require({req_cond});
-            }}}}
-        """.format(i_typ=self.i_typ, it=self.iterator, req_cond=cond)
-        print("loop body: \n{}".format(loop_body))
-        # ==== (display zone) ==== #
-
-        # start instruction assembling
-        inst_list = []
-
-        inst = "{}: {} = {{GuardStart}}".format(hex(self.pc), self.iterator)
-        inst_list.append(inst)
-        self.pc += 1
-
-        # first store the cond into a new var
-        ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = {}".format(hex(self.pc), ref_0, cond)
-        inst_list.append(inst)
-        self.pc += 1
-
-        ckpt_0 = self.get_fresh_ckpt_name()
-        inst = "{}: {} = REQUIRE {}".format(hex(self.pc), ckpt_0, ref_0)
-        inst_list.append(inst)
-        self.pc += 1
-
-        # (notice) here we generate a new tgt to verify
-        return inst_list, [ckpt_0]
-        # return loop_body
-
-    def eval_FILTER(self, node, args):
-        tgt = args[0]        
-        loop, cond_arg = args[1]
-        cond = args[2].replace("__y", cond_arg)
-
-        matches = re.findall(r"(.*)\{.*\n(.*)\n.*\}", loop)
-        if matches != []:
-            header = matches[0][0].replace(" ", "")
-            body = matches[0][1].replace(" ", "")
-            new_loop = """
-            {header} {{{{
-                if ({cond}) {{{{
-                    {body}
-                }}}}
-            }}}}
-            """.format(header=header, body=body, cond=cond)
-        else:
-            raise Exception("No body in:\n {0}".format(loop))
-
-        return new_loop, None 
-        
     def eval_summarize(self, node, args):
-        print("summarize args: {}".format(args))
         start = args[1]
         end = args[2]
-        # body, _ = args[0]
-        # body = body.format(GuardStart="={0}".format(start), GuardEnd=end)
-        # actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
+        body = args[0] # (list_of_inst, list_of_var_to_verify)
 
-        # print(actual_contract)
-        # return actual_contract
-
-        # instantiate {GuardStart} and {GuardEnd}
         new_body = (
-            [inst.format(GuardStart=start, GuardEnd=end) for inst in args[0][0]],
-            args[0][1]
+            [inst.format(GuardStart=start, GuardEnd=end) for inst in body[0]],
+            body[1]
         )
+
+        # FIXME: ignoring structs/other_contracts/other_funcs/other_decs
         return new_body
-        # return args[0]
 
     def eval_summarize_nost(self, node, args):
-        print("summarize_nost args: {}".format(args))
         end = args[1]
-        body, _ = args[0]
-        body = body.format(GuardStart="", GuardEnd=end)
-        actual_contract = self.contract_prog.format(_body=body, _decl=self.program_decl)
+        body = args[0] # (list_of_inst, list_of_var_to_verify)
 
-        print(actual_contract)
-        
-        return actual_contract
+        tmp_0 = self.get_fresh_tmp_name()
+        new_body = (
+            [inst.format(GuardStart=tmp_0, GuardEnd=end) for inst in body[0]],
+            body[1]
+        )
+
+        # FIXME: ignoring structs/other_contracts/other_funcs/other_decs
+        return new_body
 
     def eval_intFunc(self, node, args):
-        print("intFunc args: {}".format(args))
-        # loop, _ = args[0]
         return args[0]
-        # return loop, None
 
     def eval_nonintFunc(self, node, args):
-        print("nonintFunc args: {}".format(args))
-        # loop, _ = args[0]
         return args[0]
-        # return loop, None
 
     def build_seq(self, node, args):
         loop0, vlist0 = args[0]
-        loop1, vlist1 = args[1]        
-        # return loop0 + "\n\n" + loop1, None;
-        return loop0+loop1, vlist0+vlist1
+        loop1, vlist1 = args[1]
+        return loop0+loop1, list(set(vlist0+vlist1))
 
     def eval_seqF(self, node, args):
-        print("seqF args: {}".format(args))
         return self.build_seq(node, args)
 
     def eval_seqIF(self, node, args):
-        print("seqIF args: {}".format(args))
         return self.build_seq(node, args)
+
     
 def execute(interpreter, prog, args):
     return interpreter.eval(prog, args)
@@ -1245,15 +1127,41 @@ def parse_args():
     parser.add_argument("--prune", help="Activates analysis-based pruning", action="store_true")
     return parser.parse_args()
 
-def main():    
-    args = parse_args()
+def extract_contracts(sol_file):
+    contracts = ""
+    afterLoopVars = False
+    with open(sol_file, "r") as f:
+        for line in f:
+            if afterLoopVars:
+                contracts += line
+            if "LOOPVARS" in line:
+                afterLoopVars = True
+
+    return contracts
+
+def extract_structs(sol_file):
+    structs = ""
+    with open(sol_file, "r") as f:
+        for line in f:
+            if "struct " in line:
+                structs += line
+
+    return structs
+
+def main(args):    
     sol_file = args.file
     seed = None
     # assert False
 
+    # Get all structs declared
+    structs = extract_structs(sol_file)
+    # Get all contracts declared
+    other_contracts = extract_contracts(sol_file)
+    
     if args.prune:
         logger.info('Analyzing Input...')
         deps, refs = analyze(sol_file, "C", "foo()")
+        print(deps.dependencies)
         lambdas = analyze_lambdas(sol_file, "C", "foo()")
         req_conds = get_requires_conditions(sol_file)
         logger.info('Analysis Successful!')
@@ -1264,23 +1172,25 @@ def main():
         actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, None, None, None, False)
         
     print(actual_spec)
+    # input("SEE THE SPEC ABOVE")
     
     logger.info('Parsing Spec...')
     spec = S.parse(actual_spec)
     logger.info('Parsing succeeded')
 
-    # Fetch other contract names
-    slither = Slither(sol_file)
-    other_contracts = list(filter(lambda x: x != 'C', map(str, slither.contracts)))
+    # # Fetch other contract names
+    # slither = Slither(sol_file)
+    # other_contracts = list(filter(lambda x: x != 'C', map(str, slither.contracts)))
     
     logger.info('Building synthesizer...')
     synthesizer = Synthesizer(
         enumerator=DependencyEnumerator(
             spec, max_depth=6, seed=seed, analysis=deps.dependencies if args.prune else None, types=types),
         decider=BoundedModelCheckerDecider(
-            interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars), example=sol_file, equal_output=check_eq)
+            interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs), example=sol_file, equal_output=check_eq)
     )
     logger.info('Synthesizing programs...')
+    # input("PRESS TO START")
 
     prog = synthesizer.synthesize()
     if prog is not None:
@@ -1294,4 +1204,5 @@ def main():
 if __name__ == '__main__':
     logger.setLevel('DEBUG')
     assert len(argv) > 1
-    main()
+    args = parse_args()    
+    main(args)

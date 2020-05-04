@@ -10,6 +10,7 @@ from slither.slithir.operations.binary import Binary
 from slither.slithir.operations.index import Index
 from slither.slithir.operations.condition import Condition
 from slither.slithir.operations.solidity_call import SolidityCall
+from slither.slithir.operations.type_conversion import TypeConversion
 
 from slither.slithir.variables.reference import ReferenceVariable
 from slither.solc_parsing.variables.state_variable import StateVariableSolc
@@ -115,90 +116,62 @@ class BoundedModelCheckerDecider(Decider):
         else:
             return bad()
 
-    def assemble_assignment(self, curr_addr, raw_irs):
-        # (Assignment,)
-        inst_list = []
-        ir = raw_irs[0]
-        inst = "{}: {} = {}".format(hex(curr_addr), ir.lvalue, ir.rvalue)
-        inst_list.append(inst)
-        return (curr_addr+1, inst_list)
+    def assemble_arrayread(self, curr_addr, ir):
+        inst = "{}: {} = ARRAY-READ {} {}".format( hex(curr_addr), ir.lvalue, ir.variable_left, ir.variable_right )
+        return curr_addr+1, [inst]
 
-    def assemble_require(self, curr_addr, raw_irs):
-        # (SolidityCall,)
-        inst_list = []
-        ckpt_list = []
-        ir = raw_irs[0]
-        ckpt_0 = self.get_fresh_ckpt_name()
-        # ir.lvalue should be repalce by checkpoint variable
-        inst = "{}: {} = REQUIRE {}".format(hex(curr_addr), ckpt_0, ir.arguments[0])
-        inst_list.append(inst)
-        ckpt_list.append(ckpt_0)
-        return (curr_addr+1, inst_list, ckpt_list)
+    def assemble_arraywrite(self, curr_addr, ir0, ir1):
+        # ir0: Index, ir1: Assignment/Binary
+        assert ir0.lvalue == ir1.lvalue
+        if isinstance(ir1, Assignment):
+            tmp_0 = self.get_fresh_tmp_name()
+            inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(curr_addr), tmp_0, ir0.variable_left, ir0.variable_right, ir1.rvalue )
+            return curr_addr+1, [inst]
+        elif isinstance(ir1, Binary):
+            # for the Binary, you need one additional var to store the RHS result
 
-    def assemble_binary(self, curr_addr, raw_irs):
-        # (Binary,)
-        inst_list = []
-        ir = raw_irs[0]
+            # process the binary part
+            code_type = ir1.type_str
+            code_dict = {
+                "+":"ADD", "-":"SUB", "*":"MUL", "/":"DIV",
+                "<":"LT", "<=":"LTE", ">":"GT", ">=":"GTE",
+                "==":"EQ", "!=":"NEQ",
+            }
+            if code_type in code_dict.keys():
+                opcode = code_dict[code_type]
+            else:
+                raise NotImplementedError("Unsupported code type: {}".format(code_type))
+            ref_0 = self.get_fresh_ref_name()
+            inst_0 = "{}: {} = {} {} {}".format( hex(curr_addr), ref_0, opcode, ir1.variable_left, ir1.variable_right )
+
+            # process the array-write part
+            tmp_1 = self.get_fresh_tmp_name()
+            inst_1 = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(curr_addr+1), tmp_1, ir0.variable_left, ir0.variable_right, ref_0 )
+
+            return curr_addr+2, [inst_0, inst_1]
+        else:
+            raise NotImplementedError("Unsupported ARRAY-WRITE original: {}".format(type(ir1)))
+
+    def assemble_assignment(self, curr_addr, ir):
+        inst = "{}: {} = {}".format( hex(curr_addr), ir.lvalue, ir.rvalue )
+        return curr_addr+1, [inst]
+
+    def assemble_binary(self, curr_addr, ir):
+        # (notice) this binary only write to non-ref var
+        # i.e., ir.lvalue is not in ivar_dict
         code_type = ir.type_str
         code_dict = {
-            "+":"ADD", "-":"SUB",
+            "+":"ADD", "-":"SUB", "*":"MUL", "/":"DIV",
+            "<":"LT", "<=":"LTE", ">":"GT", ">=":"GTE",
+            "==":"EQ", "!=":"NEQ",
         }
         if code_type in code_dict.keys():
             opcode = code_dict[code_type]
         else:
             raise NotImplementedError("Unsupported code type: {}".format(code_type))
-        inst = "{}: {} = {} {} {}".format(hex(curr_addr), ir.lvalue, opcode, ir.variable_left, ir.variable_right)
-        inst_list.append(inst)
-        return (curr_addr+1, inst_list)
+        inst = "{}: {} = {} {} {}".format( hex(curr_addr), ir.lvalue, opcode, ir.variable_left, ir.variable_right )
+        return curr_addr+1, [inst]
 
-    def assemble_arrayop(self, curr_addr, raw_irs):
-        # (Index, Binary)
-        inst_list = []
-        ir0 = raw_irs[0]
-        ir1 = raw_irs[1]
-        code_type = ir1.type_str
-        code_dict = {
-            "<":"ARRAY-LT", "<=":"ARRAY-LTE", "==":"ARRAY-EQ", "!=":"ARRAY-NEQ", # conditional operator
-            ">":"ARRAY-GT", ">=":"ARRAY-GTE",
-        }
-        if code_type in code_dict.keys():
-            opcode = code_dict[code_type]
-        else:
-            raise NotImplementedError("Unsupported code type: {}".format(code_type))
-        inst = "{}: {} = {} {} {} {}".format(hex(curr_addr), ir1.lvalue, opcode, ir0.variable_left, ir0.variable_right, ir1.variable_right)
-        inst_list.append(inst)
-        return (curr_addr+1, inst_list)
-
-    def assemble_arrayread(self, curr_addr, raw_irs):
-        # (Index,)
-        inst_list = []
-        ir = raw_irs[0]
-        inst = "{}: {} = ARRAY-READ {} {}".format(hex(curr_addr), ir.lvalue, ir.variable_left, ir.variable_right)
-        inst_list.append(inst)
-        return (curr_addr+1, inst_list)
-
-    def assemble_arraywrite(self, curr_addr, raw_irs):
-        # (Index, Assignment) / (Index, Binary)
-        if isinstance(raw_irs[1], Assignment):
-            inst_list = []
-            ir0 = raw_irs[0]
-            ir1 = raw_irs[1]
-            tmp0 = self.get_fresh_tmp_name()
-            inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(curr_addr), tmp0, ir0.variable_left, ir0.variable_right, ir1.rvalue)
-            inst_list.append(inst)
-            return (curr_addr+1, inst_list)
-        elif isinstance(raw_irs[1], Binary):
-            # only need to deal with the array-write part
-            inst_list = []
-            ir0 = raw_irs[0]
-            ir1 = raw_irs[1]
-            tmp0 = self.get_fresh_tmp_name()
-            # (notice) the last format var is *ir1.lvalue* since it's used here as a state variable
-            inst = "{}: {} = ARRAY-WRITE {} {} {}".format(hex(curr_addr), tmp0, ir0.variable_left, ir0.variable_right, ir1.lvalue)
-            inst_list.append(inst)
-            return (curr_addr+1, inst_list)
-        else:
-            raise NotImplementedError("Unsupported irs sequence: {}".format(tuple([type(p) for p in raw_irs])))
 
     # returns: next_addr, inst_list, checkpoint_list
     # checkpoint variable is additional value to verify (currently from `require`)
@@ -206,120 +179,50 @@ class BoundedModelCheckerDecider(Decider):
     # assuming that they won't be used anymore (written but not read in the future)
     def get_inst_list_by_irs(self, curr_addr, raw_irs):
         seq_irs = tuple([type(p) for p in raw_irs])
+
         # (notice) currently skipping conditions
         if Condition in seq_irs:
             return curr_addr, [], []
 
-        if seq_irs==(Assignment,):
-            # e.g., i = strt
-            next_addr, inst_list = self.assemble_assignment(curr_addr, raw_irs)
-            return next_addr, inst_list, []
-        elif seq_irs==(Binary,):
-            # e.g., i = strt + 1
-            next_addr, inst_list = self.assemble_binary(curr_addr, raw_irs)
-            return next_addr, inst_list, []
-        elif seq_irs==(Binary, Assignment):
-            # e.g., i = (i) + (1)
-            next_addr, inst_list0 = self.assemble_binary(curr_addr, [raw_irs[0]])
-            next_addr, inst_list1 = self.assemble_assignment(next_addr, [raw_irs[1]])
-            return next_addr, inst_list0 + inst_list1, []
-        elif seq_irs==(Index, Binary):
-            if raw_irs[0].lvalue==raw_irs[1].lvalue:
-                # first LHS appears in second LHS
-                # FIXME: can be map/update
-                raise NotImplementedError("not implemented")
-            else:
-                # first LHS only appears in second RHS
-                # e.g., acc += arr[i] (sum)
-                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]])
-                next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
-                return next_addr, inst_list0 + inst_list1, []
-        elif seq_irs==(Index, Assignment):
-            if raw_irs[0].lvalue==raw_irs[1].lvalue:
-                # first LHS appears in second LHS
-                # e.g., arr[i] = val (map)
-                next_addr, inst_list = self.assemble_arraywrite(curr_addr, raw_irs)
-                return next_addr, inst_list, []
-            else:
-                raise NotImplementedError("not implemented")
-        elif seq_irs==(Assignment, Binary):
-            # e.g., i = i + 1
-            next_addr, inst_list0 = self.assemble_assignment(curr_addr, [raw_irs[0]])
-            next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
-            return next_addr, inst_list0 + inst_list1, []
-        elif seq_irs==(Index, Index, Assignment):
-            if raw_irs[0].lvalue==raw_irs[2].lvalue:
-                # first LHS appears in third LHS
-                # e.g., tgt[i] = src[i] (copyrange)
-                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[1]])
-                next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[2]])
-                return next_addr, inst_list0 + inst_list1, []
-            elif raw_irs[1].lvalue==raw_irs[2].lvalue:
-                # second LHS appears in third LHS
-                # e.g., tgt[cont[i]] = val, (updaterange)
-                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]])
-                next_addr, inst_list1 = self.assemble_arraywrite(next_addr, [raw_irs[1], raw_irs[2]])
-                return next_addr, inst_list0 + inst_list1, []
-            else:
-                raise NotImplementedError("not implemented")
-        elif seq_irs==(Index, Index, Binary):
-            if raw_irs[0].lvalue==raw_irs[2].variable_left or raw_irs[0].lvalue==raw_irs[2].variable_right:
-                # MAYBE-FIXME: slightly abusive
-                # first LHS appears in third LHS
-                # e.g., tgt_arr[i] += src_arr[i] (incrange)
-                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]]) # this provides a reference for the Binary
-                next_addr, inst_list1 = self.assemble_arrayread(next_addr, [raw_irs[1]])
-                next_addr, inst_list2 = self.assemble_binary(next_addr, [raw_irs[2]])
-                next_addr, inst_list3 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[2]])
-                return next_addr, inst_list0 + inst_list1 + inst_list2 + inst_list3, []
-            else:
-                raise NotImplementedError("not implemented")
-        elif seq_irs==(Index, Binary, Assignment):
-            # (reasoning) if the index is ref, then there's no point to introduce Binary and Assignment, only one Binary is enough
-            # --> so index must be on the RHS of Binary, and LHS of Binary will be assigned to Assignment
-            if raw_irs[0].lvalue==raw_irs[1].variable_left or raw_irs[0].lvalue==raw_irs[1].variable_right:
-                # e.g., acc = acc + arr[i] (sum)  --> different from acc += arr[i]
-                next_addr, inst_list0 = self.assemble_arrayread(curr_addr, [raw_irs[0]]) # this provides a reference for the Binary
-                next_addr, inst_list1 = self.assemble_binary(next_addr, [raw_irs[1]])
-                next_addr, inst_list2 = self.assemble_assignment(next_addr, [raw_irs[2]])
-                return next_addr, inst_list0 + inst_list1 + inst_list2, []
-            else:
-                raise NotImplementedError("not implemented")
-        elif seq_irs==(Index, Binary, Index, Assignment):
-            if raw_irs[0].lvalue==raw_irs[3].lvalue and raw_irs[0].lvalue!=raw_irs[1].lvalue:
-                # e.g., owners[j] = owners[j+1]
-                next_addr, inst_list0 = self.assemble_binary(curr_addr, [raw_irs[1]])
-                next_addr, inst_list1 = self.assemble_arrayread(next_addr, [raw_irs[2]])
-                next_addr, inst_list2 = self.assemble_arraywrite(next_addr, [raw_irs[0], raw_irs[3]])
-                return next_addr, inst_list0 + inst_list1 + inst_list2, []
-            else:
-                raise NotImplementedError("not implemented")
-        elif seq_irs==(Index, Binary, SolidityCall):
-            if "require" in raw_irs[2].function.full_name:
-                # one of the require pattern
-                # restricted by the dsl, the pattern can only be: arr[i] op ??
-                if raw_irs[0].lvalue==raw_irs[1].variable_left and raw_irs[1].lvalue==raw_irs[2].arguments[0]:
-                    next_addr, inst_list0 = self.assemble_arrayop(curr_addr, [raw_irs[0], raw_irs[1]])
-                    next_addr, inst_list1, ckpt_list = self.assemble_require(next_addr, [raw_irs[2]])
-                    return next_addr, inst_list0 + inst_list1, ckpt_list
+        # detect for potential array-write operations
+        ivar_dict = {}
+        next_addr = curr_addr
+        final_inst_list = []
+        final_ckpt_list = []
+        for i in range(len(seq_irs)):
+            if seq_irs[i] == Index:
+                # LHS is a reference var in the Slither IR
+                ivar = raw_irs[i].lvalue
+                ivar_dict[ivar] = i # record the LHS
+                # then do normal array-read
+                next_addr, inst_list = self.assemble_arrayread( next_addr, raw_irs[i] )
+                final_inst_list += inst_list
+            elif seq_irs[i] == Assignment:
+                ivar = raw_irs[i].lvalue
+                if ivar in ivar_dict.keys():
+                    # array-write
+                    j = ivar_dict[ivar]
+                    next_addr, inst_list = self.assemble_arraywrite( next_addr, raw_irs[j], raw_irs[i] )
+                    final_inst_list += inst_list
                 else:
-                    raise NotImplementedError("not implemented")
-            else:
-                raise NotImplementedError("Unsupported function: {}".format(raw_irs[2].function.full_name))
-        elif seq_irs==(Index, Binary, Index, Binary, SolidityCall):
-            if "require" in raw_irs[4].function.full_name:
-                # e.g., require(arr[i]>arr[i+1])
-                # FIXME: for the benchmarks, should force arr[i] op arr[op i] so that this pattern is fixed
-                if raw_irs[0].lvalue==raw_irs[3].variable_left and raw_irs[2].lvalue==raw_irs[3].variable_right:
-                    next_addr, inst_list0 = self.assemble_binary(curr_addr, [raw_irs[1]])
-                    next_addr, inst_list1 = self.assemble_arrayread(next_addr, [raw_irs[2]])
-                    next_addr, inst_list2 = self.assemble_arrayop(next_addr, [raw_irs[0], raw_irs[3]])
-                    next_addr, inst_list3, ckpt_list = self.assemble_require(next_addr, [raw_irs[4]])
-                    return next_addr, inst_list0 + inst_list1 + inst_list2 + inst_list3, ckpt_list
+                    # normal assignment
+                    next_addr, inst_list = self.assemble_assignment( next_addr, raw_irs[i] )
+                    final_inst_list += inst_list
+            elif seq_irs[i] ==  Binary:
+                ivar = raw_irs[i].lvalue
+                if ivar in ivar_dict.keys():
+                    # array-write
+                    j = ivar_dict[ivar]
+                    next_addr, inst_list = self.assemble_arraywrite( next_addr, raw_irs[j], raw_irs[i] )
+                    final_inst_list += inst_list
                 else:
-                    raise NotImplementedError("not implemented")
-        else:
-            raise NotImplementedError("Unsupported instruction pattern: {}".format(seq_irs))
+                    # normal binary
+                    next_addr, inst_list = self.assemble_binary( next_addr, raw_irs[i] )
+                    final_inst_list += inst_list
+            else:
+                raise NotImplementedError("Unsupported instruction type: {}".format(seq_irs[i]))
+
+        return next_addr, final_inst_list, final_ckpt_list
 
 
     def extract_ir_from_source(self, target_contract):
@@ -345,7 +248,7 @@ class BoundedModelCheckerDecider(Decider):
         # input("PAUSE")
 
         # ckpt_list = list(set(ckpt_list+write)) 
-        # FIXME: here we remove loop var `i` since it's included in `write` for bmrk AlphaconCrowdsale_4
+        # FIXME: here we assume we don't verify loop variable "i"
         ckpt_list = list(set(ckpt_list+write)-{"i"})
 
         # print("# Source Contract: ")
