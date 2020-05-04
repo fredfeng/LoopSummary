@@ -8,7 +8,7 @@ import copy
 
 rosette_path = os.path.abspath(os.getcwd()) + '/rosette/bmc-rosette'
 
-def check_eq(pfile1, pfile2):
+def check_eq(pfile1, pfile2, verbose=False):
     # deepcopy first
     file1 = copy.deepcopy(pfile1)
     file2 = copy.deepcopy(pfile2)
@@ -40,12 +40,14 @@ def check_eq(pfile1, pfile2):
     write1 = file1[1]
     inst_list2 = file2[0]
     write2 = file2[1]
-    print('# File1 (candidate): ', inst_list1, write1)
-    print('# File2 (source): ', inst_list2, write2)
+    if verbose:
+        print('# File1 (candidate): ', inst_list1, write1)
+        print('# File2 (source): ', inst_list2, write2)
     json_out = {"write1": write1, "insts1": inst_list1, "write2": write2, "insts2": inst_list2}
     json_out_str = json.dumps(json_out)
-    print("#### assembled json ####")
-    print(json_out_str)
+    if verbose:
+        print("#### assembled json ####")
+        print(json_out_str)
 
     # if len(file1[1])>1:
     #     input("DOUBLE CHECK BEFORE SENDING TO ROSETTE")

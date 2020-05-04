@@ -41,6 +41,8 @@ class BoundedModelCheckerDecider(Decider):
         # (notice) apply patch to update Constant method
         self.patch_ir_boolean_0()
 
+        self._verbose = False
+
         # (debug) see what is the source contract first
         # tmp = self.extract_ir_from_source(self._example)
         # print(tmp)
@@ -92,20 +94,19 @@ class BoundedModelCheckerDecider(Decider):
         Return a list of failed examples.
         '''
         candidate_prog = self.interpreter.eval(prog, None)
-        print("#### candidate contract ####")
-        print(candidate_prog)
-        # print("target program:", self._example) 
-        # print("verifyer: ", self._equal_output)
-        # print("candidate program: {}".format(candidate_prog))
+        if self._verbose:
+            print("#### candidate contract ####")
+            print(candidate_prog)
         if not self._org_contract:
             print('source contract is empty')
             inst_list, write = self.extract_ir_from_source(self._example)
             self._org_contract = (inst_list, write)
 
-        print("#### source contract ####")
-        print(self._org_contract)
+        if self._verbose:
+            print("#### source contract ####")
+            print(self._org_contract)
         # trigger Bounded Model Checker
-        return self._equal_output(candidate_prog, self._org_contract)
+        return self._equal_output(candidate_prog, self._org_contract, self._verbose)
 
     def analyze(self, prog):
         '''

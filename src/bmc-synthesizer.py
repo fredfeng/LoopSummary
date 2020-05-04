@@ -1344,6 +1344,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--file", help="solidity file path from which to extract a loop", type=str)
     parser.add_argument("--prune", help="Activates analysis-based pruning", action="store_true")
+    parser.add_argument("--verbose", help="show more debugging information for developer", action="store_true")
     return parser.parse_args()
 
 def extract_contracts(sol_file):
@@ -1408,8 +1409,9 @@ def main(args):
         decider=BoundedModelCheckerDecider(
             interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs), example=sol_file, equal_output=check_eq)
     )
+    synthesizer._decider._verbose = args.verbose
     logger.info('Synthesizing programs...')
-    input("PRESS TO START")
+    # input("PRESS TO START")
 
     prog = synthesizer.synthesize()
     if prog is not None:
