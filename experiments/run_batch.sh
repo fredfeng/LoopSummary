@@ -15,5 +15,5 @@ echo "# running size $size benchmarks..."
 for dir in ../examples/ase_benchmarks_regularized/$size/$prefix*; do
 	filename=$(basename "$dir" ".sol")
 	echo "# running benchmark $dir..."
-	python ./bmc-synthesizer.py --file $dir > ../experiments/logs/log_$current_date_time/$filename.log --timeout $timeout 2>&1
+	python ./bmc-synthesizer.py --file $dir > ../experiments/logs/log_size$size_$current_date_time/$filename.log --timeout $timeout 2>&1
 done
