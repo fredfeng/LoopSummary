@@ -4,12 +4,8 @@
 
 ### Known Issues
 
-1. ~~(minor) When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.~~
-2. ~~(minor) `op = "<" if isAscending else "<" ` in Ln977 `analysis_loop_summary_synthesizer.py`.~~
-3. ~~`1/Halo3DPotPotato_2.sol` has a comment `//#LOOPVARS: i` where there's no `i` as loop var in the benchmark.~~
-4. ~~When loop var is not defined in the `for` scope, the read/write set detection becomes difficult. So I'm going to regularize all loop vars such that: they are defined in loop expr. Not sure what will happen to `while` loop yet.~~
-5. ~~`nestedRequireBoolTest.sol`: Even if I uncomment the prods `bool_arrT2` and `bool_arrF2`, they are not inferred in the instantiated dsl.~~
-6. ~~`1/Mineral_14.sol` has a wrong label of `//#LOOPVARS`.  I already corrected it.~~
+1. Currently the tool ignores `Condition` node, i.e., it can't handle if-else condition.
+2. Currently the tool may not be compatible with `while` loop.
 
 ### Recent Logs
 
@@ -101,7 +97,7 @@ python ./bmc-synthesizer.py --file ./tests/mapTest.sol --verbose
 
 ```
 ./experiments/run.sh
-./experiments/run_batch.sh <size> [[prefix] or empty]
+./experiments/run_batch.sh <size> [[prefix] or empty] [[timeout]]
 ```
 
 ###### read and explain the experiment logs
@@ -118,3 +114,51 @@ python ./creep.py --folder <log_folder>
 2. [From Trinity to RosetteIR] There won't be any redundant `ARRAY-READ` along this path.
 3. So the current solution is, since Slither's original parsing of read/write set is accurate, but with loop vars removed, the only thing we need is to find the loop vars and add it to the read/write set (in `for` loop, not `while` loop). This will give us aligned read/write sets from both Trinity and SlitherIR so that we can compare.
 4. The Trinity side uses global trace list to keep track of the read/write/loop set, since there are several nodes that only return partial instructions, which will make it harder to return full read/write/loop set in every node evaluation. On the contrary, the SlitherIR side uses local trace list since the translation is done by scanning instructions one by one and it's more concise and possible to construct the lists in a periodic way.
+
+### Azure Configurations
+
+```
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.64.187.87
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.40.18.86
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.42.22.122
+
+# install Anaconda
+wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
+source ~/.bashrc
+
+# install Racket
+sudo add-apt-repository ppa:plt/racket
+sudo apt-get update
+sudo apt-get install racket
+
+# install Rosette
+raco pkg install rosette
+
+sudo apt-get install build-essential
+pip install -U sexpdata
+pip install -U z3-solver
+git clone https://github.com/crytic/solc-select.git
+./solc-select/scripts/install.sh
+export PATH=/home/ju-ucsb/.solc-select:$PATH
+source ~/.bashrc
+solc use 0.4.25
+pip install -U slither-analyzer
+
+git clone https://github.com/fredfeng/LoopSummary.git
+git checkout ase
+
+rm -rf ./experiments/logs/*
+
+raco exe ./src/rosette/bmc-rosette.rkt
+
+screen -S size1_KLMN_600
+
+./experiments/run_batch.sh 1 [AB] 600
+./experiments/run_batch.sh 1 [CD] 600
+./experiments/run_batch.sh 1 [EFGHIJ] 600
+./experiments/run_batch.sh 1 [KLMN] 600
+./experiments/run_batch.sh 1 [OPQR] 600
+./experiments/run_batch.sh 1 [ST] 600
+./experiments/run_batch.sh 1 [UVWXYZ] 600
+```
+
