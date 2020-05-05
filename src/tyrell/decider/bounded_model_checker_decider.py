@@ -2,7 +2,10 @@ from typing import Callable, NamedTuple, List, Any
 from tyrell.decider.decider import Decider
 from tyrell.interpreter import Interpreter
 from tyrell.decider.result import ok, bad
+from tyrell.logger import get_logger
 from slither import Slither
+
+logger = get_logger('tyrell')
 
 # node types
 from slither.slithir.operations.assignment import Assignment
@@ -198,6 +201,12 @@ class BoundedModelCheckerDecider(Decider):
         inst = "{}: {} = {}".format( hex(curr_addr), ir.lvalue, ir.variable )
         return curr_addr+1, [inst], [], [ str(ir.lvalue), str(ir.variable) ]
 
+    # (notice) all unknown type conversion will be processed here
+    # and should log a info
+    def assemble_type_conversion(self, curr_addr, ir):
+        inst = "{}: {} = {}".format( hex(curr_addr), ir.lvalue, ir.variable )
+        return curr_addr+1, [inst], [], [ str(ir.lvalue), str(ir.variable) ]
+
     # returns: next_addr, inst_list, checkpoint_list
     # checkpoint variable is additional value to verify (currently from `require`)
     # (notice) the checkpoint variable here is modified to the form "CKPT_?" to match the synthesizer
@@ -263,7 +272,9 @@ class BoundedModelCheckerDecider(Decider):
                 if "address" in tname:
                     next_addr, inst_list, ckpt_list, vars_list = self.assemble_address( next_addr, raw_irs[i] )
                 else:
-                    raise NotImplementedError("Unsupported type conversion: {}".format(tname))
+                    logger.info("BMC Decider: unknown type conversion encountered, got {}, perform forced (default) conversion.".format(tname))
+                    next_addr, inst_list, ckpt_list, vars_list = self.assemble_type_conversion( next_addr, raw_irs[i] )
+                    # raise NotImplementedError("Unsupported type conversion: {}".format(tname))
             elif seq_irs[i] == InternalCall:
                 fname = raw_irs[i].function.full_name
                 if "transfer" in fname:
