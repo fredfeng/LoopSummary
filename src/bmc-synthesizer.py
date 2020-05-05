@@ -456,7 +456,7 @@ func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => u
 func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
 func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
 func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
-func MAP_L: IF -> Write__mapping(uint => #A), Read__#A, L;
+func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
 func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
@@ -1283,11 +1283,15 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # print("build_map args: {}".format(args))
         # print("build_map l: {}".format(l)) 
         tgtArr = args[0]
-        srcVal = args[1]
-        Lam = args[2] if l else None
+        if l:
+            srcVal = None
+            Lam = args[1]
+        else:
+            srcVal = args[1]
+            Lam = None
         it = self.iterator
         # build_map is doing: 
-        # 1 (lambda). tgtArr[it] = Lam( srcVal )
+        # 1 (lambda). tgtArr[it] = Lam( tgtArr[it] )  <-- yes, that's the design
         # 2 ().       tgtArr[it] = srcVal
 
         inst_list = []
@@ -1299,22 +1303,32 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         ref_0 = self.get_fresh_ref_name()
         if l:
-            # ref_0 = Lam( srcVal )
-            inst = "{}: {} = {}".format( hex(self.pc), ref_0, Lam.replace("__x", srcVal) )
+            # ref_0 = tgtArr[it]
+            inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_0, tgtArr, it )
         else:
             # ref_0 = srcVal
             inst = "{}: {} = {}".format( hex(self.pc), ref_0, srcVal )
         inst_list.append(inst)
         self.pc += 1
 
-        # tgtArr[it] = ref_0
+        ref_1 = self.get_fresh_ref_name()
+        if l:
+            # ref_1 = Lam( ref_0 )
+            inst = "{}: {} = {}".format( hex(self.pc), ref_1, Lam.replace("__x", ref_0) )
+        else:
+            # ref_1 = ref_0
+            inst = "{}: {} = {}".format( hex(self.pc), ref_1, ref_0 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tgtArr[it] = ref_1
         tmp_1 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_1, tgtArr, it, ref_0 )
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_1, tgtArr, it, ref_1 )
         inst_list.append(inst)
         self.pc += 1
 
         if l:
-            self._read_list += [srcVal]
+            self._read_list += [tgtArr]
             self._write_list += [tgtArr]
         else:
             self._read_list += [srcVal]

@@ -9,7 +9,7 @@ contract C {
   
   function foo() public {
     for (uint i = start; i < end; i++) {
-      arr[i] = val*5;
+      arr[i] = arr[i]*5;
     }
   }
 }
