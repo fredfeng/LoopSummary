@@ -162,5 +162,6 @@ screen -S size1_KLMN_600
 ./experiments/run_batch.sh 1 [UVWXYZ] 600
 
 ./experiments/run_batch.sh 2 [A] 600
+./experiments/run_batch.sh 2 [B] 600
 ```
 
