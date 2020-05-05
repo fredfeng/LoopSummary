@@ -25,6 +25,6 @@ start = ((start) + (CONTEST_INTERVAL));
 
 }
 
-//#LOOPVARS: i
+//#LOOPVARS: start
 
 
