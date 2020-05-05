@@ -101,6 +101,7 @@ python ./bmc-synthesizer.py --file ./tests/mapTest.sol --verbose
 
 ```
 ./experiments/run.sh
+./experiments/run_batch.sh <size> [[prefix] or empty]
 ```
 
 ###### read and explain the experiment logs

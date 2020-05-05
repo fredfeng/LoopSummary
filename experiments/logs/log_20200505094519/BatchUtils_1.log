@@ -1,0 +1,119 @@
+[info] Analyzing Input...
+[info] Analysis Successful!
+[info] Parsing Spec...
+[debug] Building Tyrell spec from parse tree...
+[debug] Processing type definitions...
+[debug] Processing input/output definitions...
+[debug] Processing function definitions...
+[debug] Processing global predicates...
+[info] Parsing succeeded
+[info] Building synthesizer...
+[info] Synthesizing programs...
+[debug] Enumerator generated: summarize(nonintFunc(MAP__address(_receivers, address(0))), addc_st(1, 1), addc_end(1, 1))
+
+
+        enum uint {
+            "1","cnt","value","0","_receivers.length"
+        }
+        
+        enum mapping_uint_address {
+            "_receivers"
+        }
+        
+        enum ERC20Basic {
+            "token"
+        }
+        
+        enum Contract {
+            "token"
+        }
+        
+        enum g_int {
+            "cnt","value","_receivers.length"
+        }
+        
+        enum C {
+            "1","0"
+        }
+        
+        enum nonzero_uint {
+            "1","cnt","value","_receivers.length"
+        }
+        
+        enum bool {
+            "false","true"
+        }
+        
+        enum address {
+            "address(0)"
+        }
+        
+
+value L;
+value IF;
+value i;
+value i_st;
+value i_end;
+value F;
+value Cond_uint;
+value Cond_address;
+value Summary;
+value Inv;
+
+program SolidityLoops() -> Summary;
+
+
+
+
+# DSL Functions (with lambda versions when appropriate)
+
+# Arithmetic funcs for lambda
+
+# Add constant for global integers
+
+# Boolean comps for uint
+
+# Boolean compus for uint w/ nested array access
+
+# Boolean comps for address
+
+        
+func MAP__address: F ->mapping_uint_address,address;
+func addc: i -> g_int, C;
+func subc: i -> g_int, C;
+func const: i -> C;
+func addc_st: i_st ->uint, C;
+func addc_end: i_end ->uint, C;
+func subc_st: i_st ->uint, C;
+func subc_end: i_end ->uint, C;
+func eq_addr: Cond_address -> mapping_uint_address, address;
+func neq_addr: Cond_address -> mapping_uint_address, address;
+func add: L -> uint;
+func mul: L -> nonzero_uint;
+func sub: L -> uint;
+func div: L -> nonzero_uint;
+func nonintFunc: Inv -> F;
+func COPYRANGE__address: IF ->mapping_uint_address, i,mapping_uint_address;
+func REQUIRE__address: F -> Cond_address;
+func summarize: Summary -> Inv, i_st, i_end;
+func summarize_nost: Summary -> Inv, i_end;
+func seqF: Inv -> F, Inv;
+func seqIF: Inv -> IF, Inv;
+func intFunc: Inv -> IF;
+source contract is empty
+Traceback (most recent call last):
+  File "./bmc-synthesizer.py", line 1712, in <module>
+    main(args)
+  File "./bmc-synthesizer.py", line 1698, in main
+    prog = synthesizer.synthesize()
+  File "/Users/joseph/Desktop/UCSB/20spring/LoopSummary/src/tyrell/synthesizer/synthesizer.py", line 42, in synthesize
+    res = self._decider.analyze(prog)
+  File "/Users/joseph/Desktop/UCSB/20spring/LoopSummary/src/tyrell/decider/bounded_model_checker_decider.py", line 124, in analyze
+    if self.is_equivalent(prog):
+  File "/Users/joseph/Desktop/UCSB/20spring/LoopSummary/src/tyrell/decider/bounded_model_checker_decider.py", line 111, in is_equivalent
+    inst_list, verify_list, read_list, write_list, loop_vars = self.extract_ir_from_source(self._example)
+  File "/Users/joseph/Desktop/UCSB/20spring/LoopSummary/src/tyrell/decider/bounded_model_checker_decider.py", line 319, in extract_ir_from_source
+    address, tmp_inst_list, tmp_ckpt_list, tmp_vars_list = self.get_inst_list_by_irs(address, node.irs)
+  File "/Users/joseph/Desktop/UCSB/20spring/LoopSummary/src/tyrell/decider/bounded_model_checker_decider.py", line 289, in get_inst_list_by_irs
+    raise NotImplementedError("Unsupported instruction type: {}".format(seq_irs[i]))
+NotImplementedError: Unsupported instruction type: <class 'slither.slithir.operations.high_level_call.HighLevelCall'>

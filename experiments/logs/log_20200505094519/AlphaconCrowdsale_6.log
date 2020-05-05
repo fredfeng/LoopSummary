@@ -1,0 +1,83 @@
+[info] Analyzing Input...
+[info] Analysis Successful!
+[info] Parsing Spec...
+[debug] Building Tyrell spec from parse tree...
+[debug] Processing type definitions...
+[debug] Processing input/output definitions...
+[debug] Processing function definitions...
+[debug] Processing global predicates...
+[info] Parsing succeeded
+[info] Building synthesizer...
+[info] Synthesizing programs...
+[debug] Enumerator is exhausted after 0 attempts
+[info] Solution not found!
+[info] Total Time: 4.9014s
+IGNORED TYPE: mapping(uint => uint32)!
+
+
+        enum uint {
+            "1","0","times.length"
+        }
+        
+        enum g_int {
+            "times.length"
+        }
+        
+        enum C {
+            "0","1"
+        }
+        
+        enum nonzero_uint {
+            "1","times.length"
+        }
+        
+        enum bool {
+            "false","true"
+        }
+        
+        enum address {
+            "address(0)"
+        }
+        
+
+value L;
+value IF;
+value i;
+value i_st;
+value i_end;
+value F;
+value Cond_uint;
+value Cond_address;
+value Summary;
+value Inv;
+
+program SolidityLoops() -> Summary;
+
+
+
+
+# DSL Functions (with lambda versions when appropriate)
+
+# Arithmetic funcs for lambda
+
+# Add constant for global integers
+
+# Boolean comps for uint
+
+# Boolean compus for uint w/ nested array access
+
+# Boolean comps for address
+
+        
+func addc: i -> g_int, C;
+func subc: i -> g_int, C;
+func const: i -> C;
+func addc_st: i_st ->uint, C;
+func addc_end: i_end ->uint, C;
+func subc_st: i_st ->uint, C;
+func subc_end: i_end ->uint, C;
+func add: L -> uint;
+func mul: L -> nonzero_uint;
+func sub: L -> uint;
+func div: L -> nonzero_uint;
+No candidates available!

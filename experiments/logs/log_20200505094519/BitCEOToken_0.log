@@ -1,0 +1,1923 @@
+[info] Analyzing Input...
+[info] Analysis Successful!
+[info] Parsing Spec...
+[debug] Building Tyrell spec from parse tree...
+[debug] Processing type definitions...
+[debug] Processing input/output definitions...
+[debug] Processing function definitions...
+[debug] Processing global predicates...
+[info] Parsing succeeded
+[info] Building synthesizer...
+[info] Synthesizing programs...
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(0, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(1, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(cnt, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(0, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(_amounts.length, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(1, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(cnt, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), addc_st(totalAmount, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(0, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(1, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(cnt, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_ASCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(0, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(_amounts.length, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(1, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(cnt, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 0), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(nonintFunc(REQUIRE_DESCENDING(_amounts)), subc_st(totalAmount, 1), subc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(0, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(_amounts.length, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(1, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(cnt, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 0), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(cnt, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(cnt, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(totalAmount, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(_amounts.length, _amounts)), addc_st(totalAmount, 1), addc_end(totalAmount, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(0, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(0, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(_amounts.length, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(_amounts.length, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(1, 0))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(1, 1))
+[debug] Program rejected. Reason: None
+[debug] Enumerator generated: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(cnt, 0))
+[debug] Program accepted after 907 attempts
+[info] Solution found: summarize(intFunc(SUM(totalAmount, _amounts)), addc_st(0, 0), addc_end(cnt, 0))
+[info] Total Time: 16.6754s
+
+
+        enum uint {
+            "0","_amounts.length","1","cnt","totalAmount"
+        }
+        
+        enum mapping_uint_uint {
+            "_amounts"
+        }
+        
+        enum g_int {
+            "_amounts.length","totalAmount","cnt"
+        }
+        
+        enum C {
+            "0","1"
+        }
+        
+        enum nonzero_uint {
+            "1","_amounts.length","totalAmount","cnt"
+        }
+        
+        enum bool {
+            "false","true"
+        }
+        
+        enum address {
+            "address(0)"
+        }
+        
+
+value L;
+value IF;
+value i;
+value i_st;
+value i_end;
+value F;
+value Cond_uint;
+value Cond_address;
+value Summary;
+value Inv;
+
+program SolidityLoops() -> Summary;
+
+
+
+
+# DSL Functions (with lambda versions when appropriate)
+
+# Arithmetic funcs for lambda
+
+# Add constant for global integers
+
+# Boolean comps for uint
+
+# Boolean compus for uint w/ nested array access
+
+# Boolean comps for address
+
+        
+func SUM: IF ->g_int,mapping_uint_uint;
+func MAP__uint: F ->mapping_uint_uint,uint;
+func REQUIRE_ASCENDING: F -> mapping_uint_uint;
+func REQUIRE_DESCENDING: F -> mapping_uint_uint;
+func UPDATERANGE__uint_uint: F ->mapping_uint_uint,mapping_uint_uint,uint;
+func addc: i -> g_int, C;
+func subc: i -> g_int, C;
+func const: i -> C;
+func addc_st: i_st ->uint, C;
+func addc_end: i_end ->uint, C;
+func subc_st: i_st ->uint, C;
+func subc_end: i_end ->uint, C;
+func lt: Cond_uint -> mapping_uint_uint, uint;
+func gt: Cond_uint -> mapping_uint_uint, uint;
+func eq: Cond_uint -> mapping_uint_uint, uint;
+func neq: Cond_uint -> mapping_uint_uint, uint;
+func lte: Cond_uint -> mapping_uint_uint, uint;
+func gte: Cond_uint -> mapping_uint_uint, uint;
+func add: L -> uint;
+func mul: L -> nonzero_uint;
+func sub: L -> uint;
+func div: L -> nonzero_uint;
+func intFunc: Inv -> IF;
+func nonintFunc: Inv -> F;
+func SUM_L: IF ->g_int,mapping_uint_uint, L;
+func COPYRANGE_L: IF ->mapping_uint_uint, i,mapping_uint_uint, L;
+func COPYRANGE__uint: IF ->mapping_uint_uint, i,mapping_uint_uint;
+func MAP_L: IF ->mapping_uint_uint, L;
+func INCRANGE_L: IF ->mapping_uint_uint, i,mapping_uint_uint, L;
+func INCRANGE: IF ->mapping_uint_uint, i,mapping_uint_uint;
+func REQUIRE__uint: F -> Cond_uint;
+func summarize: Summary -> Inv, i_st, i_end;
+func summarize_nost: Summary -> Inv, i_end;
+func seqF: Inv -> F, Inv;
+func seqIF: Inv -> IF, Inv;
+source contract is empty
