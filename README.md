@@ -4,7 +4,7 @@
 
 ### Known Issues
 
-1. (minor) When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.
+1. ~~(minor) When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.~~
 2. ~~(minor) `op = "<" if isAscending else "<" ` in Ln977 `analysis_loop_summary_synthesizer.py`.~~
 3. ~~`1/Halo3DPotPotato_2.sol` has a comment `//#LOOPVARS: i` where there's no `i` as loop var in the benchmark.~~
 4. ~~When loop var is not defined in the `for` scope, the read/write set detection becomes difficult. So I'm going to regularize all loop vars such that: they are defined in loop expr. Not sure what will happen to `while` loop yet.~~
