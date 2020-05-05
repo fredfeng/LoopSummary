@@ -9,7 +9,7 @@ contract C {
   mapping(address => uint256) intArr; 
   
   function foo() public {
-    for (i = strt; i < end; ++i) {
+    for (uint i = strt; i < end; ++i) {
       require(intArr[addrs[i]] > 0);
     }
   }

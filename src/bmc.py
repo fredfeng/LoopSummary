@@ -9,19 +9,29 @@ import copy
 rosette_path = os.path.abspath(os.getcwd()) + '/rosette/bmc-rosette'
 
 def check_eq(pfile1, pfile2, verbose=False):
+
+    # input("CLICK-TO-EQ")
+
     # deepcopy first
+    # inst_list, verify_list, authentic_read_list, authentic_write_list, loop_vars
     file1 = copy.deepcopy(pfile1)
     file2 = copy.deepcopy(pfile2)
 
-    # (important) do program aware checkpoint renaming here
-    # for more details, see bmc-rosette.rkt main entry comments
-    if len(file1[1])!=len(file2[1]):
-        return False
-
+    # verify_list checking
     if set(file1[1])!=set(file2[1]):
         return False
 
-    # sort the write
+    # read_list checking
+    if set(file1[2])!=set(file2[2]):
+        return False
+
+    # write_list checking
+    if set(file1[3])!=set(file2[3]):
+        return False
+
+    # FIXME: don't check loop_vars since while loop won't have loop vars
+
+    # sort the verify_list
     file1 = (file1[0], sorted(file1[1]))
     file2 = (file2[0], sorted(file2[1]))
 

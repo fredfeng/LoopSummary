@@ -8,7 +8,7 @@ contract C {
   mapping(uint256 => bool) boolArr; 
   
   function foo() public {
-    for (i = strt; i < end; ++i) {
+    for (uint i = strt; i < end; ++i) {
       require(boolArr[i]);
     }
   }

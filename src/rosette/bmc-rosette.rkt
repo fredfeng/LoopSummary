@@ -216,7 +216,7 @@
         (sym-array-write base-val offset-val source-val)
     )
 
-    (define (binary-op op)
+    (define (binary-op#rr op)
         (define d (vector-ref args 1))
         (define a1 (vector-ref args 2))
         (define a2 (vector-ref args 3))
@@ -225,7 +225,7 @@
         (define val (op a1-val a2-val))
         (hash-set! env d val))
 
-    (define (binary-op# op)
+    (define (binary-op#rn op)
         (define d (vector-ref args 1))
         (define a1 (vector-ref args 2))
         (define a2 (vector-ref args 3))
@@ -233,7 +233,15 @@
         (define val (op a1-val (string->number a2)))
         (hash-set! env d val))
 
-    (define (binary-op## op)
+    (define (binary-op#nr op)
+        (define d (vector-ref args 1))
+        (define a1 (vector-ref args 2))
+        (define a2 (vector-ref args 3))
+        (define a2-val (gen-var-by-name a2 env))
+        (define val (op (string->number a1) a2-val))
+        (hash-set! env d val))
+
+    (define (binary-op#nn op)
         (define d (vector-ref args 1))
         (define a1 (vector-ref args 2))
         (define a2 (vector-ref args 3))
@@ -313,41 +321,58 @@
     (cond
          ; [(equal? op-name "nop")   (void)]
 
-         [(equal? op-name "add")   (binary-op +)]
-         [(equal? op-name "add#")   (binary-op# +)]
-         [(equal? op-name "add##")   (binary-op## +)]
-         [(equal? op-name "sub")   (binary-op -)]
-         [(equal? op-name "sub#")   (binary-op# -)]
-         [(equal? op-name "sub##")   (binary-op## -)]
-         [(equal? op-name "mul")   (binary-op *)]
-         [(equal? op-name "mul#")   (binary-op# *)]
-         [(equal? op-name "mul##")   (binary-op## *)]
-         [(equal? op-name "div")   (binary-op /)]
-         [(equal? op-name "div#")   (binary-op# /)]
-         [(equal? op-name "div##")   (binary-op## /)]
+         [(equal? op-name "add#rr")   (binary-op#rr +)]
+         [(equal? op-name "add#rn")   (binary-op#rn +)]
+         [(equal? op-name "add#nr")   (binary-op#nr +)]
+         [(equal? op-name "add#nn")   (binary-op#nn +)]
+
+         [(equal? op-name "sub#rr")   (binary-op#rr -)]
+         [(equal? op-name "sub#rn")   (binary-op#rn -)]
+         [(equal? op-name "sub#nr")   (binary-op#nr -)]
+         [(equal? op-name "sub#nn")   (binary-op#nn -)]
+
+         [(equal? op-name "mul#rr")   (binary-op#rr *)]
+         [(equal? op-name "mul#rn")   (binary-op#rn *)]
+         [(equal? op-name "mul#nr")   (binary-op#nr *)]
+         [(equal? op-name "mul#nn")   (binary-op#nn *)]
+
+         [(equal? op-name "div#rr")   (binary-op#rr /)]
+         [(equal? op-name "div#rn")   (binary-op#rn /)]
+         [(equal? op-name "div#nr")   (binary-op#nr /)]
+         [(equal? op-name "div#nn")   (binary-op#nn /)]
 
          [(equal? op-name "assign#") (assign#)]
          [(equal? op-name "assign") (assign)]
 
-         [(equal? op-name "lt") (binary-op <)]
-         [(equal? op-name "lt#") (binary-op# <)]
-         [(equal? op-name "lt##") (binary-op## <)]
-         [(equal? op-name "lte") (binary-op <=)]
-         [(equal? op-name "lte#") (binary-op# <=)]
-         [(equal? op-name "lte##") (binary-op## <=)]
-         [(equal? op-name "gt") (binary-op >)]
-         [(equal? op-name "gt#") (binary-op# >)]
-         [(equal? op-name "gt##") (binary-op## >)]
-         [(equal? op-name "gte") (binary-op >=)]
-         [(equal? op-name "gte#") (binary-op# >=)]
-         [(equal? op-name "gte##") (binary-op## >=)]
+         [(equal? op-name "lt#rr") (binary-op#rr <)]
+         [(equal? op-name "lt#rn") (binary-op#rn <)]
+         [(equal? op-name "lt#nr") (binary-op#nr <)]
+         [(equal? op-name "lt#nn") (binary-op#nn <)]
 
-         [(equal? op-name "eq") (binary-op equal?)]
-         [(equal? op-name "eq#") (binary-op# equal?)]
-         [(equal? op-name "eq##") (binary-op## equal?)]
-         [(equal? op-name "neq") (binary-op (lambda (x y) (not (equal? x y))))]
-         [(equal? op-name "neq#") (binary-op# (lambda (x y) (not (equal? x y))))]
-         [(equal? op-name "neq##") (binary-op## (lambda (x y) (not (equal? x y))))]
+         [(equal? op-name "lte#rr") (binary-op#rr <=)]
+         [(equal? op-name "lte#rn") (binary-op#rn <=)]
+         [(equal? op-name "lte#nr") (binary-op#nr <=)]
+         [(equal? op-name "lte#nn") (binary-op#nn <=)]
+
+         [(equal? op-name "gt#rr") (binary-op#rr >)]
+         [(equal? op-name "gt#rn") (binary-op#rn >)]
+         [(equal? op-name "gt#nr") (binary-op#nr >)]
+         [(equal? op-name "gt#nn") (binary-op#nn >)]
+
+         [(equal? op-name "gte#rr") (binary-op#rr >=)]
+         [(equal? op-name "gte#rn") (binary-op#rn >=)]
+         [(equal? op-name "gte#nr") (binary-op#nr >=)]
+         [(equal? op-name "gte#nn") (binary-op#nn >=)]
+
+         [(equal? op-name "eq#rr") (binary-op#rr equal?)]
+         [(equal? op-name "eq#rn") (binary-op#rn equal?)]
+         [(equal? op-name "eq#nr") (binary-op#nr equal?)]
+         [(equal? op-name "eq#nn") (binary-op#nn equal?)]
+
+         [(equal? op-name "neq#rr") (binary-op#rr (lambda (x y) (not (equal? x y))))]
+         [(equal? op-name "neq#rn") (binary-op#rn (lambda (x y) (not (equal? x y))))]
+         [(equal? op-name "neq#nr") (binary-op#nr (lambda (x y) (not (equal? x y))))]
+         [(equal? op-name "neq#nn") (binary-op#nn (lambda (x y) (not (equal? x y))))]
 
          [(equal? op-name "array-read") (array-read)]
          [(equal? op-name "array-write") (array-write)]

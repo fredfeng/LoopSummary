@@ -19,6 +19,8 @@ sys.path.append("../analysis")
 from analyze import analyze, analyze_lambdas, get_requires_conditions
 from itertools import combinations, product 
 import re
+import time
+import sys
 from collections import defaultdict
 import argparse
 
@@ -454,7 +456,7 @@ func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => u
 func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
 func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
 func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
-func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
+func MAP_L: IF -> Write__mapping(uint => #A), Read__#A, L;
 func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
@@ -541,7 +543,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
     # pc counter, self.pc
     pc = 0
 
-    def __init__(self, decl="", contracts=[], i_global=False, global_vars=["i"], structs=""):
+    def __init__(self, decl="", contracts=[], i_global=False, global_vars=["i"], structs="", timeout=-1):
         # for contract in contracts:
         #     self.contract_prog += self.extra_contract.format(contract)
         self.other_contracts = contracts
@@ -557,6 +559,13 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self._tmp_counter = -1 # temporary variable counter
         self._ckpt_counter = -1 # checkpoint variable counter (for require method)
         self._tnsf_counter = -1 # transfer result counter (for transfer method)
+
+        self._read_list = [] # temporary list to track variables being read in one full eval
+        self._write_list = [] # temporary list to track variables being written in one full eval
+        self._ckpt_list = []
+
+        self.timeout = timeout
+        self._start_time = time.time()
 
     def get_fresh_ref_name(self):
         self._ref_counter += 1
@@ -587,8 +596,17 @@ class SymDiffInterpreter(PostOrderInterpreter):
     # (important) since ckpt checking in rosette side is order sensitive
     # and decider is relying on exact matching of ckpt names
     def eval(self, prog: Node, inputs: List[Any]) -> Any:
+        if self.timeout>=0:
+            if time.time()-self._start_time>self.timeout:
+                logger.info("Timeout.")
+                sys.exit(0)
+
         self._ckpt_counter = -1 # reset _ckpt_counter
         self._tnsf_counter = -1 # reset _tnsf_counter
+
+        self._read_list = [] # reset read list
+        self._write_list = [] # reset write list
+        self._ckpt_list = []
         return super(SymDiffInterpreter, self).eval(prog, inputs)
 
     #########################################
@@ -621,6 +639,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         meta_list.append(inst)
         self.pc += 1
 
+        self._read_list += [indexArr, srcArr]
         return meta_list, ref_1
 
     def eval_lt2(self, node, args):
@@ -631,6 +650,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # ref_1 < srcVal
         expr = "LT {} {}".format( ref_1, srcVal )
+        self._read_list += [srcVal]
         return prev_list, expr
 
     def eval_lte2(self, node, args):
@@ -641,6 +661,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # ref_1 <= srcVal
         expr = "LTE {} {}".format( ref_1, srcVal )
+        self._read_list += [srcVal]
         return prev_list, expr
 
     def eval_eq2(self, node, args):
@@ -651,6 +672,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # ref_1 == srcVal
         expr = "EQ {} {}".format( ref_1, srcVal )
+        self._read_list += [srcVal]
         return prev_list, expr
      
     def eval_neq2(self, node, args):
@@ -661,6 +683,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # ref_1 != srcVal
         expr = "NEQ {} {}".format( ref_1, srcVal )
+        self._read_list += [srcVal]
         return prev_list, expr
     
     def eval_gt2(self, node, args):
@@ -671,6 +694,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # ref_1 > srcVal
         expr = "GT {} {}".format( ref_1, srcVal )
+        self._read_list += [srcVal]
         return prev_list, expr
     
     def eval_gte2(self, node, args):
@@ -681,6 +705,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
 
         # ref_1 >= srcVal
         expr = "GTE {} {}".format( ref_1, srcVal )
+        self._read_list += [srcVal]
         return prev_list, expr
 
     def eval_bool_arrT2(self, node, args):
@@ -721,7 +746,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "LT {} {}".format( ref_0, args[1])
+        expr = "LT {} {}".format( ref_0, srcVal )
+        self._read_list += [srcArr, srcVal]
         return prev_list, expr
 
     def eval_lte(self, node, args):
@@ -740,7 +766,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "LTE {} {}".format( ref_0, srcVal)
+        expr = "LTE {} {}".format( ref_0, srcVal )
+        self._read_list += [srcArr, srcVal]
         return prev_list, expr
 
     def eval_eq(self, node, args):
@@ -759,7 +786,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "EQ {} {}".format( ref_0, srcVal)
+        expr = "EQ {} {}".format( ref_0, srcVal )
+        self._read_list += [srcArr, srcVal]
         return prev_list, expr
     
     def eval_neq(self, node, args):
@@ -778,7 +806,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "NEQ {} {}".format( ref_0, srcVal)
+        expr = "NEQ {} {}".format( ref_0, srcVal )
+        self._read_list += [srcArr, srcVal]
         return prev_list, expr
     
     def eval_gt(self, node, args):
@@ -797,7 +826,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "GT {} {}".format( ref_0, srcVal)
+        expr = "GT {} {}".format( ref_0, srcVal )
+        self._read_list += [srcArr, srcVal]
         return prev_list, expr
     
     def eval_gte(self, node, args):
@@ -816,7 +846,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
         prev_list.append(inst)
         self.pc += 1
 
-        expr = "GTE {} {}".format( ref_0, srcVal)
+        expr = "GTE {} {}".format( ref_0, srcVal )
+        self._read_list += [srcArr, srcVal]
         return prev_list, expr
 
     def eval_bool_arrT(self, node, args):
@@ -836,6 +867,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         expr = "{}".format( ref_0 )
+        self._read_list += [srcArr]
         return prev_list, expr
     
     def eval_bool_arrF(self, node, args):
@@ -855,6 +887,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         expr = "NOT {}".format( ref_0 )
+        self._read_list += [srcArr]
         return prev_list, expr
 
     def eval_eq_addr(self, node, args):
@@ -876,6 +909,7 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # FIXME (including bmc): not an exact method to extract/represent address
         srcAddr = addrStr.replace("address(","").replace(")","")
         expr = "EQ {} {}".format( ref_0, srcAddr )
+        self._read_list += [srcArr, srcAddr]
         return prev_list, expr
     
     def eval_neq_addr(self, node, args):
@@ -897,34 +931,37 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # FIXME (including bmc): not an exact method to extract/represent address
         srcAddr = addrStr.replace("address(","").replace(")","")
         expr = "NEQ {} {}".format( ref_0, srcAddr )
+        self._read_list += [srcArr, srcAddr]
         return prev_list, expr
 
     def eval_const(self, node, args):
+        # we know this is constant already
+        self._read_list += [args[0]]
         return args[0]
     
     def eval_addc(self, node, args):
+        self._read_list += [args[0], args[1]]
         return "ADD {} {}".format(args[0], args[1])
-        # return args[0] + '+' + args[1]
 
     def eval_addc_st(self, node, args):
+        self._read_list += [args[0], args[1]]
         return "ADD {} {}".format(args[0], args[1])
-        # return args[0] + '+' + args[1]
 
     def eval_addc_end(self, node, args):
+        self._read_list += [args[0], args[1]]
         return "ADD {} {}".format(args[0], args[1])
-        # return args[0] + '+' + args[1]
 
     def eval_subc(self, node, args):
+        self._read_list += [args[0], args[1]]
         return "SUB {} {}".format(args[0], args[1])
-        # return args[0] + '-' + args[1]
 
     def eval_subc_st(self, node, args):
+        self._read_list += [args[0], args[1]]
         return "SUB {} {}".format(args[0], args[1])
-        # return args[0] + '-' + args[1]
 
     def eval_subc_end(self, node, args):
+        self._read_list += [args[0], args[1]]
         return "SUB {} {}".format(args[0], args[1])
-        # return args[0] + '-' + args[1]
 
     #########################################
     # Lambda operators
@@ -935,26 +972,30 @@ class SymDiffInterpreter(PostOrderInterpreter):
     #     return args[0].split(":")[1].replace(" ", "")
         
     def eval_const(self, node, args):
+        # we know this is constant already
+        self._read_list += [args[0]]
         return args[0]
 
     def eval_add(self, node, args):
         # return "__x" + '+' + args[0]
         if args[0] == "-1":
             # return "__x-1"
+            self._read_list += ["1"]
             return "SUB {} {}".format("__x", "1")
         # return "__x" + '+' + args[0]
+        self._read_list += [args[0]]
         return "ADD {} {}".format("__x", args[0])
 
     def eval_sub(self, node, args):
-        # return "__x" + '-' + args[0]
+        self._read_list += [args[0]]
         return "SUB {} {}".format("__x", args[0])
 
     def eval_mul(self, node, args):
-        # return "__x" + '*' + args[0]
+        self._read_list += [args[0]]
         return "MUL {} {}".format("__x", args[0])
     
     def eval_div(self, node, args):
-        # return "__x" + '/' + args[0]
+        self._read_list += [args[0]]
         return "DIV {} {}".format("__x", args[0])
 
     #########################################
@@ -1017,7 +1058,20 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [tgtAcc]
+        if nested and l:
+            self._read_list += [srcArr, indexArr, tgtAcc]
+            self._write_list += [tgtAcc]
+        elif nested and (not l):
+            self._read_list += [srcArr, indexArr, tgtAcc]
+            self._write_list += [tgtAcc]
+        elif (not nested) and l:
+            self._read_list += [srcArr, tgtAcc]
+            self._write_list += [tgtAcc]
+        else:
+            self._read_list += [srcArr, tgtAcc]
+            self._write_list += [tgtAcc]
+
+        return inst_list
 
     def eval_SUM(self, node, args):
         return self.build_sum(node, args, False, False)
@@ -1095,7 +1149,20 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [tgtArr]
+        if nested and l:
+            self._read_list += [srcArr, srcStart, indexArr]
+            self._write_list += [tgtArr]
+        elif nested and (not l):
+            self._read_list += [srcArr, srcStart, indexArr]
+            self._write_list += [tgtArr]
+        elif (not nested) and l:
+            self._read_list += [srcArr, srcStart]
+            self._write_list += [tgtArr]
+        else:
+            self._read_list += [srcArr, srcStart]
+            self._write_list += [tgtArr]
+
+        return inst_list
     
     def eval_COPYRANGE(self, node, args):
         return self.build_copyrange(node, args, False, False)
@@ -1185,7 +1252,20 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [tgtArr]
+        if nested and l:
+            self._read_list += [srcArr, srcStart, indexArr, tgtArr]
+            self._write_list += [tgtArr]
+        elif nested and (not l):
+            self._read_list += [srcArr, srcStart, indexArr, tgtArr]
+            self._write_list += [tgtArr]
+        elif (not nested) and l:
+            self._read_list += [srcArr, srcStart, tgtArr]
+            self._write_list += [tgtArr]
+        else:
+            self._read_list += [srcArr, srcStart, tgtArr]
+            self._write_list += [tgtArr]
+
+        return inst_list
 
     def eval_INCRANGE(self, node, args):
         return self.build_incrange(node, args, False, False)
@@ -1233,7 +1313,14 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [tgtArr]
+        if l:
+            self._read_list += [srcVal]
+            self._write_list += [tgtArr]
+        else:
+            self._read_list += [srcVal]
+            self._write_list += [tgtArr]
+
+        return inst_list
 
     def eval_MAP(self, node, args):
         return self.build_map(node, args, False)
@@ -1270,7 +1357,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [tgtArr]
+        self._read_list += [srcVal, indexArr]
+        self._write_list += [tgtArr]
+
+        return inst_list
     
     def eval_UPDATERANGE(self, node, args):
         return self.build_updaterange(node, args)
@@ -1319,8 +1409,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst = "{}: {} = REQUIRE {}".format( hex(self.pc), ckpt_4, ref_3 )
         inst_list.append(inst)
         self.pc += 1
-        
-        return inst_list, [ckpt_4]
+
+        self._read_list += [srcArr]
+        self._ckpt_list += [ckpt_4]
+        return inst_list
     
     def eval_REQUIRE_ASCENDING(self, node, args):
         return self.build_require_ordered(node, args, True)
@@ -1345,7 +1437,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        return inst_list, [ckpt_1]
+        self._ckpt_list += [ckpt_1]
+        return inst_list
 
     # (notice) currently isReq flag is not used here
     # since we treat `require(transfer())` as `transfer()` in verification
@@ -1398,8 +1491,10 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
+        self._read_list += [toAddr, fromArr]
+        self._ckpt_list += [tnsf_3]
         # do not have to deal with require here
-        return inst_list, [tnsf_3]
+        return inst_list
 
     def eval_TRANSFER(self, node, args):
         return self.build_transfer(node, args, False, False)
@@ -1416,28 +1511,74 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_summarize(self, node, args):
         start = args[1]
         end = args[2]
-        body = args[0] # (list_of_inst, list_of_var_to_verify)
+        body = args[0] # (inst_list, verify_list, read_list, write_list, loop_vars)
+        it = self.iterator
 
-        new_body = (
-            [inst.format(GuardStart=start, GuardEnd=end) for inst in body[0]],
-            body[1]
-        )
+        # there's always an end
+        # e.g., self.iterator = {{GuardEnd}}
+        inst = "{}: {} = {{GuardEnd}}".format(hex(self.pc), it)
+        inst_list = body + [inst]
+        self.pc += 1
+
+        new_body =[inst.format(GuardStart=start, GuardEnd=end) for inst in inst_list]
+
+        # process the lists and pack here
+        def is_var_authentic(vv):
+            if vv.startswith("TMP_") or vv.startswith("REF_"):
+                return False
+            if vv == "true" or vv == "false":
+                return False
+            try:
+                # FIXME: beware of NaN
+                float(vv)
+            except ValueError:
+                return True
+            return False
+
+        authentic_read_list = list( set([p for p in self._read_list if is_var_authentic(p)]) )
+        authentic_write_list = list( set([p for p in self._write_list if is_var_authentic(p)]) )
+        # self._ckpt_list is authentic already
+        loop_vars = [self.iterator]
+        verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )
 
         # FIXME: ignoring structs/other_contracts/other_funcs/other_decs
-        return new_body
+        return new_body, verify_list, authentic_read_list, authentic_write_list, loop_vars
 
     def eval_summarize_nost(self, node, args):
         end = args[1]
-        body = args[0] # (list_of_inst, list_of_var_to_verify)
+        body = args[0]
+        it = self.iterator
+
+        # there's always an end
+        # e.g., self.iterator = {{GuardEnd}}
+        inst = "{}: {} = {{GuardEnd}}".format(hex(self.pc), it)
+        inst_list = body + [inst]
+        self.pc += 1
 
         tmp_0 = self.get_fresh_tmp_name()
-        new_body = (
-            [inst.format(GuardStart=tmp_0, GuardEnd=end) for inst in body[0]],
-            body[1]
-        )
+        new_body = [inst.format(GuardStart=tmp_0, GuardEnd=end) for inst in inst_list]
+
+        # process the lists and pack here
+        def is_var_authentic(vv):
+            if vv.startswith("TMP_") or vv.startswith("REF_"):
+                return False
+            if vv == "true" or vv == "false":
+                return False
+            try:
+                # FIXME: beware of NaN
+                float(vv)
+            except ValueError:
+                return True
+            return False
+
+        authentic_read_list = [p for p in self._read_list if is_var_authentic(p)]
+        authentic_write_list = [p for p in self._write_list if is_var_authentic(p)]
+        # self._ckpt_list is authentic already
+        loop_vars = [self.iterator]
+        verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )
 
         # FIXME: ignoring structs/other_contracts/other_funcs/other_decs
-        return new_body
+        return new_body, verify_list, authentic_read_list, authentic_write_list, loop_vars
 
     def eval_intFunc(self, node, args):
         return args[0]
@@ -1446,9 +1587,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
         return args[0]
 
     def build_seq(self, node, args):
-        loop0, vlist0 = args[0]
-        loop1, vlist1 = args[1]
-        return loop0+loop1, list(set(vlist0+vlist1))
+        loop0 = args[0]
+        loop1 = args[1]
+        return loop0+loop1
 
     def eval_seqF(self, node, args):
         return self.build_seq(node, args)
@@ -1472,6 +1613,7 @@ def parse_args():
     parser.add_argument("--file", help="solidity file path from which to extract a loop", type=str)
     parser.add_argument("--prune", help="Activates analysis-based pruning", action="store_true")
     parser.add_argument("--verbose", help="show more debugging information for developer", action="store_true")
+    parser.add_argument("--timeout", help="set the timeout", type=int, default=-1)
     return parser.parse_args()
 
 def extract_contracts(sol_file):
@@ -1533,7 +1675,7 @@ def main(args):
         enumerator=DependencyEnumerator(
             spec, max_depth=6, seed=seed, analysis=deps.dependencies if args.prune else None, types=types),
         decider=BoundedModelCheckerDecider(
-            interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs), example=sol_file, equal_output=check_eq)
+            interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs, timeout=args.timeout), example=sol_file, equal_output=check_eq)
     )
     synthesizer._decider._verbose = args.verbose
     logger.info('Synthesizing programs...')
@@ -1549,7 +1691,9 @@ def main(args):
 
 
 if __name__ == '__main__':
+    main_start_time = time.time()
     logger.setLevel('DEBUG')
     assert len(argv) > 1
     args = parse_args()    
     main(args)
+    logger.info("Total Time: {:.4f}s".format(time.time()-main_start_time))
