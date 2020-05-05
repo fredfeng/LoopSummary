@@ -4,12 +4,12 @@
 
 ### Known Issues
 
-1. (minor) When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.
-2. (minor) `op = "<" if isAscending else "<" ` in Ln977 `analysis_loop_summary_synthesizer.py`.
-3. `1/Halo3DPotPotato_2.sol` has a comment `//#LOOPVARS: i` where there's no `i` as loop var in the benchmark.
-4. When loop var is not defined in the `for` scope, the read/write set detection becomes difficult. So I'm going to regularize all loop vars such that: they are defined in loop expr. Not sure what will happen to `while` loop yet.
-5. `nestedRequireBoolTest.sol`: Even if I uncomment the prods `bool_arrT2` and `bool_arrF2`, they are not inferred in the instantiated dsl.
-6. `1/Mineral_14.sol` has a wrong label of `//#LOOPVARS`.  I already corrected it.
+1. ~~(minor) When testing `nestedRequireTest.sol`, the prod `REQUIRE__address` is automatically inferred even if I comment it out. I may only need `REQUIRE__uint`.~~
+2. ~~(minor) `op = "<" if isAscending else "<" ` in Ln977 `analysis_loop_summary_synthesizer.py`.~~
+3. ~~`1/Halo3DPotPotato_2.sol` has a comment `//#LOOPVARS: i` where there's no `i` as loop var in the benchmark.~~
+4. ~~When loop var is not defined in the `for` scope, the read/write set detection becomes difficult. So I'm going to regularize all loop vars such that: they are defined in loop expr. Not sure what will happen to `while` loop yet.~~
+5. ~~`nestedRequireBoolTest.sol`: Even if I uncomment the prods `bool_arrT2` and `bool_arrF2`, they are not inferred in the instantiated dsl.~~
+6. ~~`1/Mineral_14.sol` has a wrong label of `//#LOOPVARS`.  I already corrected it.~~
 
 ### Recent Logs
 
@@ -33,7 +33,7 @@
 | `requireTest.sol`           | ✅               | ✅           |
 | `nestedRequireTest.sol`     | ✅               | ✅           |
 | `requireBoolTest.sol`       | ✅               | ✅           |
-| `nestedRequireBoolTest.sol` | (Known Issue 5) | ✅           |
+| `nestedRequireBoolTest.sol` | ✅               | ✅           |
 | `requireAddressTest.sol`    | ✅               | ✅           |
 | `requireOrderedTest.sol`    | ✅               | ✅           |
 | `transferTest.sol`          | ✅               | ✅           |
@@ -72,7 +72,7 @@ racket ./bmc-rosette.rkt '<json_intermediate_ir>'
 
 ### Quick Commands
 
-###### testing on a benchmark and time it
+###### testing on a benchmark
 
 > --verbose: show more debugging information for developer
 
@@ -80,12 +80,19 @@ racket ./bmc-rosette.rkt '<json_intermediate_ir>'
 python ./bmc-synthesizer.py --file ../examples/ase_benchmarks_regularized/1/ACATokenSale_2.sol --timeout 600 --prune --verbose
 ```
 
-###### testing on a sanity checking program and time it
+###### testing on a sanity checking program
 
 > --verbose: show more debugging information for developer
 
 ```
 python ./bmc-synthesizer.py --file ./tests/requireTest.sol --timeout 600 --prune --verbose
+```
+
+###### debugging on a sanity checking program
+
+```
+python ./bmc-synthesizer.py --file ./tests/mapTest.sol > ./test.log  2>&1
+python ./bmc-synthesizer.py --file ./tests/mapTest.sol --verbose
 ```
 
 ###### running a batch evaluation
@@ -94,6 +101,12 @@ python ./bmc-synthesizer.py --file ./tests/requireTest.sol --timeout 600 --prune
 
 ```
 ./experiments/run.sh
+```
+
+###### read and explain the experiment logs
+
+```
+python ./creep.py --folder <log_folder>
 ```
 
 ### Explanation about the Design of Type-Directed Search Engine (Read-Write Pruning)
