@@ -26,7 +26,7 @@ class EnumeratorAST():
             
     def next_candidate(self):
         # If we had a finite grammar, we can run out of candidates
-        if self.queue == []:
+        if not self.queue:
             return None
 
         # Pop first node from queue
@@ -40,7 +40,7 @@ class EnumeratorAST():
         # Prune partial programs which do not satisy dependencies
         while not fnode.is_legal():
             # If no more options, back out
-            if self.queue == []:
+            if not self.queue:
                 return None
             # fnode = self.queue.pop(0)
             fnode = self.queue.popleft()
