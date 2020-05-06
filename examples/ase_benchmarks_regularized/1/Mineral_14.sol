@@ -10,8 +10,7 @@ contract C {
 
   
 
-  mapping(uint32 => uint) dayAverageOutput;
-uint32 d;
+  mapping(uint => uint) dayAverageOutput;
 
   function foo() public {
     
