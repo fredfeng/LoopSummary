@@ -458,10 +458,10 @@ func nonintFunc: Inv -> F;
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 # func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
-# func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
+func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
 # func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
-func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
+# func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 # func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
 # func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
@@ -1560,9 +1560,14 @@ class SymDiffInterpreter(PostOrderInterpreter):
             new_vl = []
             for q in vl:
                 tq = q.split(".")
-                if tq==2 and tq[1]=="length":
+                if len(tq)==2 and tq[1]=="length":
                     new_vl.append(tq[0])
+                elif len(tq)==1:
+                    new_vl.append(tq[0])
+                else:
+                    raise NotImplementedError("Unsupported member access pattern: {}".format(tq))
             return new_vl
+            # return vl
 
         authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
         authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
@@ -1604,12 +1609,16 @@ class SymDiffInterpreter(PostOrderInterpreter):
         # `_owners` only, this function processes this part *case by case* as needed
         # i.e., "_owners.length" will be mapped to "_owners" only
         def regularize_var_list(vl):
-            new_vl = []
             for q in vl:
                 tq = q.split(".")
-                if tq==2 and tq[1]=="length":
+                if len(tq)==2 and tq[1]=="length":
                     new_vl.append(tq[0])
+                elif len(tq)==1:
+                    new_vl.append(tq[0])
+                else:
+                    raise NotImplementedError("Unsupported member access pattern: {}".format(tq))
             return new_vl
+            # return vl
 
         authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
         authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
