@@ -1553,24 +1553,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 return True
             return False
 
-        # (notice) to align with the SlitherIR wher `_owners.length` in read set is displayed as
-        # `_owners` only, this function processes this part *case by case* as needed
-        # i.e., "_owners.length" will be mapped to "_owners" only
-        def regularize_var_list(vl):
-            new_vl = []
-            for q in vl:
-                tq = q.split(".")
-                if len(tq)==2 and tq[1]=="length":
-                    new_vl.append(tq[0])
-                elif len(tq)==1:
-                    new_vl.append(tq[0])
-                else:
-                    raise NotImplementedError("Unsupported member access pattern: {}".format(tq))
-            return new_vl
-            # return vl
-
-        authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
-        authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
+        authentic_read_list = list( set([p for p in self._read_list if is_var_authentic(p)]) )
+        authentic_write_list = list( set([p for p in self._write_list if is_var_authentic(p)]) )
         # self._ckpt_list is authentic already
         loop_vars = [self.iterator]
         verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )
@@ -1605,23 +1589,8 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 return True
             return False
 
-        # (notice) to align with the SlitherIR wher `_owners.length` in read set is displayed as
-        # `_owners` only, this function processes this part *case by case* as needed
-        # i.e., "_owners.length" will be mapped to "_owners" only
-        def regularize_var_list(vl):
-            for q in vl:
-                tq = q.split(".")
-                if len(tq)==2 and tq[1]=="length":
-                    new_vl.append(tq[0])
-                elif len(tq)==1:
-                    new_vl.append(tq[0])
-                else:
-                    raise NotImplementedError("Unsupported member access pattern: {}".format(tq))
-            return new_vl
-            # return vl
-
-        authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
-        authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
+        authentic_read_list = [p for p in self._read_list if is_var_authentic(p)]
+        authentic_write_list = [p for p in self._write_list if is_var_authentic(p)]
         # self._ckpt_list is authentic already
         loop_vars = [self.iterator]
         verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )
