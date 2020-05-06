@@ -6,6 +6,7 @@
 
 1. Currently the tool ignores `Condition` node, i.e., it can't handle if-else condition.
 2. Currently the tool may not be compatible with `while` loop.
+3. The tool needs to support `&&` operator (as well as other logical operator).
 
 ### Recent Logs
 
@@ -121,6 +122,11 @@ python ./creep.py --folder <log_folder>
 ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.64.187.87
 ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.40.18.86
 ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.42.22.122
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.91.104.61
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@23.99.8.170
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.112.181.253
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@23.101.200.46
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.42.77.220
 
 # install Anaconda
 wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
@@ -163,5 +169,22 @@ screen -S size1_KLMN_600
 
 ./experiments/run_batch.sh 2 [A] 600
 ./experiments/run_batch.sh 2 [B] 600
+./experiments/run_batch.sh 2 [C] 600
+./experiments/run_batch.sh 2 [D] 600
+./experiments/run_batch.sh 2 [EF] 600
+./experiments/run_batch.sh 2 [G] 600
+./experiments/run_batch.sh 2 [HIJK] 600
+./experiments/run_batch.sh 2 [LM] 600
+...(to be continued)
+
+./experiments/run_batch.sh 3 [A] 900
+./experiments/run_batch.sh 3 [BC] 900
+./experiments/run_batch.sh 3 [DEF] 900
+./experiments/run_batch.sh 3 [GHIJKL] 900
+./experiments/run_batch.sh 3 [MNOPQ] 900
+./experiments/run_batch.sh 3 [RS] 900
+
+./experiments/run_batch.sh 3 [TU] 900
+./experiments/run_batch.sh 3 [VWXYZ] 900
 ```
 
