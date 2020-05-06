@@ -78,8 +78,11 @@ def build_type_table(vars_map, all_types, map_types, other_contracts):
             typ = "mapping(uint => {0})".format(typ.replace("[]", ""))
 
         # Replace different bit amount variables with base version
-        type_replacements = {"uint": ["uint8", "uint32", "uint128", "uint256"],
-                             "bytes": ["bytes32"]}
+        uint_types = [uint+str(i*8) for i,uint in enumerate(["uint"]*33)]
+        int_types = [intt+str(i*8) for i,intt in enumerate(["int"]*33)]        
+        bytes_types = [byte+str(i) for i,byte in enumerate(["bytes"]*33)]
+        type_replacements = {"uint": uint_types+int_types,
+                             "bytes": bytes_types}
         for repl,orig_typs in type_replacements.items():
             for o_typ in orig_typs:
                 typ = typ.replace(o_typ, repl)
