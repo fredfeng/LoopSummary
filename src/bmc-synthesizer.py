@@ -452,8 +452,8 @@ func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
-func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
-func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
+# func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
+# func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 # func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
@@ -461,7 +461,7 @@ func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
 # func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
-# func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
+func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 # func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
 # func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
@@ -489,14 +489,14 @@ func subc_st: i_st -> GuardStart__uint, C;
 func subc_end: i_end -> GuardEnd__uint, C;
 
 # Boolean comps for uint
-# func lt: Cond_uint -> mapping(uint => uint), uint;
-# func gt: Cond_uint -> mapping(uint => uint), uint;
-# func eq: Cond_uint -> mapping(uint => uint), uint;
-# func neq: Cond_uint -> mapping(uint => uint), uint;
+func lt: Cond_uint -> mapping(uint => uint), uint;
+func gt: Cond_uint -> mapping(uint => uint), uint;
+func eq: Cond_uint -> mapping(uint => uint), uint;
+func neq: Cond_uint -> mapping(uint => uint), uint;
 func lte: Cond_uint -> mapping(uint => uint), uint;
-# func gte: Cond_uint -> mapping(uint => uint), uint;
-# func bool_arrT: Cond_uint -> mapping(uint => bool);
-# func bool_arrF: Cond_uint -> mapping(uint => bool);
+func gte: Cond_uint -> mapping(uint => uint), uint;
+func bool_arrT: Cond_uint -> mapping(uint => bool);
+func bool_arrF: Cond_uint -> mapping(uint => bool);
 
 # Boolean compus for uint w/ nested array access
 func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
@@ -1553,8 +1553,19 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 return True
             return False
 
-        authentic_read_list = list( set([p for p in self._read_list if is_var_authentic(p)]) )
-        authentic_write_list = list( set([p for p in self._write_list if is_var_authentic(p)]) )
+        # (notice) to align with the SlitherIR wher `_owners.length` in read set is displayed as
+        # `_owners` only, this function processes this part *case by case* as needed
+        # i.e., "_owners.length" will be mapped to "_owners" only
+        def regularize_var_list(vl):
+            new_vl = []
+            for q in vl:
+                tq = q.split(".")
+                if tq==2 and tq[1]=="length":
+                    new_vl.append(tq[0])
+            return new_vl
+
+        authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
+        authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
         # self._ckpt_list is authentic already
         loop_vars = [self.iterator]
         verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )
@@ -1589,8 +1600,19 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 return True
             return False
 
-        authentic_read_list = [p for p in self._read_list if is_var_authentic(p)]
-        authentic_write_list = [p for p in self._write_list if is_var_authentic(p)]
+        # (notice) to align with the SlitherIR wher `_owners.length` in read set is displayed as
+        # `_owners` only, this function processes this part *case by case* as needed
+        # i.e., "_owners.length" will be mapped to "_owners" only
+        def regularize_var_list(vl):
+            new_vl = []
+            for q in vl:
+                tq = q.split(".")
+                if tq==2 and tq[1]=="length":
+                    new_vl.append(tq[0])
+            return new_vl
+
+        authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
+        authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
         # self._ckpt_list is authentic already
         loop_vars = [self.iterator]
         verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )

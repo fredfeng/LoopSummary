@@ -72,17 +72,21 @@ racket ./bmc-rosette.rkt '<json_intermediate_ir>'
 ###### testing on a benchmark
 
 > --verbose: show more debugging information for developer
+>
+> --prune: use Ben's pruning strategy
 
 ```
-python ./bmc-synthesizer.py --file ../examples/ase_benchmarks_regularized/1/ACATokenSale_2.sol --timeout 600 --prune --verbose
+python ./bmc-synthesizer.py --file ../examples/ase_benchmarks_regularized/1/ACATokenSale_2.sol --timeout 600 --verbose
 ```
 
 ###### testing on a sanity checking program
 
 > --verbose: show more debugging information for developer
+>
+> --prune: use Ben's pruning strategy
 
 ```
-python ./bmc-synthesizer.py --file ./tests/requireTest.sol --timeout 600 --prune --verbose
+python ./bmc-synthesizer.py --file ./tests/requireTest.sol --timeout 600 --verbose
 ```
 
 ###### debugging on a sanity checking program
@@ -98,7 +102,7 @@ python ./bmc-synthesizer.py --file ./tests/mapTest.sol --verbose
 
 ```
 ./experiments/run.sh
-./experiments/run_batch.sh <size> [[prefix] or empty] [[timeout]]
+./experiments/run_batch.sh <size> [[prefix] or []] [[timeout]]
 ```
 
 ###### read and explain the experiment logs
