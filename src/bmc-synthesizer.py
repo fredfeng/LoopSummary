@@ -471,9 +471,9 @@ func nonintFunc: Inv -> F;
 # func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
 # func REQUIRE_ASCENDING: F -> mapping(uint => uint);
-func REQUIRE_DESCENDING: F -> mapping(uint => uint);
-# func REQUIRE__uint: F -> Cond_uint;
-# func REQUIRE__address: F -> Cond_address;
+# func REQUIRE_DESCENDING: F -> mapping(uint => uint);
+func REQUIRE__uint: F -> Cond_uint;
+func REQUIRE__address: F -> Cond_address;
 # func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
@@ -503,18 +503,18 @@ func subc_end: i_end -> GuardEnd__uint, C;
 # func bool_arrF: Cond_uint -> mapping(uint => bool);
 
 # Boolean compus for uint w/ nested array access
-# func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
+func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func gt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func eq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func neq2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func lte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func gte2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
 # func bool_arrT2: Cond_uint -> mapping(uint => address), mapping(address => bool);
-# func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
+func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
 # func eq_addr: Cond_address -> mapping(uint => address), address;
-# func neq_addr: Cond_address -> mapping(uint => address), address;
+func neq_addr: Cond_address -> mapping(uint => address), address;
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
