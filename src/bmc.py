@@ -8,7 +8,15 @@ import copy
 
 rosette_path = os.path.abspath(os.getcwd()) + '/rosette/bmc-rosette'
 
-def check_eq(pfile1, pfile2, verbose=False):
+# Helper function to check equivalence for special CKPT vars
+def check_prog_var(v1, v2):
+    if v1.startswith("PROG") and v2.startswith("PROG"):
+        if "_" in v1 and "_" in v2:
+            return "_".join(v1.split("_")[1:]) == "_".join(v2.split("_")[1:])
+
+    return False
+
+def check_eq(pfile1, pfile2, verbose=False, sumd_vars=[]):
 
     # input("CLICK-TO-EQ")
 
@@ -18,22 +26,25 @@ def check_eq(pfile1, pfile2, verbose=False):
     file2 = copy.deepcopy(pfile2)
 
     # verify_list checking
-    if set(file1[1])!=set(file2[1]):
+    # if set(file1[1])!=set(file2[1]):
+    if not set(file1[1]).issubset(set(file2[1])):
         return False
 
     # read_list checking
-    if set(file1[2])!=set(file2[2]):
+    # if set(file1[2])!=set(file2[2]):
+    if not set(file1[2]).issubset(set(file2[2])):
         return False
 
     # write_list checking
-    if set(file1[3])!=set(file2[3]):
+    # if set(file1[3])!=set(file2[3]):
+    if not set(file1[3]).issubset(set(file2[3])):
         return False
 
     # FIXME: don't check loop_vars since while loop won't have loop vars
 
     # sort the verify_list
     file1 = (file1[0], sorted(file1[1]))
-    file2 = (file2[0], sorted(file2[1]))
+    file2 = (file2[0], sorted([x for x in file2[1] if x not in sumd_vars]))
 
     # program aware checkpoint naming
     # (notice)
@@ -58,7 +69,21 @@ def check_eq(pfile1, pfile2, verbose=False):
     if verbose:
         print('# File1 (candidate): ', inst_list1, write1)
         print('# File2 (source): ', inst_list2, write2)
-    json_out = {"write1": write1, "insts1": inst_list1, "write2": write2, "insts2": inst_list2}
+
+    # Throw exception if trying any DSL construct with seq
+    if len(write1) > 1:
+        raise Exception("Only expects one write variable in candidate!: {0}".format(write1))
+
+    # Find corresponding write element of original loop
+    write2_filt = list(filter(lambda x: x == write1[0] or check_prog_var(x, write1[0]), write2))
+    
+    # If there is no matching write variable, simply return False
+    if write2_filt == []:
+        # print("No matching write variable to {0} in original loop ({1})!".format(write1[0], write2))
+        return False
+    
+    json_out = {"write1": write1, "insts1": inst_list1, "write2": write2_filt, "insts2": inst_list2}
+    
     json_out_str = json.dumps(json_out)
     if verbose:
         print("#### assembled json ####")
@@ -78,7 +103,14 @@ def check_eq(pfile1, pfile2, verbose=False):
     if "sat? = #t" in output:
         eq_ret = False
     elif "sat? = #f" in output:
-        eq_ret = True
+        # Return the variable which is summarized and the others yet to be summarized
+        if write1[0] in write2:
+            write2.remove(write1[0])
+        else:
+            for val in write2:
+                if check_prog_var(val, write1[0]):
+                    write2.remove(val)
+        eq_ret = (write1[0], write2) 
     else:
         raise NotImplementedError("Can't find valid output from Rosette, the original output is shown:\n{}".format(output))
 

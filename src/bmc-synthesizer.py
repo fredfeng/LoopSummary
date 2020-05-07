@@ -453,12 +453,12 @@ func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
 # func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
-# func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
+func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 # func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
-func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
+# func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
 # func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
 # func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
@@ -468,7 +468,7 @@ func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(ad
 # func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
 # func REQUIRE_ASCENDING: F -> mapping(uint => uint);
 # func REQUIRE_DESCENDING: F -> mapping(uint => uint);
-# func REQUIRE__uint: F -> Cond_uint;
+func REQUIRE__uint: F -> Cond_uint;
 # func REQUIRE__address: F -> Cond_address;
 # func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
@@ -489,14 +489,14 @@ func subc_st: i_st -> GuardStart__uint, C;
 func subc_end: i_end -> GuardEnd__uint, C;
 
 # Boolean comps for uint
-func lt: Cond_uint -> mapping(uint => uint), uint;
+# func lt: Cond_uint -> mapping(uint => uint), uint;
 func gt: Cond_uint -> mapping(uint => uint), uint;
-func eq: Cond_uint -> mapping(uint => uint), uint;
-func neq: Cond_uint -> mapping(uint => uint), uint;
-func lte: Cond_uint -> mapping(uint => uint), uint;
-func gte: Cond_uint -> mapping(uint => uint), uint;
-func bool_arrT: Cond_uint -> mapping(uint => bool);
-func bool_arrF: Cond_uint -> mapping(uint => bool);
+# func eq: Cond_uint -> mapping(uint => uint), uint;
+# func neq: Cond_uint -> mapping(uint => uint), uint;
+# func lte: Cond_uint -> mapping(uint => uint), uint;
+# func gte: Cond_uint -> mapping(uint => uint), uint;
+# func bool_arrT: Cond_uint -> mapping(uint => bool);
+# func bool_arrF: Cond_uint -> mapping(uint => bool);
 
 # Boolean compus for uint w/ nested array access
 func lt2: Cond_uint -> mapping(uint => address), mapping(address => uint), uint;
@@ -1664,7 +1664,7 @@ def main(args):
     structs = extract_structs(sol_file)
     # Get all contracts declared
     other_contracts = extract_contracts(sol_file)
-    
+
     # Run analysis (still use constant extraction when in no-prune mode)
     logger.info('Analyzing Input...')
     deps, refs = analyze(sol_file, "C", "foo()")
@@ -1676,10 +1676,10 @@ def main(args):
         actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, lambdas, req_conds, True)
     else:
         actual_spec, glob_decl, types, i_global, global_vars = instantiate_dsl(sol_file, refs.types, None, None, False)
-        
+
     print(actual_spec)
     # input("SEE THE SPEC ABOVE")
-    
+
     logger.info('Parsing Spec...')
     spec = S.parse(actual_spec)
     logger.info('Parsing succeeded')
@@ -1689,23 +1689,32 @@ def main(args):
     # other_contracts = list(filter(lambda x: x != 'C', map(str, slither.contracts)))
     
     logger.info('Building synthesizer...')
+    decider=BoundedModelCheckerDecider(
+        interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs, timeout=args.timeout), example=sol_file, equal_output=check_eq)
+
     synthesizer = Synthesizer(
         enumerator=DependencyEnumerator(
             spec, max_depth=6, seed=seed, analysis=deps.dependencies if args.prune else None, types=types),
-        decider=BoundedModelCheckerDecider(
-            interpreter=SymDiffInterpreter(glob_decl, other_contracts, i_global, global_vars, structs, timeout=args.timeout), example=sol_file, equal_output=check_eq)
-    )
+        decider=decider)
     synthesizer._decider._verbose = args.verbose
     logger.info('Synthesizing programs...')
     # input("PRESS TO START")
 
-    prog = synthesizer.synthesize()
-    if prog is not None:
-        logger.info('Solution found: {}'.format(prog))
-        return True
-    else:
-        logger.info('Solution not found!')
-        return False
+    partial_summaries = []    
+    while True:        
+        prog, res = synthesizer.synthesize()
+        if prog is not None:
+            sumd, left = res
+            partial_summaries.append((sumd, prog))            
+            if left == []:
+                progs = list(map(lambda x: str(x[1]), partial_summaries))
+                final_prog = "; ".join(progs)
+                logger.info('Solution found: {}'.format(final_prog))
+                return True
+            logger.info('Partial summary found: {}'.format(prog))
+        else:
+            logger.info('Solution not found!')
+            return False
 
 
 if __name__ == '__main__':
