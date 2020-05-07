@@ -272,21 +272,33 @@
         ;;; flags must be bool so that they can be correctly process by rosette
         ;;; (notice) the names of d are made different in the Python side already
         (define d-val (gen-bool-by-name d env))
-        (if (not (or (constant? a1-val) (term? a1-val) (expression? a1-val)))
-            (if (not (or (equal? a1-val 0) (equal? a1-val 1)))
-                (begin
-                    (printf "incompatible integer for require: sat? = #t\n") ; programs not equal 
-                    (printf "got: ~a\n" a1-val)
-                    (exit 0)
+        (if (integer? a1-val)
+            (begin
+                (if (not (or (constant? a1-val) (term? a1-val) (expression? a1-val)))
+                    (if (not (or (equal? a1-val 0) (equal? a1-val 1)))
+                        (begin
+                            (printf "incompatible integer for require: sat? = #t\n") ; programs not equal 
+                            (printf "got: ~a\n" a1-val)
+                            (exit 0)
+                        )
+                        (printf "")
+                    )
+                    (printf "")
                 )
-                (printf "")
+                (if (equal? a1-val 1)
+                    ; either one will be captured by rosette assertion store
+                    (assert d-val)
+                    (assert (not d-val))
+                )
             )
-            (printf "")
-        )
-        (if (equal? a1-val 1)
-            ; either one will be captured by rosette assertion store
-            (assert d-val)
-            (assert (not d-val))
+            ;;; else, it's boolean
+            (begin
+                (if a1-val
+                    ; either one will be captured by rosette assertion store
+                    (assert d-val)
+                    (assert (not d-val))
+                )
+            )
         )
         (hash-set! env d d-val)
     )

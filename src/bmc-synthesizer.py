@@ -457,7 +457,7 @@ func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
 # func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
-func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
+# func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 # func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
@@ -476,7 +476,7 @@ func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 func REQUIRE__address: F -> Cond_address;
 # func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
-func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
+# func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
 
@@ -513,7 +513,7 @@ func subc_end: i_end -> GuardEnd__uint, C;
 # func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
-func eq_addr: Cond_address -> mapping(uint => address), address;
+# func eq_addr: Cond_address -> mapping(uint => address), address;
 func neq_addr: Cond_address -> mapping(uint => address), address;
 '''
 
