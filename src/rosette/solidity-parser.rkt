@@ -174,6 +174,7 @@
 
           ((NUM COLON REG ASSIGN REQUIRE REG) (inst "require" (vector $1 $3 $6)))
           ((NUM COLON REG ASSIGN NOT REG) (inst "not" (vector $1 $3 $6)))
+          ((NUM COLON REG ASSIGN NOT NUM) (inst "not#" (vector $1 $3 $6)))
 
           ;;; (notice) both arguments of transfer can be either var or const
           ((NUM COLON REG ASSIGN TRANSFER REG REG) (inst "transfer#rr" (vector $1 $3 $6 $7)))

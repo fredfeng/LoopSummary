@@ -10,6 +10,7 @@ logger = get_logger('tyrell')
 # node types
 from slither.slithir.operations.assignment import Assignment
 from slither.slithir.operations.binary import Binary
+from slither.slithir.operations.unary import Unary
 from slither.slithir.operations.index import Index
 from slither.slithir.operations.condition import Condition
 from slither.slithir.operations.solidity_call import SolidityCall
@@ -29,6 +30,8 @@ from slither.slithir.variables.constant import Constant
 
 # helper for patch_slither_delete_read
 from slither.slithir.utils.utils import is_valid_lvalue
+
+from slither.solc_parsing.cfg.node import NodeSolc
 
 
 class BoundedModelCheckerDecider(Decider):
@@ -51,7 +54,10 @@ class BoundedModelCheckerDecider(Decider):
 
         # (notice) apply patches to adapt the behavior/outcome
         self.patch_constant_str_bool()
-        self.patch_slither_delete_read()
+        self.patch_delete_read()
+        # (FIXME) node write set patch is not enabled yet
+        # will enable it at the very end
+        # self.patch_node_var_written()
 
         self._verbose = False
 
@@ -64,15 +70,20 @@ class BoundedModelCheckerDecider(Decider):
         # this patch update the str value of a bool constant in Slither IR
         # where originally it displays "True" but now "true" ("False" but now "false")
         # which corresponds with the MyIR and synthesizer representation
+        # def new_str(self):
+        #     if isinstance(self.value,bool):
+        #         return str(self.value).lower()
+        #     else:
+        #         return str(self.value)
         def new_str(self):
             if isinstance(self.value,bool):
-                return str(self.value).lower()
+                return "1" if self.value else "0"
             else:
                 return str(self.value)
 
         Constant.__str__ = new_str
 
-    def patch_slither_delete_read(self):
+    def patch_delete_read(self):
         # e.g., delete KYC[_off[i]]
         # read: KYC, _off, (i is loop var)   ---> this patch removes KYC
         # write: KYC
@@ -84,6 +95,18 @@ class BoundedModelCheckerDecider(Decider):
             return []
 
         Delete.read = property(new_read)
+
+    def patch_node_var_written(self):
+        # a local variable should not be tracked and verified
+        # e.g., uint256 amount = ((_amountOfLands[i]) * (Factor));
+        # otherwise this will result in RW mismatch because local names are not in enum set
+        # and there's no way of specifying it
+        def new_variables_written(self):
+            new_list = [p for p in list(self._vars_written) if not isinstance(p, LocalVariableSolc)]
+            return new_list
+
+        NodeSolc.variables_written = property(new_variables_written)
+
 
     @property
     def interpreter(self):
@@ -171,7 +194,7 @@ class BoundedModelCheckerDecider(Decider):
             if code_type in code_dict.keys():
                 opcode = code_dict[code_type]
             else:
-                raise NotImplementedError("Unsupported code type: {}".format(code_type))
+                raise NotImplementedError("Unsupported binary code type: {}".format(code_type))
             ref_0 = self.get_fresh_ref_name()
             inst_0 = "{}: {} = {} {} {}".format( hex(curr_addr), ref_0, opcode, ir1.variable_left, ir1.variable_right )
 
@@ -180,6 +203,21 @@ class BoundedModelCheckerDecider(Decider):
             inst_1 = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(curr_addr+1), tmp_1, ir0.variable_left, ir0.variable_right, ref_0 )
 
             return curr_addr+2, [inst_0, inst_1], [], [ str(ir0.variable_left), str(ir0.variable_right), str(ir1.variable_left), str(ir1.variable_right) ]
+        elif isinstance(ir1, Unary):
+            code_type = ir1.type_str
+            code_dict = {"!":"NOT"}
+            if code_type in code_dict.keys():
+                opcode = code_dict[code_type]
+            else:
+                raise NotImplementedError("Unsupported unary code type: {}".format(code_type))
+            ref_0 = self.get_fresh_ref_name()
+            inst_0 = "{}: {} = {} {}".format( hex(curr_addr), ref_0, opcode, ir1.rvalue )
+
+            # process the array-write part
+            tmp_1 = self.get_fresh_tmp_name()
+            inst_1 = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(curr_addr+1), tmp_1, ir0.variable_left, ir0.variable_right, ref_0 )
+
+            return curr_addr+2, [inst_0, inst_1], [], [ str(ir0.variable_left), str(ir0.variable_right), str(ir1.rvalue) ]
         else:
             raise NotImplementedError("Unsupported ARRAY-WRITE original: {}".format(type(ir1)))
 
@@ -206,11 +244,21 @@ class BoundedModelCheckerDecider(Decider):
         if code_type in code_dict.keys():
             opcode = code_dict[code_type]
         else:
-            raise NotImplementedError("Unsupported code type: {}".format(code_type))
+            raise NotImplementedError("Unsupported binary code type: {}".format(code_type))
         inst = "{}: {} = {} {} {}".format( hex(curr_addr), ir.lvalue, opcode, ir.variable_left, ir.variable_right )
         # (notice) it's impossible to have a reference variable here as an element in write_list, 
         # since that will be processed by array-write, not here
         return curr_addr+1, [inst], [], [ str(ir.lvalue), str(ir.variable_left), str(ir.variable_right) ]
+
+    def assemble_unary(self, curr_addr, ir):
+        code_type = ir.type_str
+        code_dict = {"!":"NOT"}
+        if code_type in code_dict.keys():
+            opcode = code_dict[code_type]
+        else:
+            raise NotImplementedError("Unsupported unary code type: {}".format(code_type))
+        inst = "{}: {} = {} {}".format( hex(curr_addr), ir.lvalue, opcode, ir.rvalue )
+        return curr_addr+1, [inst], [], [ str(ir.lvalue), str(ir.rvalue) ]
 
     def assemble_require(self, curr_addr, ir):
         ckpt_0 = self.get_fresh_ckpt_name()
@@ -283,7 +331,7 @@ class BoundedModelCheckerDecider(Decider):
                 else:
                     # normal assignment
                     next_addr, inst_list, ckpt_list, vars_list = self.assemble_assignment( next_addr, raw_irs[i] )
-            elif seq_irs[i] ==  Binary:
+            elif seq_irs[i] == Binary:
                 ivar = raw_irs[i].lvalue
                 if ivar in ivar_dict.keys():
                     # array-write
@@ -292,6 +340,15 @@ class BoundedModelCheckerDecider(Decider):
                 else:
                     # normal binary
                     next_addr, inst_list, ckpt_list, vars_list = self.assemble_binary( next_addr, raw_irs[i] )
+            elif seq_irs[i] == Unary:
+                ivar = raw_irs[i].lvalue
+                if ivar in ivar_dict.keys():
+                    # array-write
+                    j = ivar_dict[ivar]
+                    next_addr, inst_list, ckpt_list, vars_list = self.assemble_arraywrite( next_addr, raw_irs[j], raw_irs[i] )
+                else:
+                    # normal unary
+                    next_addr, inst_list, ckpt_list, vars_list = self.assemble_unary( next_addr, raw_irs[i] )
             elif seq_irs[i] == SolidityCall:
                 fname = raw_irs[i].function.full_name
                 if "require" in fname:

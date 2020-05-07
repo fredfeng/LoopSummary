@@ -19,8 +19,8 @@
     (if (not (or (constant? offset) (term? offset) (expression? offset)))
         (if (or (< offset 0) (>= offset (vector-length base)))
             (begin
-                (printf "constant-check@read: sat? = #t\n") ; programs not equal 
-                (printf "~a\n" offset)
+                (printf "invalid offset range: sat? = #t\n") ; programs not equal 
+                (printf "got: ~a\n" offset)
                 (exit 0)
             )
             (printf "")
@@ -40,8 +40,8 @@
     (if (not (or (constant? offset) (term? offset) (expression? offset)))
         (if (or (< offset 0) (>= offset (vector-length base)))
             (begin
-                (printf "constant-check@write: sat? = #t\n") ; programs not equal 
-                (printf "~a\n" offset)
+                (printf "invalid offset range: sat? = #t\n") ; programs not equal 
+                (printf "got: ~a\n" offset)
                 (exit 0)
             )
             (printf "")
@@ -272,12 +272,40 @@
         ;;; flags must be bool so that they can be correctly process by rosette
         ;;; (notice) the names of d are made different in the Python side already
         (define d-val (gen-bool-by-name d env))
-        (if a1-val 
+        (if (not (or (constant? a1-val) (term? a1-val) (expression? a1-val)))
+            (if (not (or (equal? a1-val 0) (equal? a1-val 1)))
+                (begin
+                    (printf "incompatible integer for require: sat? = #t\n") ; programs not equal 
+                    (printf "got: ~a\n" a1-val)
+                    (exit 0)
+                )
+                (printf "")
+            )
+            (printf "")
+        )
+        (if (equal? a1-val 1)
             ; either one will be captured by rosette assertion store
             (assert d-val)
             (assert (not d-val))
         )
         (hash-set! env d d-val)
+    )
+
+    ;;; logical not
+    (define (logical-not x)
+        (if (not (or (constant? x) (term? x) (expression? x)))
+            (if (not (or (equal? x 0) (equal? x 1)))
+                (begin
+                    (printf "incompatible integer for logical-not: sat? = #t\n") ; programs not equal 
+                    (printf "got: ~a\n" x)
+                    (exit 0)
+                )
+                (printf "")
+            )
+            (printf "")
+        )
+        (assert (or (equal? x 0) (equal? x 1)))
+        (list-ref (list 1 0) x)
     )
 
     ;;; transfer series
@@ -379,7 +407,12 @@
          [(equal? op-name "array-write#") (array-write#)]
 
          [(equal? op-name "require") (rq)] ; use rq to avoid keyword require
-         [(equal? op-name "not") (unary-op (lambda (x) (not x)))] ; use lnot to avoid keyword not
+         ;;; (special note) 
+         ;;; since we are using integer to model boolean
+         ;;; only 1 and 0 are valid, the `logical-not` method is implemented as a special method
+         ;;; to deal with boolean-like integer operation
+         [(equal? op-name "not") (unary-op logical-not)]
+         [(equal? op-name "not#") (unary-op# logical-not)]
 
          [(equal? op-name "transfer#rr") (transfer#rr)]
          [(equal? op-name "transfer#rn") (transfer#rn)]
