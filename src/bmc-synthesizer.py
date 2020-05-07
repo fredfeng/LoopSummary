@@ -478,7 +478,7 @@ func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
 # func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
 # func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
-func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
+# func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
 # func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 # func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
@@ -493,9 +493,10 @@ func REQUIRE__address: F -> Cond_address;
 # func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
+func UPDATERANGE_L: F -> Index_Read__mapping(uint => address), Write__mapping(address => uint), L;
 
 # Arithmetic funcs for lambda
-func lambda: L -> Lambda;
+# func lambda: L -> Lambda;
 
 # Add constant for global integers
 func addc: i -> g_int, C;
@@ -1370,15 +1371,21 @@ class SymDiffInterpreter(PostOrderInterpreter):
     def eval_MAP_L(self, node, args):
         return self.build_map(node, args, True)
 
-    def build_updaterange(self, node, args):   
+    def build_updaterange(self, node, args, l):   
         # print("build_updaterange args: {}".format(args))
         # print("build_updaterange l: {}".format(l))     
         indexArr = args[0]
         tgtArr = args[1]
-        srcVal = args[2]
+        if l:
+            srcVal = None
+            Lam = args[2]
+        else:
+            srcVal = args[2]
+            Lam = None
         it = self.iterator
         # build_updaterange is doing: 
-        # 1 (). tgtArr[indexArr[it]] = srcVal
+        # 1 (lambda). tgtArr[indexArr[it]] = Lam( tgtArr[indexArr[it]] )
+        # 2 (). tgtArr[indexArr[it]] = srcVal
 
         inst_list = []
 
@@ -1393,19 +1400,46 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        # tgtArr[ref_0] = srcVal
-        tmp_1 = self.get_fresh_tmp_name()
-        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_1, tgtArr, ref_0, srcVal )
+        ref_1 = self.get_fresh_ref_name()
+        if l:
+            # ref_1 = tgtArr[ref_0]
+            inst = "{}: {} = ARRAY-READ {} {}".format( hex(self.pc), ref_1, tgtArr, ref_0 )
+        else:
+            # ref_1 = srcVal
+            inst = "{}: {} = {}".format( hex(self.pc), ref_1, srcVal )
         inst_list.append(inst)
         self.pc += 1
 
-        self._read_list += [srcVal, indexArr]
-        self._write_list += [tgtArr]
+        ref_2 = self.get_fresh_ref_name()
+        if l:
+            # ref_2 = Lam( ref_1 )
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, Lam.replace("__x", ref_1) )
+        else:
+            # ref_2 = ref_1
+            inst = "{}: {} = {}".format( hex(self.pc), ref_2, ref_1 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # tgtArr[ref_0] = ref_2
+        tmp_3 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(self.pc), tmp_3, tgtArr, ref_0, ref_2 )
+        inst_list.append(inst)
+        self.pc += 1
+
+        if l:
+            self._read_list += [tgtArr, indexArr]
+            self._write_list += [tgtArr]
+        else:
+            self._read_list += [srcVal, indexArr]
+            self._write_list += [tgtArr]
 
         return inst_list
     
     def eval_UPDATERANGE(self, node, args):
-        return self.build_updaterange(node, args)
+        return self.build_updaterange(node, args, False)
+
+    def eval_UPDATERANGE_L(self, node, args):
+        return self.build_updaterange(node, args, True)
 
     def build_require_ordered(self, node, args, isAscending):
         # print("build_require_ordered args: {}".format(args))
