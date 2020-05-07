@@ -12,6 +12,8 @@ class EnumeratorAST():
         self.builder = builder
         self.func_deps = func_deps
         self.analysis = analysis
+        self.st = None
+        self.end = None
         productions = self.builder.get_productions_with_lhs(typ)
         if len(productions) > 0:
             summarize = productions[0]            
@@ -23,16 +25,27 @@ class EnumeratorAST():
             print("No candidates available!")
             # self.queue = []
             self.queue = deque()
-            
+
+    def set_iterators(self, its):
+        self.st = its[0]
+        self.end = its[1]
+
     def next_candidate(self):
         # If we had a finite grammar, we can run out of candidates
-        if self.queue == []:
+        if not self.queue:
             return None
 
         # Pop first node from queue
         # fnode = self.queue.pop(0)
         fnode = self.queue.popleft()
 
+        # Prune sequential summaries which don't have right iterators
+        while fnode.bad_iterators(self.st, self.end):
+            # If no more options, back out
+            if not self.queue:
+                return None
+            fnode = self.queue.popleft()            
+        
         # If no more non-terminals, return candidate
         if fnode.complete():
             return fnode.build_candidate()
@@ -40,7 +53,7 @@ class EnumeratorAST():
         # Prune partial programs which do not satisy dependencies
         while not fnode.is_legal():
             # If no more options, back out
-            if self.queue == []:
+            if not self.queue:
                 return None
             # fnode = self.queue.pop(0)
             fnode = self.queue.popleft()
@@ -91,6 +104,10 @@ class FunctionNode():
         self.analysis = analysis
         # self.isFunc = True
 
+    def bad_iterators(self, st, end):
+        
+        return False
+        
     def vars_contained(self):
         vars_contd = []
         for child in self.children:

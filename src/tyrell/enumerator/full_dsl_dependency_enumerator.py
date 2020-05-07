@@ -40,7 +40,10 @@ class DependencyEnumerator(Enumerator):
 
         self._history = []
         self._candidate_num = 0
-        self.enum = EnumeratorAST(self._builder.output, func_deps, analysis, self._builder)                
+        self.enum = EnumeratorAST(self._builder.output, func_deps, analysis, self._builder)
+
+    def set_iterators(self, its):
+        self.enum.set_iterators(its)
 
     def get_types(self, val):
         val_types = []

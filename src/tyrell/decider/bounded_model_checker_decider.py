@@ -117,7 +117,7 @@ class BoundedModelCheckerDecider(Decider):
         self._tnsf_counter += 1
         return "TNSF_{}".format(self._tnsf_counter)
 
-    def is_equivalent(self, prog):
+    def is_equivalent(self, prog, sumd_vars=[]):
         '''
         Test the program on all examples provided.
         Return a list of failed examples.
@@ -135,17 +135,18 @@ class BoundedModelCheckerDecider(Decider):
             print("#### source contract ####")
             print(self._org_contract)
         # trigger Bounded Model Checker
-        return self._equal_output(cand_contract, self._org_contract, self._verbose)
+        return self._equal_output(cand_contract, self._org_contract, self._verbose, sumd_vars)
 
-    def analyze(self, prog):
+    def analyze(self, prog, sumd_vars=[]):
         '''
         This basic version of analyze() merely interpret the AST and see if it conforms to our examples
         '''
-        if self.is_equivalent(prog):
-            return ok()
-        else:
-            return bad()
-
+        # if self.is_equivalent(prog):
+        #     return ok()
+        # else:
+        #     return bad()
+        return self.is_equivalent(prog, sumd_vars)
+        
     def assemble_arrayread(self, curr_addr, ir):
         inst = "{}: {} = ARRAY-READ {} {}".format( hex(curr_addr), ir.lvalue, ir.variable_left, ir.variable_right )
         return curr_addr+1, [inst], [], [ str(ir.lvalue), str(ir.variable_left), str(ir.variable_right) ]
