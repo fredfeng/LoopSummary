@@ -268,9 +268,9 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
         # Add in arithmetic lambda funcs
         actual_spec += '''
 func add: L -> uint;
-func mul: L -> nonzero_uint;
-func sub: L -> uint;
-func div: L -> nonzero_uint;
+# func mul: L -> nonzero_uint;
+# func sub: L -> uint;
+# func div: L -> nonzero_uint;
         '''
         # Use filter conditional for require as well as filter
         actual_spec = actual_spec.replace("ReqCond", "Cond")        
@@ -464,7 +464,7 @@ func nonintFunc: Inv -> F;
 # func COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(uint => #A);
 # func NESTED_COPYRANGE__#A: IF -> Read__mapping(uint => #A), i, Write__mapping(address => #A), Index_Read__mapping(uint => address);
 # func NESTED_COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
-# func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
+func MAP_L: IF -> Read_Write__mapping(uint => uint), L;
 # func MAP__#A: F -> Write__mapping(uint => #A), Read__#A;
 # func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
 # func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);

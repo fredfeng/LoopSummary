@@ -1,3 +1,6 @@
+import os
+import time
+
 from typing import Callable, NamedTuple, List, Any
 from tyrell.decider.decider import Decider
 from tyrell.interpreter import Interpreter
@@ -419,9 +422,45 @@ class BoundedModelCheckerDecider(Decider):
 
         return next_addr, final_inst_list, final_ckpt_list, final_vars_list
 
+    def source_code_preprocess(self, target_contract):
+        # assume that there's no expression spanning across multiple lines
+        with open(target_contract, "r", encoding="iso-8859-1") as f:
+            raw_lines = f.readlines()
+        processed_lines = []
+        for dline in raw_lines:
+            rline = dline.strip().replace(" ","")
+            # FIXME: a crappy matching
+            if rline.startswith("require("):
+                r1 = len("require(")
+                r2 = rline.find(");")
+                rcond = rline[r1:r2]
+                rclist = rcond.split("&&")
+                for rc in rclist:
+                    processed_lines.append("require({});\n".format(rc))
+            else:
+                processed_lines.append(dline)
+
+        
+        rtime = time.time()
+        rname = os.path.basename(target_contract)
+        rpath = os.path.dirname(target_contract)
+        ppath = os.path.dirname(os.path.dirname(target_contract))
+        
+        # FIXME: this creates tmp folder at ase_benchmarks_regularized/ or src/
+        if not os.path.isdir(os.path.join(ppath,"tmp")):
+            os.mkdir(os.path.join(ppath,"tmp"))
+        new_path = os.path.join(ppath,"tmp","{}.{}".format(rtime,rname))
+        with open(new_path, "w", encoding="iso-8859-1") as f:
+            f.write("".join(processed_lines))
+
+        return new_path
+
 
     def extract_ir_from_source(self, target_contract):
-        slither = Slither(target_contract)
+        processed_target_contract = self.source_code_preprocess(target_contract)
+        # slither = Slither(target_contract)
+        slither = Slither(processed_target_contract)
+
         contract = slither.contracts[0]
         function = contract.functions_declared[0]
         (_, _, _, func_summaries, _) = contract.get_summary()

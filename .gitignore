@@ -1,3 +1,7 @@
+# tmp folder
+examples/ase_benchmarks_regularized/tmp/
+src/tmp/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
