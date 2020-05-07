@@ -10,11 +10,11 @@ rosette_path = os.path.abspath(os.getcwd()) + '/rosette/bmc-rosette'
 
 # Helper function to check equivalence for special CKPT vars
 def check_prog_var(v1, v2):
-    if v1.startswith("PROG") and v2.startswith("PROG"):
-        if "_" in v1 and "_" in v2:
-            return "_".join(v1.split("_")[1:]) == "_".join(v2.split("_")[1:])
+    return v1.startswith("PROG") and v2.startswith("PROG")
+    #     if "_" in v1 and "_" in v2:
+    #         return "_".join(v1.split("_")[1:]) == "_".join(v2.split("_")[1:])
 
-    return False
+    # return False
 
 def check_eq(pfile1, pfile2, verbose=False, sumd_vars=[]):
 
@@ -81,8 +81,18 @@ def check_eq(pfile1, pfile2, verbose=False, sumd_vars=[]):
     if write2_filt == []:
         # print("No matching write variable to {0} in original loop ({1})!".format(write1[0], write2))
         return False
-    
-    json_out = {"write1": write1, "insts1": inst_list1, "write2": write2_filt, "insts2": inst_list2}
+
+
+    for w2 in write2_filt:
+        is_summ = run_rosette(write1, inst_list1, [w2], inst_list2, verbose)
+        if is_summ:
+            write2.remove(w2)
+            return (write1[0], write2)
+
+    return False
+
+def run_rosette(write1, inst_list1, write2, inst_list2, verbose):    
+    json_out = {"write1": write1, "insts1": inst_list1, "write2": write2, "insts2": inst_list2}
     
     json_out_str = json.dumps(json_out)
     if verbose:
@@ -103,14 +113,14 @@ def check_eq(pfile1, pfile2, verbose=False, sumd_vars=[]):
     if "sat? = #t" in output:
         eq_ret = False
     elif "sat? = #f" in output:
-        # Return the variable which is summarized and the others yet to be summarized
-        if write1[0] in write2:
-            write2.remove(write1[0])
-        else:
-            for val in write2:
-                if check_prog_var(val, write1[0]):
-                    write2.remove(val)
-        eq_ret = (write1[0], write2) 
+        # # Return the variable which is summarized and the others yet to be summarized
+        # if write1[0] in write2:
+        #     write2.remove(write1[0])
+        # else:
+        #     for val in write2:
+        #         if check_prog_var(val, write1[0]):
+        #             write2.remove(val)
+        eq_ret = True
     else:
         raise NotImplementedError("Can't find valid output from Rosette, the original output is shown:\n{}".format(output))
 
