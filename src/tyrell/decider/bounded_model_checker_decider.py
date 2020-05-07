@@ -450,8 +450,6 @@ class BoundedModelCheckerDecider(Decider):
         def is_var_authentic(vv):
             if vv.startswith("TMP_") or vv.startswith("REF_"):
                 return False
-            if vv == "true" or vv == "false":
-                return False
             try:
                 # FIXME: beware of NaN
                 float(vv)
