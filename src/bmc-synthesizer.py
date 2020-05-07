@@ -449,8 +449,8 @@ program SolidityLoops() -> Summary;
 func summarize: Summary -> Inv, i_st, i_end;
 func summarize_nost: Summary -> Inv, i_end;
 
-func seqF: Inv -> F, Inv;
-func seqIF: Inv -> IF, Inv;
+# func seqF: Inv -> F, Inv;
+# func seqIF: Inv -> IF, Inv;
 
 func intFunc: Inv -> IF;
 func nonintFunc: Inv -> F;
