@@ -234,7 +234,9 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     # Non-zero constants
     nonzero_C = list(filter(lambda x: x != '"0"', C))
     # Boolean constants
-    B = ['"true"', '"false"']
+    # B = ['"true"', '"false"']
+    # Boolean is converted to 1 and 0 directly here
+    B = ['"1"', '"0"']
     
     # Add int constants separately for DSL where only constants are needed
     type_table["C"] = C
@@ -474,7 +476,7 @@ func REQUIRE__uint: F -> Cond_uint;
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 # func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func REQUIRE_TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
-# func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
+func UPDATERANGE__#A_#B: F -> Index_Read__mapping(uint => #A), Write__mapping(#A => #B), Read__#B;
 
 # Arithmetic funcs for lambda
 func lambda: L -> Lambda;
@@ -1553,8 +1555,24 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 return True
             return False
 
-        authentic_read_list = list( set([p for p in self._read_list if is_var_authentic(p)]) )
-        authentic_write_list = list( set([p for p in self._write_list if is_var_authentic(p)]) )
+        # (notice) to align with the SlitherIR wher `_owners.length` in read set is displayed as
+        # `_owners` only, this function processes this part *case by case* as needed
+        # i.e., "_owners.length" will be mapped to "_owners" only
+        def regularize_var_list(vl):
+            new_vl = []
+            for q in vl:
+                tq = q.split(".")
+                if len(tq)==2 and tq[1]=="length":
+                    new_vl.append(tq[0])
+                elif len(tq)==1:
+                    new_vl.append(tq[0])
+                else:
+                    raise NotImplementedError("Unsupported member access pattern: {}".format(tq))
+            return new_vl
+            # return vl
+
+        authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
+        authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
         # self._ckpt_list is authentic already
         loop_vars = [self.iterator]
         verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )
@@ -1573,8 +1591,9 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list = body + [inst]
         self.pc += 1
 
-        tmp_0 = self.get_fresh_tmp_name()
-        new_body = [inst.format(GuardStart=tmp_0, GuardEnd=end) for inst in inst_list]
+        # (notice) replace GuardStart with self.iterator if it's not initialized
+        # should keep i=i
+        new_body = [inst.format(GuardStart=it, GuardEnd=end) for inst in inst_list]
 
         # process the lists and pack here
         def is_var_authentic(vv):
@@ -1589,8 +1608,23 @@ class SymDiffInterpreter(PostOrderInterpreter):
                 return True
             return False
 
-        authentic_read_list = [p for p in self._read_list if is_var_authentic(p)]
-        authentic_write_list = [p for p in self._write_list if is_var_authentic(p)]
+        # (notice) to align with the SlitherIR wher `_owners.length` in read set is displayed as
+        # `_owners` only, this function processes this part *case by case* as needed
+        # i.e., "_owners.length" will be mapped to "_owners" only
+        def regularize_var_list(vl):
+            for q in vl:
+                tq = q.split(".")
+                if len(tq)==2 and tq[1]=="length":
+                    new_vl.append(tq[0])
+                elif len(tq)==1:
+                    new_vl.append(tq[0])
+                else:
+                    raise NotImplementedError("Unsupported member access pattern: {}".format(tq))
+            return new_vl
+            # return vl
+
+        authentic_read_list = list( set([p for p in regularize_var_list(self._read_list) if is_var_authentic(p)]) )
+        authentic_write_list = list( set([p for p in regularize_var_list(self._write_list) if is_var_authentic(p)]) )
         # self._ckpt_list is authentic already
         loop_vars = [self.iterator]
         verify_list = list( set(self._ckpt_list+authentic_write_list) - set(loop_vars) )

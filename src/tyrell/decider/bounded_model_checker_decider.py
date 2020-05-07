@@ -14,15 +14,21 @@ from slither.slithir.operations.index import Index
 from slither.slithir.operations.condition import Condition
 from slither.slithir.operations.solidity_call import SolidityCall
 from slither.slithir.operations.internal_call import InternalCall
+from slither.slithir.operations.high_level_call import HighLevelCall
 from slither.slithir.operations.type_conversion import TypeConversion
+from slither.slithir.operations.length import Length
+from slither.slithir.operations.delete import Delete
 
 from slither.slithir.variables.reference import ReferenceVariable
 from slither.solc_parsing.variables.state_variable import StateVariableSolc
 from slither.solc_parsing.variables.local_variable import LocalVariableSolc
 from slither.slithir.variables.temporary import TemporaryVariable
 
+# helper for patch_constant_str_bool
 from slither.slithir.variables.constant import Constant
 
+# helper for patch_slither_delete_read
+from slither.slithir.utils.utils import is_valid_lvalue
 
 
 class BoundedModelCheckerDecider(Decider):
@@ -43,8 +49,9 @@ class BoundedModelCheckerDecider(Decider):
         self._ckpt_counter = -1 # checkpoint variable counter
         self._tnsf_counter = -1 
 
-        # (notice) apply patch to update Constant method
-        self.patch_ir_boolean_0()
+        # (notice) apply patches to adapt the behavior/outcome
+        self.patch_constant_str_bool()
+        self.patch_slither_delete_read()
 
         self._verbose = False
 
@@ -53,7 +60,7 @@ class BoundedModelCheckerDecider(Decider):
         # print(tmp)
         # input("DOUBLE-CHECK")
 
-    def patch_ir_boolean_0(self):
+    def patch_constant_str_bool(self):
         # this patch update the str value of a bool constant in Slither IR
         # where originally it displays "True" but now "true" ("False" but now "false")
         # which corresponds with the MyIR and synthesizer representation
@@ -64,6 +71,19 @@ class BoundedModelCheckerDecider(Decider):
                 return str(self.value)
 
         Constant.__str__ = new_str
+
+    def patch_slither_delete_read(self):
+        # e.g., delete KYC[_off[i]]
+        # read: KYC, _off, (i is loop var)   ---> this patch removes KYC
+        # write: KYC
+        # this patch modify the read variables returned by a Delete node
+        # since a Delete node here is modeled as a direct mapping (`MAP` or `UPDATERANGE`)
+        # but a Delete in Slither has side effect of putting the target `KYC` in read set
+        # while a `MAP` operation does not, so to keep them consistent, this patch removes the `KYC` from read set
+        def new_read(self):
+            return []
+
+        Delete.read = property(new_read)
 
     @property
     def interpreter(self):
@@ -163,6 +183,13 @@ class BoundedModelCheckerDecider(Decider):
         else:
             raise NotImplementedError("Unsupported ARRAY-WRITE original: {}".format(type(ir1)))
 
+    def assemble_delete(self, curr_addr, ir0, ir1):
+        # ir0: Index, ir1: Delete
+        assert ir0.lvalue == ir1.variable
+        tmp_0 = self.get_fresh_tmp_name()
+        inst = "{}: {} = ARRAY-WRITE {} {} {}".format( hex(curr_addr), tmp_0, ir0.variable_left, ir0.variable_right, 0 )
+        return curr_addr+1, [inst], [], [ str(ir0.variable_left), str(ir0.variable_right) ]
+
     def assemble_assignment(self, curr_addr, ir):
         inst = "{}: {} = {}".format( hex(curr_addr), ir.lvalue, ir.rvalue )
         return curr_addr+1, [inst], [], [ str(ir.lvalue), str(ir.rvalue) ]
@@ -174,7 +201,7 @@ class BoundedModelCheckerDecider(Decider):
         code_dict = {
             "+":"ADD", "-":"SUB", "*":"MUL", "/":"DIV",
             "<":"LT", "<=":"LTE", ">":"GT", ">=":"GTE",
-            "==":"EQ", "!=":"NEQ",
+            "==":"EQ", "!=":"NEQ", 
         }
         if code_type in code_dict.keys():
             opcode = code_dict[code_type]
@@ -207,6 +234,18 @@ class BoundedModelCheckerDecider(Decider):
     def assemble_type_conversion(self, curr_addr, ir):
         inst = "{}: {} = {}".format( hex(curr_addr), ir.lvalue, ir.variable )
         return curr_addr+1, [inst], [], [ str(ir.lvalue), str(ir.variable) ]
+
+    # for length attribute, we treat ref.length as a valid token in RosetteIR and model it separately as a symbolic var
+    # this matches the enum set
+    # FIXME: is this sound? check back later.
+    def assemble_length(self, curr_addr, ir):
+        # get the true ref name
+        ref_name = ir.lvalue.points_to.name
+        sym_name = "{}.length".format(ref_name)
+        inst = "{}: {} = {}".format( hex(curr_addr), ir.lvalue, sym_name )
+        # return curr_addr+1, [inst], [], [ sym_name ]
+        return curr_addr+1, [inst], [], [ str(ref_name) ]
+        # (important) see the comments in `regularize_var_list`
 
     # returns: next_addr, inst_list, checkpoint_list
     # checkpoint variable is additional value to verify (currently from `require`)
@@ -286,6 +325,34 @@ class BoundedModelCheckerDecider(Decider):
                     next_addr, inst_list, ckpt_list, vars_list = self.assemble_transfer( next_addr, raw_irs[i] )
                 else:
                     raise NotImplementedError("Unsupported internal call: {}".format(fname))
+            elif seq_irs[i] == HighLevelCall:
+                # e.g., token.transfer(participants[i], _amount);
+                # (CLARIFY-ME) not sure this is actually the same to `transfer` in InternalCall or not
+                # but it currently behaves like `transfer`
+                fname = raw_irs[i].function.full_name
+                if "transfer" in fname:
+                    # follow the `transfer` routine
+                    tvar = raw_irs[i].lvalue
+                    tvar_dict[tvar] = i
+                    next_addr, inst_list, ckpt_list, vars_list = self.assemble_transfer( next_addr, raw_irs[i] )
+                else:
+                    raise NotImplementedError("Unsupported high level call: {}".format(fname))
+            elif seq_irs[i] == Length:
+                # e.g., balances[_owners[i]] = ((totalSupply) / (_owners.length));
+                # FIXME: only work with ref.length, for those ref[ind].length, since they don't fall into any valid type
+                # we aren't solving them anyway, they will raise exception
+                next_addr, inst_list, ckpt_list, vars_list = self.assemble_length( next_addr, raw_irs[i] )
+            elif seq_irs[i] == Delete:
+                # e.g., `delete KYC[_off[i]]` should be modeled as `KYC[_off[i]] = 0`, similar to map
+                # here follows the Assignment procedure
+                ivar = raw_irs[i].variable
+                if ivar in ivar_dict.keys():
+                    # most likely delete an array element
+                    j = ivar_dict[ivar]
+                    next_addr, inst_list, ckpt_list, vars_list = self.assemble_delete( next_addr, raw_irs[j], raw_irs[i] )
+                else:
+                    # can this happen? most likely delete a var
+                    raise NotImplementedError("Unsupported delete: trying to delete a non-ref var.")
             else:
                 raise NotImplementedError("Unsupported instruction type: {}".format(seq_irs[i]))
 
@@ -305,6 +372,7 @@ class BoundedModelCheckerDecider(Decider):
 
         # print("# original read: {}".format(read_list))
         # print("# original write: {}".format(write_list))
+        # input("PAUSE-TO-CHECK")
 
         address = 0
         inst_list = []
