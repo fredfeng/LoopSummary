@@ -104,7 +104,50 @@ class FunctionNode():
         self.analysis = analysis
         # self.isFunc = True
 
+    def iterators_compat(self, it, it_sk):
+        if it.name != it_sk.func_prod.name:
+            # print(it.name, it_sk.func_prod.name)
+            return False
+
+        # Check left child
+        if len(it_sk.children) >= 1:
+            if str(it.args[0]) != str(it_sk.children[0].val.rhs[0]):
+                # print(it.args[0])
+                # print(it_sk.children[0].val.rhs[0])
+                return False
+            
+        # Check right child
+        if len(it_sk.children) >= 2:
+            if str(it.args[1]) != str(it_sk.children[1].val.rhs[0]):
+                # print(it.args[1])
+                # print(it_sk.children[1].val.rhs[0])
+                return False
+            
+        return True
+        
     def bad_iterators(self, st, end):
+        # Not bad iterators if non declared yet
+        if not st:
+            return False
+        
+        # Only summarize should be checked
+        if not self.func_prod.name.startswith("summarize"):
+            return False
+
+        # Deal with start
+        if len(self.children) >= 2:
+            if not self.iterators_compat(st, self.children[1]):
+                return True
+
+        # Deal with end
+        if end != None:
+            # Summarize_nost has no end iterator
+            if self.func_prod.name == "summarize_nost":
+                return True
+
+            if len(self.children) >= 3:
+                if not self.iterators_compat(end, self.children[2]):
+                    return True            
         
         return False
         
