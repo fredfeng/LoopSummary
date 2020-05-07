@@ -6,7 +6,7 @@
 
 
 contract C {
-  
+uint256 now;  
 
   
 

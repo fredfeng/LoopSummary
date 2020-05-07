@@ -174,6 +174,12 @@ def create_refinement_types(analysis, type_table, base_types):
         
     return final_type_dict
 
+def add_sol_var_if_used(var, harness, type_table, typ):
+    if var in map(str, harness.variables_read):
+        type_table[typ] = list(set(type_table[typ]+['"{0}"'.format(var)]))
+
+    return type_table
+
 def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     # Init slither
     slither = Slither(sol_file)
@@ -244,6 +250,11 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     type_table["nonzero_uint"] = list(set(type_table["uint"]+nonzero_C))
     # Add int constants to ints
     type_table["uint"] = list(set(type_table["uint"]+C))
+        
+    # Add in now and msg.value if used
+    type_table = add_sol_var_if_used("now", harness_fun, type_table, "uint")
+    type_table = add_sol_var_if_used("msg.value", harness_fun, type_table, "uint")
+
     # Add "true" and "false" as boolean constants
     type_table["bool"] = list(set(type_table["bool"]+B))
     # Add 0 address to addresses
@@ -251,6 +262,9 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     # (quick-fix) directly use 0 to represent address constant (as it is in RosetteIR)
     type_table["address"] = list(set(type_table["address"]+['"0"']+C))
 
+    # Add msg.sender if used
+    type_table = add_sol_var_if_used("msg.sender", harness_fun, type_table, "address")
+        
     # Add in lambdas if present
     if (lambdas):
         type_table["Lambda"] = list(map(lambda x: '"{0}"'.format(x), lambdas))
@@ -457,7 +471,7 @@ func nonintFunc: Inv -> F;
 
 # DSL Functions (with lambda versions when appropriate)
 # func SUM_L: IF -> Write__g_int, Read__mapping(uint => uint), L;
-# func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
+func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func NESTED_SUM_L: IF -> Write__g_int, Read__mapping(address => uint), L, Index_Read__mapping(uint => address);
 # func NESTED_SUM: IF -> Write__g_int, Read__mapping(address => uint), Index_Read__mapping(uint => address);
 # func COPYRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint), L;
