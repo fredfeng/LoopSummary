@@ -87,7 +87,9 @@ def check_eq(pfile1, pfile2, verbose=False, sumd_vars=[]):
         is_summ = run_rosette(write1, inst_list1, [w2], inst_list2, verbose)
         if is_summ:
             write2.remove(w2)
-            return (write1[0], write2)
+            if w2.startswith("PROG"):
+                w2 = "_".join(w2.split("_")[1:])
+            return (w2, write2)
 
     return False
 
