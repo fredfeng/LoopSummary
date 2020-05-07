@@ -6,7 +6,6 @@
 
 1. Currently the tool ignores `Condition` node, i.e., it can't handle if-else condition.
 2. Currently the tool may not be compatible with `while` loop.
-3. The tool needs to support `&&` operator (as well as other logical operator).
 
 ### Recent Logs
 
@@ -171,15 +170,14 @@ screen -S size1_KLMN_600
 ./experiments/run_batch.sh 1 [ST] 600
 ./experiments/run_batch.sh 1 [UVWXYZ] 600
 
-./experiments/run_batch.sh 2 [A] 600
-./experiments/run_batch.sh 2 [B] 600
-./experiments/run_batch.sh 2 [C] 600
-./experiments/run_batch.sh 2 [D] 600
-./experiments/run_batch.sh 2 [EF] 600
-./experiments/run_batch.sh 2 [G] 600
-./experiments/run_batch.sh 2 [HIJK] 600
-./experiments/run_batch.sh 2 [LM] 600
-...(to be continued)
+./experiments/run_batch.sh 2 [A] 900
+./experiments/run_batch.sh 2 [B] 900
+./experiments/run_batch.sh 2 [C] 900
+./experiments/run_batch.sh 2 [D] 900
+./experiments/run_batch.sh 2 [E] 900
+./experiments/run_batch.sh 2 [F] 900
+./experiments/run_batch.sh 2 [G] 900
+...
 
 ./experiments/run_batch.sh 3 [A] 900
 ./experiments/run_batch.sh 3 [BC] 900
