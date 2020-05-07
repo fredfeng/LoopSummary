@@ -1179,16 +1179,24 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         if nested and l:
-            self._read_list += [srcArr, srcStart, indexArr]
+            # self._read_list += [srcArr, srcStart, indexArr]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr, indexArr]
             self._write_list += [tgtArr]
         elif nested and (not l):
-            self._read_list += [srcArr, srcStart, indexArr]
+            # self._read_list += [srcArr, srcStart, indexArr]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr, indexArr]
             self._write_list += [tgtArr]
         elif (not nested) and l:
-            self._read_list += [srcArr, srcStart]
+            # self._read_list += [srcArr, srcStart]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr]
             self._write_list += [tgtArr]
         else:
-            self._read_list += [srcArr, srcStart]
+            # self._read_list += [srcArr, srcStart]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr]
             self._write_list += [tgtArr]
 
         return inst_list
@@ -1282,16 +1290,24 @@ class SymDiffInterpreter(PostOrderInterpreter):
         self.pc += 1
 
         if nested and l:
-            self._read_list += [srcArr, srcStart, indexArr, tgtArr]
+            # self._read_list += [srcArr, srcStart, indexArr, tgtArr]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr, indexArr, tgtArr]
             self._write_list += [tgtArr]
         elif nested and (not l):
-            self._read_list += [srcArr, srcStart, indexArr, tgtArr]
+            # self._read_list += [srcArr, srcStart, indexArr, tgtArr]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr, indexArr, tgtArr]
             self._write_list += [tgtArr]
         elif (not nested) and l:
-            self._read_list += [srcArr, srcStart, tgtArr]
+            # self._read_list += [srcArr, srcStart, tgtArr]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr, tgtArr]
             self._write_list += [tgtArr]
         else:
-            self._read_list += [srcArr, srcStart, tgtArr]
+            # self._read_list += [srcArr, srcStart, tgtArr]
+            # quick-fix <type i>: no need to include srcStart any more as it's processed in const/addc/...
+            self._read_list += [srcArr, tgtArr]
             self._write_list += [tgtArr]
 
         return inst_list

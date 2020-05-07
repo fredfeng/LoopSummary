@@ -122,14 +122,14 @@ python ./creep.py --folder <log_folder>
 ### Azure Configurations
 
 ```
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.64.187.87
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.40.18.86
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.42.22.122
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.91.104.61
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@23.99.8.170
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.112.181.253
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@23.101.200.46
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@104.42.77.220
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.78.30.126
+ssh -i ~/.ssh/ju-ucsb
+ssh -i ~/.ssh/ju-ucsb
+ssh -i ~/.ssh/ju-ucsb 
+ssh -i ~/.ssh/ju-ucsb 
+ssh -i ~/.ssh/ju-ucsb 
+ssh -i ~/.ssh/ju-ucsb 
+ssh -i ~/.ssh/ju-ucsb 
 
 # install Anaconda
 wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
