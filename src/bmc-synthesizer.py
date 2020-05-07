@@ -249,7 +249,7 @@ def instantiate_dsl(sol_file, analysis, lambdas, req_conds, prune):
     # Add 0 address to addresses
     # type_table["address"] = list(set(type_table["address"]+['"address(0)"']))
     # (quick-fix) directly use 0 to represent address constant (as it is in RosetteIR)
-    type_table["address"] = list(set(type_table["address"]+['"0"']))
+    type_table["address"] = list(set(type_table["address"]+['"0"']+C))
 
     # Add in lambdas if present
     if (lambdas):
@@ -473,7 +473,7 @@ func SUM: IF -> Write__g_int, Read__mapping(uint => uint);
 # func REQUIRE_ASCENDING: F -> mapping(uint => uint);
 # func REQUIRE_DESCENDING: F -> mapping(uint => uint);
 # func REQUIRE__uint: F -> Cond_uint;
-# func REQUIRE__address: F -> Cond_address;
+func REQUIRE__address: F -> Cond_address;
 # func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
 # func TRANSFER_L: F -> mapping(uint => address), mapping(uint => uint), L;
 func REQUIRE_TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
@@ -513,8 +513,8 @@ func subc_end: i_end -> GuardEnd__uint, C;
 # func bool_arrF2: Cond_uint -> mapping(uint => address), mapping(address => bool);
 
 # Boolean comps for address
-# func eq_addr: Cond_address -> mapping(uint => address), address;
-# func neq_addr: Cond_address -> mapping(uint => address), address;
+func eq_addr: Cond_address -> mapping(uint => address), address;
+func neq_addr: Cond_address -> mapping(uint => address), address;
 '''
 
 class SymDiffInterpreter(PostOrderInterpreter):
