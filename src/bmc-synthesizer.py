@@ -484,8 +484,8 @@ func INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => ui
 func INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(uint => uint);
 func NESTED_INCRANGE_L: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), L, Index_Read__mapping(uint => address);
 func NESTED_INCRANGE: IF -> Read__mapping(uint => uint), i, Write__mapping(address => uint), Index_Read__mapping(uint => address);
-func REQUIRE_ASCENDING: F -> mapping(uint => uint);
-func REQUIRE_DESCENDING: F -> mapping(uint => uint);
+# func REQUIRE_ASCENDING: F -> mapping(uint => uint);
+# func REQUIRE_DESCENDING: F -> mapping(uint => uint);
 func REQUIRE__uint: F -> Cond_uint;
 func REQUIRE__address: F -> Cond_address;
 func TRANSFER: F -> mapping(uint => address), mapping(uint => uint);
