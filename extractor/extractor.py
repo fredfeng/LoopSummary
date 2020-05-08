@@ -10,7 +10,7 @@ BENCHMARK_OUT_PATH = os.path.join('.', 'benchmarks')
 BENCHMARK_IN_PATH = os.path.join('..', 'examples', 'safemath')
 
 new_contract='''
-pragma solidity ^0.5.10;
+
 
 {imports}
 
@@ -56,8 +56,8 @@ solc4_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.4')
 solc5_command = os.path.join('/', 'usr', 'local', 'bin', 'solc-0.5')
 sif_command = os.path.join('SIF', 'build', 'sif', 'sif')
 null_out = os.path.join('/', 'dev', 'null')
-temporary_json = os.path.join('.', 'tmp.json')
-temporary_ast = os.path.join('.', 'tmp.ast')
+temporary_json = os.path.join('.', 'tmp2.json')
+temporary_ast = os.path.join('.', 'tmp2.ast')
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -95,6 +95,41 @@ def get_var_types(types):
                 all_types.append(typ)
 
     return list(set(all_types))
+
+def should_be_filtered(loop_info, classic_types):
+    safemath_funcs = ["add", "mul", "div", "sub", "mod"]    
+    
+    # Remove struct usage
+    if loop_info.structs_used != [''] and loop_info.structs_used != []:
+        print("Struct: {0}".format(loop_info.structs_used))
+        return True
+
+    # Remove returns
+    if "return " in loop_info.source:
+        print("Return")
+        return True
+
+    # Fetch function names and their callers
+    func_caller_pairs = []
+    for func in loop_info.funcs:
+        func_caller_pairs += get_func_caller_pairs(func)
+
+    # Remove external function calls
+    for caller, func in func_caller_pairs:
+        if not (func == "transfer" and (caller in loop_info.type_table or caller == "")) and not func in safemath_funcs and func != "require" and not func in classic_types:
+            print("Func: {0}".format(func))
+            return True
+        
+    # Remove nested mappings and multi-d arrays
+    for var, typ in loop_info.type_table.items():
+        if "[][]" in typ:
+            print("2d array: {0} {1}".format(typ, var))
+            return True
+        if typ.count("mapping")+typ.count("[]") > 1:
+            print("Nested mapping/array: {0} {1}".format(typ, var))
+            return True
+        
+    return False
 
 def extract_loop_info(sif_output):
     source = sif_output[0][0]
@@ -194,7 +229,7 @@ def get_func_caller_pairs(func_call):
     return matches
 
 def get_standalone_func_name(func_call):
-    matches = re.findall(r"([^(]*)\(", func_call)
+    matches = re.findall(r"\A([^(]*)\(", func_call)
     return matches
 
 def create_stub_safemath(loop_info):
@@ -236,10 +271,10 @@ def create_stub_erc20(loop_info):
         
     return stubs
 
-    
 def parse_sif_output(cname, output, args):
     contracts = {}
-
+    filtered_contracts = {}
+    
     # print(output)
     
     # Split output by loops (last is not loop, but global info, so separate out)
@@ -267,13 +302,24 @@ def parse_sif_output(cname, output, args):
 
         # Extract relevant loop information
         loop_info = extract_loop_info(loop_parse)
-        
-        # Extract types from mappings/arrays to add to all types
-        all_var_types = get_var_types(loop_info.type_table.values())
+
+        # Cosntruct all classic types
         uint_types = [uint+str(i*8) for i,uint in enumerate(["uint"]*33)]
         int_types = [intt+str(i*8) for i,intt in enumerate(["int"]*33)]        
         bytes_types = [byte+str(i) for i,byte in enumerate(["bytes"]*33)]
         classic_types = ["uint", "int", "byte", "bytes", "bool", "address"] + uint_types + int_types + bytes_types
+        
+        # Filter contract if it has one of our restricted things
+        if should_be_filtered(loop_info, classic_types):
+            print(loop_info.source)
+            # Add new loop contract to filtered contracts, sorting by loop size
+            if not loop_info.size in filtered_contracts:
+                filtered_contracts[loop_info.size] = []        
+            filtered_contracts[loop_info.size].append(source)
+            continue
+        
+        # Extract types from mappings/arrays to add to all types
+        all_var_types = get_var_types(loop_info.type_table.values())
 
         # Replace safemath if necessary
         if args.replace_safemath:
@@ -325,33 +371,51 @@ def parse_sif_output(cname, output, args):
         print(extracted_contract)
         print("--"*8)
 
-    return contracts
+    return contracts, filtered_contracts
 
 def extract_loops(cname, args):
+    new_file = ""
+    print("--"*8)
+    print(cname)
     with open(cname, 'r') as c_file:
-        pragma = c_file.readlines()[0][16:]
-        pragma = pragma[:-2]
-        pragma = pragma.replace("^", "")
+        pragma_set = False
+        for line in c_file:
+            if "pragma " in line and not pragma_set:
+                pragma_set = True
+                pragma = line[line.index("0."):]
+                line = "pragma solidity ^0.5.10;\n"                
+                if pragma.startswith("0.4"):
+                    print("Using solc version 0.4")
+                    solc_version = "0.4"
+                    solc_command = solc4_command
+                    line = "pragma solidity 0.4.25;\n"                                    
+                elif pragma.startswith("0.5"):
+                    print("Using solc version 0.5")        
+                    solc_command = solc5_command
+                else:
+                    print("WARNING: pragma version {0} unrecognized. Using solc version 0.5.".format(pragma))
+                    solc_command = solc5_command
+            elif "pragma" in line and pragma_set:
+                line = ""
+                
+            new_file += line
+        if not pragma_set:
+            new_file = "pragma solidity ^0.4.24;\n" + new_file
+            solc_command = solc4_command
+            solc_version = "0.4"
 
-    solc_version = "0.5"
-    
-    if pragma.startswith("0.4"):
-        print("Using solc version 0.4")
-        solc_version = "0.4"
-        solc_command = solc4_command
-    elif pragma.startswith("0.5"):
-        print("Using solc version 0.5")        
-        solc_command = solc5_command
-    else:
-        print("WARNING: pragma version {0} unrecognized. Using solc version 0.5.".format(pragma))
-        solc_command = solc5_command
+    with open(cname, 'w') as c_file:
+        c_file.write(new_file)
+
+    try:
+        solc_json_command = '{0} --ast-compact-json {1}'.format(solc_command, cname)
+        print("SOLC JSON COMMAND: {0}".format(solc_json_command))
+        stream = os.popen(solc_json_command)
+        solc_json_output = stream.read()
+        solc_json_output = json.loads(solc_json_output[solc_json_output.index('{'):])
+    except:
+        return 0, 0, 0, 1
         
-    solc_json_command = '{0} --ast-compact-json {1}'.format(solc_command, cname)
-    print("SOLC JSON COMMAND: {0}".format(solc_json_command))
-    stream = os.popen(solc_json_command)
-    solc_json_output = stream.read()
-    solc_json_output = json.loads(solc_json_output[solc_json_output.index('{'):])    
-
     # Add isConstructor field to FunctionDefinition for solc-0.5
     if solc_version == "0.5":
         for k in solc_json_output["nodes"]:
@@ -382,7 +446,10 @@ def extract_loops(cname, args):
     solc_ast_command = '{0} --ast {1}'.format(solc_command, cname)
     print("SOLC AST COMMAND: {0}".format(solc_ast_command))
     stream = os.popen(solc_ast_command)
-    solc_ast_output = stream.read()
+    try:
+        solc_ast_output = stream.read()
+    except:
+        return 0, 0, 0, 1
     lines_to_delete = []
     
     for i,line in enumerate(solc_ast_output.split("\n")):
@@ -403,8 +470,12 @@ def extract_loops(cname, args):
     print("SIF COMMAND: {0}".format(sif_run))
     stream = os.popen(sif_run)
     sif_output = stream.read()
+    
+    if sif_output == "":
+        print("FAILED TO USE SIF!")
+        return 0,0,1,0
 
-    contracts = parse_sif_output(cname, sif_output, args)
+    contracts, filtered_contracts = parse_sif_output(cname, sif_output, args)
 
     if not os.path.exists(BENCHMARK_OUT_PATH):
         os.makedirs(BENCHMARK_OUT_PATH)
@@ -421,17 +492,36 @@ def extract_loops(cname, args):
                 out_file.write(cont)
 
             print("Saved {0} in the folder {1}!".format(fname, out_path))
-                
+
+    return len(contracts.values()), len(filtered_contracts.values()), 0, 0
+              
 
 def extract_loops_from_folder(folder, args):
+    tot_comp = 0
+    tot_notcomp = 0
+    tot_siffail = 0
+    tot_astfail = 0
+    tot_otherfail = 0
     for fname in os.listdir(folder):
         with open(os.path.join(folder,fname), "r") as src_file:
             src = ''.join(src_file.readlines())
             try:
-                extract_loops(os.path.join(folder, fname), args)
+                comp, notcomp, siffail, astfail = extract_loops(os.path.join(folder, fname), args)
+                tot_comp += comp
+                tot_notcomp += notcomp
+                tot_siffail += siffail
+                tot_astfail += astfail
             except Exception as e:
                 print("Failed to compile {0}".format(fname))
                 print(e)
+                tot_otherfail += 1
+
+    print("Filtered: {0}".format(tot_notcomp))
+    print("Not Filtered: {0}".format(tot_comp))
+    print("SIF Failed: {0}".format(tot_siffail))
+    print("AST Failed: {0}".format(tot_astfail))
+    print("Other Failed: {0}".format(tot_otherfail))
+    print("Total: {0}".format(tot_comp+tot_notcomp+tot_siffail+tot_astfail+tot_otherfail))
 
 class LoopInfo:
 
