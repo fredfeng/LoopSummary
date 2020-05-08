@@ -5,7 +5,7 @@ main_folder = "../../LoopSummary.zip"
 key_path = "~/.ssh/ju-ucsb"
 user_name = "ju-ucsb"
 benchmark_folder = "../examples/ase_benchmarks_regularized/{}/"
-target_sizes = [2, 3]
+target_sizes = [4]
 target_timeout = "7200"
 machine_ips = [
 	"13.64.193.227",
@@ -49,16 +49,8 @@ machine_ips = [
 	"157.56.164.186",
 	"104.210.51.195",
 	"40.118.189.113",
-	"40.118.188.60",
-	"40.118.184.98",
-	"40.78.47.105",
-	"13.64.193.217",
-	"13.64.193.41",
-	"13.64.193.181",
-	"13.64.193.64",
-	"13.64.193.200",
 ]
-nb_per_thread = 5
+nb_per_thread = 1
 nt_per_machine = 3
 all_benchmarks = []
 for p in target_sizes:
