@@ -34,7 +34,9 @@ namespace Sif {
     if (std::count(events.begin(), events.end(), fname) != 0) {
       (loop->event_stmts).push_back(result+";");
       (loop->size)--;
-    }    
+    } else {
+      (loop->functions_called).push_back(result);
+    }
     return result;
   }
 
@@ -149,8 +151,8 @@ namespace Sif {
     
   }
 
-  void concatenate_vectors(vector<string> v1, vector<string>* v2) {
-      vector<string>::iterator it = v1.begin();
+  void concatenate_vectors(std::vector<std::string> v1, std::vector<std::string>* v2) {
+      std::vector<std::string>::iterator it = v1.begin();
       for(; it != v1.end(); ++it) {
 	v2->push_back(*it);
       }
@@ -283,7 +285,7 @@ namespace Sif {
       // ignore any non-declared variable (could be function call name, constructor name,
       //   or even "this"
       if (type_table.find(var_name) == type_table.end()) {
-	return;
+    	return;
       }
       
       ASTNode* type = type_table[var_name];
@@ -308,7 +310,6 @@ namespace Sif {
     if (node->get_node_type() == NodeTypeFunctionCall) {
       // Fetch and add function name
       std::string func_call = function_call_source_code(((FunctionCallNode*) node), loop);
-      (loop->functions_called).push_back(func_call);
     }
 
     // Fetch all emit statements
@@ -316,7 +317,7 @@ namespace Sif {
       std::string event_stmt = ((EmitStatementNode*) node)->source_code(empty);
       (loop->event_stmts).push_back(event_stmt);
     }
-
+    
     return;
   }
   

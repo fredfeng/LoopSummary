@@ -3,23 +3,43 @@
 #  - I have decided to not do in-place replacement now, as that is hard. In future,
 #    in-place is probably the best way to do it.
 
+msgSender='''
+function _msgSender() public returns (address) {
+    return msg.sender;
+}
+'''
+
 totalSupply_vars=["uint256 _totalSupply;"]
 totalSupply='''
-function totalSupply() public view override returns (uint256) {
+function totalSupply() public view returns (uint256) {
     return _totalSupply;
 }
 '''
 
 balanceOf_vars=["mapping (address => uint256) _balances;"]
 balanceOf='''
-function balanceOf(address account) public view override returns (uint256) {
+function balanceOf(address account) public view returns (uint256) {
     return _balances[account];
+}
+'''
+
+safeTransfer_vars = []
+safeTransfer='''
+function safeTransfer(address recipient, uint256 amount) public returns (bool) {
+    return transfer(recipient, amount);
+}
+'''
+
+_safeTransfer_vars = []
+_safeTransfer='''
+function _safeTransfer(address recipient, uint256 amount) public returns (bool) {
+    return transfer(recipient, amount);
 }
 '''
 
 transfer_vars = []
 transfer='''
-function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+function transfer(address recipient, uint256 amount) public returns (bool) {
     _transfer(_msgSender(), recipient, amount);
     return true;
 }
@@ -28,26 +48,25 @@ function transfer(address recipient, uint256 amount) public virtual override ret
 
 _transfer_vars = ["mapping (address => uint256) _balances;"]
 _transfer='''
-function _transfer(address sender, address recipient, uint256 amount) internal virtual {
+function _transfer(address sender, address recipient, uint256 amount) internal {
     require(sender != address(0), "ERC20: transfer from the zero address");
     require(recipient != address(0), "ERC20: transfer to the zero address");
 
     _balances[sender] = _balances[sender] - amount;
     _balances[recipient] = _balances[recipient] + amount;
-    emit Transfer(sender, recipient, amount);
 }
 '''
 
 allowance_vars = ["mapping (address => mapping (address => uint256)) _allowances;"]
 allowance='''
-function allowance(address owner, address spender) public view virtual override returns (uint256) {
+function allowance(address owner, address spender) public view returns (uint256) {
     return _allowances[owner][spender];
 }
 '''
 
 approve_vars = []
 approve='''
-function approve(address spender, uint256 amount) public virtual override returns (bool) {
+function approve(address spender, uint256 amount) public  returns (bool) {
     _approve(_msgSender(), spender, amount);
     return true;
 }
@@ -55,7 +74,7 @@ function approve(address spender, uint256 amount) public virtual override return
 
 transferFrom_vars = ["mapping (address => mapping (address => uint256)) _allowances;"]
 transferFrom='''
-function transferFrom(address sender, address recipient, uint256 amount) public virtual override returns (bool) {
+function transferFrom(address sender, address recipient, uint256 amount) public returns (bool) {
     _transfer(sender, recipient, amount);
     _approve(sender, _msgSender(), _allowances[sender][_msgSender()] - amount);
     return true;
@@ -64,12 +83,11 @@ function transferFrom(address sender, address recipient, uint256 amount) public 
 
 _approve_vars = ["mapping (address => mapping (address => uint256)) _allowances;"]
 _approve='''
-function _approve(address owner, address spender, uint256 amount) internal virtual {
+function _approve(address owner, address spender, uint256 amount) internal {
     require(owner != address(0), "ERC20: approve from the zero address");
     require(spender != address(0), "ERC20: approve to the zero address");
 
     _allowances[owner][spender] = amount;
-    emit Approval(owner, spender, amount);
 }
 '''
 
@@ -77,9 +95,14 @@ erc20 = {
     "totalSupply": totalSupply,
     "balanceOf": balanceOf,
     "allowance": allowance,
-    "transfer": transfer,
-    "approve": approve,
-    "transferFrom": transferFrom
+    "transfer": transfer + _transfer + msgSender,
+    "approve": approve + _approve,
+    "transferFrom": transferFrom + _transfer + msgSender + _approve,
+    "safeTransfer": safeTransfer + transfer + _transfer + msgSender,
+    "_transfer": _transfer + msgSender,
+    "_safeTransfer": _safeTransfer + transfer + _transfer + msgSender,
+    "_approve": _approve,
+    "_msgSender": msgSender
     }
 
 erc20_vars = {
@@ -88,7 +111,12 @@ erc20_vars = {
     "allowance": allowance_vars,
     "transfer": list(set(transfer_vars + _transfer_vars)),
     "approve": list(set(approve_vars + _approve_vars)),
-    "transferFrom": list(set(transferFrom_vars + _transfer_vars))     
+    "transferFrom": list(set(transferFrom_vars + _transfer_vars + _approve_vars)),
+    "safeTransfer": list(set(safeTransfer_vars + transfer_vars + _transfer_vars)),
+    "_transfer": _transfer_vars,
+    "_safeTransfer": list(set(safeTransfer_vars + transfer_vars + _transfer_vars)),
+    "_approve": _approve_vars,
+    "_msgSender": []
     }
 
 # SafeMath stubs
