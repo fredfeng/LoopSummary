@@ -1,0 +1,97 @@
+import os
+import time
+
+main_folder = "./LoopSummary/"
+key_path = "~/.ssh/ju-ucsb"
+user_name = "ju-ucsb"
+benchmark_folder = "../examples/ase_benchmarks_regularized/{}/"
+target_sizes = [2, 3]
+target_timeout = "7200"
+machine_ips = [
+	"23.100.40.248", "65.52.122.115",
+]
+nb_per_thread = 3
+nt_per_machine = 3
+all_benchmarks = []
+for p in target_sizes:
+	tmp_list = os.listdir(benchmark_folder.format(p))
+	# group by nb_per_thread
+	grp_list = [tmp_list[u:u+nb_per_thread] for u in range(0,len(tmp_list),nb_per_thread)]
+	all_benchmarks += [(p,grp_list[x]) for x in range(len(grp_list))]
+
+
+
+script_delete = """# This script deletes the existing ./LoopSummary folder on cloud machines.
+# The script is automatically generated.
+"""
+cell_delete = """
+
+echo "# cleaning {}...\n"
+ssh -i {} {}@{} /bin/bash << EOF
+sudo rm -rf {}
+exit
+EOF
+
+"""
+for my_ip in machine_ips:
+	script_delete += cell_delete.format( key_path, key_path, user_name, my_ip, main_folder )
+with open("./cloud_delete.sh","w") as f:
+	f.write(script_delete)
+
+
+
+script_upload = """# This script uploads the specific folder to cloud machines.
+# The script is automatically generated.
+"""
+cell_upload = """
+
+echo "# uploading {}...\n"
+scp -r {} -i {} {}@{}:./
+
+"""
+for my_ip in machine_ips:
+	script_upload += cell_upload.format( main_folder, main_folder, key_path, user_name, my_ip )
+with open("./cloud_upload.sh","w") as f:
+	f.write(script_upload)
+
+
+
+script_execute = """# This script compiles the rosette executable and run benchmarks.
+# The script is automatically generated.
+"""
+cell_execute = """
+
+ssh -i {} {}@{} /bin/bash << EOF
+cd ./LoopSummary/
+raco exe ./src/rosette/bmc-rosette.rkt
+
+{}
+
+EOF
+
+"""
+cell_sc = """
+
+screen -dmS size{}_{}
+screen -S size{}_{} -p 0 -X stuff './experiments/run_batch_list.sh {} {} {}\n'
+
+"""
+list_sc = []
+for j in range(len(all_benchmarks)):
+	q = all_benchmarks[j]
+	t = time.time()
+	list_sc.append(
+		cell_sc.format( q[0], t, q[0], t, q[0], '"{}"'.format(" ".join(q[1])), target_timeout )
+	)
+# group again
+list_gc = [list_sc[u:u+nt_per_machine] for u in range(0,len(list_sc),nt_per_machine)]
+tmp2 = ""
+for i in range(len(machine_ips)):
+	# assume the ip is enough
+	if i >= len(list_gc):
+		break
+	tmp0 = "".join(list_gc[i])
+	tmp1 = cell_execute.format(key_path, user_name, machine_ips[i], tmp0)
+	tmp2 += tmp1
+with open("./cloud_execute.sh","w") as f:
+	f.write(tmp2)
