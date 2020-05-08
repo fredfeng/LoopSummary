@@ -26,10 +26,10 @@ public:
   std::string event_stmts_str();
   std::string to_str(std::map<std::string,std::string>);
   std::string source();
-  std::string print_std::vector(std::vector<std::string>, std::string, std::string);
+  std::string print_vector(std::vector<std::string>, std::string, std::string);
 };
 
-std::string LoopInfo::print_std::vector(std::vector<std::string> vec, std::string str, std::string sep) {
+std::string LoopInfo::print_vector(std::vector<std::string> vec, std::string str, std::string sep) {
   if (vec.size() > 0) {
       std::vector<std::string>::iterator it = vec.begin();
       str += *it;
@@ -80,8 +80,8 @@ std::string LoopInfo::to_str(std::map<std::string,std::string> struct_table) {
   std::string sep = "==============\n";
   std::string str = sep + src + sep + "\n" + vars_used + vars_decd + funcs_called + structs_used + events;
   str += "ITERATOR: " + this->iterator + "\n";
-  str += "SIZE: " + to_std::string(this->size) + "\n";
-  str += "LOOP DEC: " + to_std::string(this->iterator_decd_in_loop) + "\n";  
+  str += "SIZE: " + to_string(this->size) + "\n";
+  str += "LOOP DEC: " + to_string(this->iterator_decd_in_loop) + "\n";  
   str += sep;
   str += structs_source + sep;
   return str;
