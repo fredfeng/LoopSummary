@@ -1140,9 +1140,15 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
-        # ref_0 = it+srcStart
+        # ref_ss = srcStart, expands the srcStart since it may be an expression
+        ref_ss = self.get_fresh_ref_name()
+        inst = "{}: {} = {}".format( hex(self.pc), ref_ss, srcStart )
+        inst_list.append(inst)
+        self.pc += 1
+
+        # ref_0 = it+ref_ss
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ADD {} {}".format( hex(self.pc), ref_0, it, srcStart )
+        inst = "{}: {} = ADD {} {}".format( hex(self.pc), ref_0, it, ref_ss )
         inst_list.append(inst)
         self.pc += 1
 
@@ -1239,9 +1245,15 @@ class SymDiffInterpreter(PostOrderInterpreter):
         inst_list.append(inst)
         self.pc += 1
 
+        # ref_ss = srcStart, expands the srcStart since it may be an expression
+        ref_ss = self.get_fresh_ref_name()
+        inst = "{}: {} = {}".format( hex(self.pc), ref_ss, srcStart )
+        inst_list.append(inst)
+        self.pc += 1
+
         # ref_0 = it+srcStart
         ref_0 = self.get_fresh_ref_name()
-        inst = "{}: {} = ADD {} {}".format( hex(self.pc), ref_0, it, srcStart )
+        inst = "{}: {} = ADD {} {}".format( hex(self.pc), ref_0, it, ref_ss )
         inst_list.append(inst)
         self.pc += 1
 
