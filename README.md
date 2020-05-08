@@ -123,13 +123,17 @@ python ./creep.py --folder <log_folder>
 
 ```
 ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.78.30.126
-ssh -i ~/.ssh/ju-ucsb
-ssh -i ~/.ssh/ju-ucsb
-ssh -i ~/.ssh/ju-ucsb 
-ssh -i ~/.ssh/ju-ucsb 
-ssh -i ~/.ssh/ju-ucsb 
-ssh -i ~/.ssh/ju-ucsb 
-ssh -i ~/.ssh/ju-ucsb 
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.249.32
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.249.65
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.249.4
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.249.27
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.249.3
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.248.160
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.248.46
+
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.83.161.154
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@52.160.121.176
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@40.118.207.146
 
 # install Anaconda
 wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
@@ -171,20 +175,18 @@ screen -S size1_KLMN_600
 ./experiments/run_batch.sh 1 [UVWXYZ] 600
 
 ./experiments/run_batch.sh 2 [A] 900
-./experiments/run_batch.sh 2 [B] 900
-./experiments/run_batch.sh 2 [C] 900
 ./experiments/run_batch.sh 2 [D] 900
-./experiments/run_batch.sh 2 [E] 900
-./experiments/run_batch.sh 2 [F] 900
 ./experiments/run_batch.sh 2 [G] 900
-...
+./experiments/run_batch.sh 2 [J] 900
+./experiments/run_batch.sh 2 [M] 900
+./experiments/run_batch.sh 2 [P] 900
+./experiments/run_batch.sh 2 [S] 900
+./experiments/run_batch.sh 2 [V] 900
+./experiments/run_batch.sh 2 [YZ] 900
 
 ./experiments/run_batch.sh 3 [A] 900
-./experiments/run_batch.sh 3 [BC] 900
-./experiments/run_batch.sh 3 [DEF] 900
-./experiments/run_batch.sh 3 [GHIJKL] 900
-./experiments/run_batch.sh 3 [MNOPQ] 900
-./experiments/run_batch.sh 3 [RS] 900
+./experiments/run_batch.sh 3 [D] 900
+./experiments/run_batch.sh 3 [G] 900
 
 ./experiments/run_batch.sh 3 [TU] 900
 ./experiments/run_batch.sh 3 [VWXYZ] 900
