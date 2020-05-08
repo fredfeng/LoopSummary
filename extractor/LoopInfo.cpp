@@ -1,37 +1,37 @@
-using namespace std;
+// using namespace std;
 
 class LoopInfo {
 
 public:
 
-  string condition = "";
-  string init = "";
-  string increment = "";
-  string body = "";
+  std::string condition = "";
+  std::string init = "";
+  std::string increment = "";
+  std::string body = "";
   int size = 0;
-  string iterator = "";
-  vector<string> variables_used;
-  vector<string> variables_declared;
-  vector<string> functions_called;
-  vector<string> structs_used;
-  vector<string> event_stmts;
+  std::string iterator = "";
+  std::vector<std::string> variables_used;
+  std::vector<std::string> variables_declared;
+  std::vector<std::string> functions_called;
+  std::vector<std::string> structs_used;
+  std::vector<std::string> event_stmts;
   bool is_while = false;
   bool iterator_decd_in_loop = false;
 
-  string variables_used_str();
-  string variables_declared_str();
-  string functions_called_str();
-  string structs_used_str();
-  string structs_source_str(map<string, string>);
-  string event_stmts_str();
-  string to_str(map<string,string>);
-  string source();
-  string print_vector(vector<string>, string, string);
+  std::string variables_used_str();
+  std::string variables_declared_str();
+  std::string functions_called_str();
+  std::string structs_used_str();
+  std::string structs_source_str(std::map<std::string, std::string>);
+  std::string event_stmts_str();
+  std::string to_str(std::map<std::string,std::string>);
+  std::string source();
+  std::string print_std::vector(std::vector<std::string>, std::string, std::string);
 };
 
-string LoopInfo::print_vector(vector<string> vec, string str, string sep) {
+std::string LoopInfo::print_std::vector(std::vector<std::string> vec, std::string str, std::string sep) {
   if (vec.size() > 0) {
-      vector<string>::iterator it = vec.begin();
+      std::vector<std::string>::iterator it = vec.begin();
       str += *it;
       for(it++; it != vec.end(); ++it) {
         str += sep + *it;
@@ -40,54 +40,54 @@ string LoopInfo::print_vector(vector<string> vec, string str, string sep) {
   return str+"\n";  
 }
 
-string LoopInfo::variables_used_str() {
-  return print_vector(this->variables_used, "USED: ", ",");
+std::string LoopInfo::variables_used_str() {
+  return print_std::vector(this->variables_used, "USED: ", ",");
 }
 
-string LoopInfo::variables_declared_str() {
-  return print_vector(this->variables_declared, "DECLARED: ", ",");
+std::string LoopInfo::variables_declared_str() {
+  return print_std::vector(this->variables_declared, "DECLARED: ", ",");
 }
   
-string LoopInfo::functions_called_str() {
-  return print_vector(this->functions_called, "FUNCTIONS: ", "$$");  
+std::string LoopInfo::functions_called_str() {
+  return print_std::vector(this->functions_called, "FUNCTIONS: ", "$$");  
 }
   
-string LoopInfo::structs_used_str() {
-  return print_vector(this->structs_used, "STRUCTS: ", ",");  
+std::string LoopInfo::structs_used_str() {
+  return print_std::vector(this->structs_used, "STRUCTS: ", ",");  
 }
   
-string LoopInfo::event_stmts_str() {
-  return print_vector(this->event_stmts, "EVENTS: ", "$$");
+std::string LoopInfo::event_stmts_str() {
+  return print_std::vector(this->event_stmts, "EVENTS: ", "$$");
 }
 
-string LoopInfo::structs_source_str(map<string, string> struct_table) {
-  vector<string> vec;
-  vector<string>::iterator it=this->structs_used.begin();
+std::string LoopInfo::structs_source_str(std::map<std::string, std::string> struct_table) {
+  std::vector<std::string> vec;
+  std::vector<std::string>::iterator it=this->structs_used.begin();
   for(; it != this->structs_used.end(); it++) {
     vec.push_back(struct_table[*it]);
   }
-  return print_vector(vec, "", "$$$$$$$$$$$$$\n");
+  return print_std::vector(vec, "", "$$$$$$$$$$$$$\n");
 }
   
-string LoopInfo::to_str(map<string,string> struct_table) {
-  string src = this->source();
-  string vars_used = this->variables_used_str();
-  string vars_decd = this->variables_declared_str();
-  string funcs_called = this->functions_called_str();
-  string structs_used = this->structs_used_str();
-  string structs_source = this->structs_source_str(struct_table);
-  string events = this->event_stmts_str();
-  string sep = "==============\n";
-  string str = sep + src + sep + "\n" + vars_used + vars_decd + funcs_called + structs_used + events;
+std::string LoopInfo::to_str(std::map<std::string,std::string> struct_table) {
+  std::string src = this->source();
+  std::string vars_used = this->variables_used_str();
+  std::string vars_decd = this->variables_declared_str();
+  std::string funcs_called = this->functions_called_str();
+  std::string structs_used = this->structs_used_str();
+  std::string structs_source = this->structs_source_str(struct_table);
+  std::string events = this->event_stmts_str();
+  std::string sep = "==============\n";
+  std::string str = sep + src + sep + "\n" + vars_used + vars_decd + funcs_called + structs_used + events;
   str += "ITERATOR: " + this->iterator + "\n";
-  str += "SIZE: " + to_string(this->size) + "\n";
-  str += "LOOP DEC: " + to_string(this->iterator_decd_in_loop) + "\n";  
+  str += "SIZE: " + to_std::string(this->size) + "\n";
+  str += "LOOP DEC: " + to_std::string(this->iterator_decd_in_loop) + "\n";  
   str += sep;
   str += structs_source + sep;
   return str;
 }
   
-string LoopInfo::source() {
+std::string LoopInfo::source() {
   if (this->is_while) {
     return "while("+condition+")"+body+"\n";      
   }
