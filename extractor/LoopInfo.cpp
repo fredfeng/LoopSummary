@@ -41,23 +41,23 @@ std::string LoopInfo::print_vector(std::vector<std::string> vec, std::string str
 }
 
 std::string LoopInfo::variables_used_str() {
-  return print_std::vector(this->variables_used, "USED: ", ",");
+  return print_vector(this->variables_used, "USED: ", ",");
 }
 
 std::string LoopInfo::variables_declared_str() {
-  return print_std::vector(this->variables_declared, "DECLARED: ", ",");
+  return print_vector(this->variables_declared, "DECLARED: ", ",");
 }
   
 std::string LoopInfo::functions_called_str() {
-  return print_std::vector(this->functions_called, "FUNCTIONS: ", "$$");  
+  return print_vector(this->functions_called, "FUNCTIONS: ", "$$");  
 }
   
 std::string LoopInfo::structs_used_str() {
-  return print_std::vector(this->structs_used, "STRUCTS: ", ",");  
+  return print_vector(this->structs_used, "STRUCTS: ", ",");  
 }
   
 std::string LoopInfo::event_stmts_str() {
-  return print_std::vector(this->event_stmts, "EVENTS: ", "$$");
+  return print_vector(this->event_stmts, "EVENTS: ", "$$");
 }
 
 std::string LoopInfo::structs_source_str(std::map<std::string, std::string> struct_table) {
@@ -66,7 +66,7 @@ std::string LoopInfo::structs_source_str(std::map<std::string, std::string> stru
   for(; it != this->structs_used.end(); it++) {
     vec.push_back(struct_table[*it]);
   }
-  return print_std::vector(vec, "", "$$$$$$$$$$$$$\n");
+  return print_vector(vec, "", "$$$$$$$$$$$$$\n");
 }
   
 std::string LoopInfo::to_str(std::map<std::string,std::string> struct_table) {
@@ -80,8 +80,8 @@ std::string LoopInfo::to_str(std::map<std::string,std::string> struct_table) {
   std::string sep = "==============\n";
   std::string str = sep + src + sep + "\n" + vars_used + vars_decd + funcs_called + structs_used + events;
   str += "ITERATOR: " + this->iterator + "\n";
-  str += "SIZE: " + to_string(this->size) + "\n";
-  str += "LOOP DEC: " + to_string(this->iterator_decd_in_loop) + "\n";  
+  str += "SIZE: " + std::to_string(this->size) + "\n";
+  str += "LOOP DEC: " + std::to_string(this->iterator_decd_in_loop) + "\n";  
   str += sep;
   str += structs_source + sep;
   return str;
