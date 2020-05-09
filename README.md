@@ -125,7 +125,7 @@ python ./creep.py --folder <log_folder>
 (Notice: only list down to exp-41 has 8 cores)
 
 ```
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.64.193.227
+ssh -i ~/.ssh/ju-ucsb ju-ucsb@23.100.33.67
 ssh -i ~/.ssh/ju-ucsb ju-ucsb@157.56.163.76
 ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.64.193.48
 
