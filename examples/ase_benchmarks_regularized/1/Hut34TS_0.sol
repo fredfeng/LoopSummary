@@ -16,7 +16,7 @@ address[] _addrs;
 
   function foo() public {
     
-for(uint i; i < len; i++){
+for(uint i = 0; i < len; i++){
 delete mustKyc[_addrs[i]];
 
 }

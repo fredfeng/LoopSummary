@@ -6,6 +6,7 @@
 
 1. Currently the tool ignores `Condition` node, i.e., it can't handle if-else condition.
 2. Currently the tool may not be compatible with `while` loop.
+3. The patch to the `Delete` node may have some issues (removing all the read variables may not be accurate?)
 
 ### Recent Logs
 
@@ -120,6 +121,8 @@ python ./creep.py --folder <log_folder>
 4. The Trinity side uses global trace list to keep track of the read/write/loop set, since there are several nodes that only return partial instructions, which will make it harder to return full read/write/loop set in every node evaluation. On the contrary, the SlitherIR side uses local trace list since the translation is done by scanning instructions one by one and it's more concise and possible to construct the lists in a periodic way.
 
 ### Azure Configurations
+
+(Notice: only list down to exp-41 has 8 cores)
 
 ```
 ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.64.193.227
