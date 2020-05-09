@@ -8,7 +8,7 @@
 2. Currently the tool may not be compatible with `while` loop.
 3. The patch to the `Delete` node may have some issues (removing all the read variables may not be accurate?)
 
-### Recent Logs
+### Recent Logs (out-dated)
 
 | test case                   | no pruning + rw | pruning     |
 | --------------------------- | --------------- | ----------- |
@@ -125,10 +125,6 @@ python ./creep.py --folder <log_folder>
 (Notice: only list down to exp-41 has 8 cores)
 
 ```
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@23.100.33.67
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@157.56.163.76
-ssh -i ~/.ssh/ju-ucsb ju-ucsb@13.64.193.48
-
 # install Anaconda
 wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
 source ~/.bashrc
